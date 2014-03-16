@@ -33,7 +33,7 @@ However, placing a block is instaneous... and most Shooter games
 that I've played require about 5 to 8 seconds in order to plant 
 the bomb. So what I'll probably do... is have two brewing stands... 
 Each brewing stand will symbolize the position of a base... and 
-it'll the exact spot where you plant the bomb. When a player attempts 
+it'll be the exact spot where you plant the bomb. When a player attempts 
 to plant the bomb, the brew inventory will stay open until the bomb 
 is planted (5 to 8 sec) then close. At which point, it'll turn into a bomb block that opposing 
 players can break to defuse. (Please let me know if you have other ideas 
@@ -41,7 +41,7 @@ for how this can work).
 
 
 Like most shooter games, if the bomb carrier dies... or throws the bomb on 
-the ground, then we some kind of way to let all the players know where the 
+the ground, then we want some kind of way to let all the players know where the 
 bomb is located. Easiest option will be via a compass. But I also want to 
 add some kind of visual aid.
 
@@ -62,22 +62,38 @@ To-Do List
 Timeline:
 ---
 <dl>
-
-<dt>3/15/2014 - BombListener.java</dt>
-<dd> Listen for </dd>
-<dd> 1. bomb pickup - and put a HAT on the bomb carrier 
-so that other players know WHO has the bomb.</dd>
-<dd> 2. bomb disappear - after 5 minutes (respawn it or cancel event)</dd>
-<dd> 3. bomb carrier dies - (drop it on the ground)</dd>
-<dd> 4. bomb plant - 30 seconds to detonate</dd>
-<dd> 5. bomb defusal - BlockBreakEvent = takes 7 seconds</dd>
-<dd> 6. bomb drop - make sure they didn't throw it outside the map. 
-Also, let the players know the drop location (compass + visual aid).</dd>
-
 <dt>3/15/2014 - Start</dt>
 <dd>Laid the initial ground work for the 
 internal structure and layout of the plugin.</dd>
 </dl>
+
+
+Planned Listener Methods:
+---
+- onBombPickup(PlayerPickupEvent e)
+   * put a HAT on the bomb carrier so that players know WHO has the bomb.
+   * Map the Arena to a value of PlayerName (so that the plugin itself knows who has the bomb for each arena).
+- onCarrierDeath(PlayerDeathEvent e)
+   * remove them from the map listing.
+   * drop the bomb on the ground.
+- onBombDrop(PlayerDropItemEvent e)
+   * make sure they didn't throw it outside the map.
+   * point the compass to the direction of the bomb and
+   * give a visual aid so that players know the location of the bomb.
+- onBombDisappear(BlockFadeEvent e)
+   * There are two different ways to handle this:  
+     1. cancel the event OR
+	 2. respawn a new bomb
+- onBombPlant(InventoryOpenEvent e)
+   * start a 7 sec PlantTimer 
+   * if successful, will start a 30 sec DetonateTimer.
+   * if successful, declare the winners.
+- onPlantFailure(InventoryCloseEvent e)
+   * cancel() the PlantTimer. (Notice that there's two ways for the BombPlant to fail: 1. Carrier prematurely closes the inventory, or 2. the Carrier dies).
+- onBombDefuse(BlockBreakEvent e)
+   * Get the player, get his team, and set the winners.
+   
+
 
 
 Contact:
