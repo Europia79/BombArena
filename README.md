@@ -80,7 +80,7 @@ Planned Listener Methods:
    * make sure they didn't throw it outside the map.
    * point the compass to the direction of the bomb and
    * give a visual aid so that players know the location of the bomb.
-- onBombDisappear(BlockFadeEvent e)
+- onBombDisappear(ItemDespawnEvent e)
    * There are two different ways to handle this:  
      1. cancel the event OR
 	 2. respawn a new bomb
@@ -103,5 +103,8 @@ Nick at Nikolai.Kalashnikov@hotmail.com
 
 Nicodemis79 on Skype
 
+
 [http://www.Battlecraft.co/](http://www.Battlecraft.co/ "Battlecraft")
+
+
 [http://Rainbowcraft.net/](http://Rainbowcraft.net/ "Rainbowcraft")
