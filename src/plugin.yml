@@ -1,0 +1,13 @@
+name: Demolition
+main: com.github.Europia79.Demolition.Main
+version: 0.1
+website: http://www.Battlecraft.co/
+description: One bomb, two bases.
+authors: [Europia79]
+depend: [BattleArena, Essentials]
+prefix: Demolition
+commands:
+    demolition:
+        aliases: [bomb,demo,obliterate,obliteration,obl]
+        description: Bomb, Demolition, Obliteration command
+        usage: Problem loading plugin, please send errors on startup to alkarin_v
