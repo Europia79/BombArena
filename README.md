@@ -50,21 +50,26 @@ Any other ideas on how this can be implemented into Minecraft,
 just lemme know! (contact info below)
 
 
-To-Do List
----
-- Close plant+defuse exploit.
-- Kill off players that are too close to the bomb when it detonates.
-- Add compass+visual aids to let players know the location of a dropped bomb.
-- Add config options.
-- Add commands.
-
-
 Timeline:
 ---
 <dl>
-<dt>3/15/2014 - Start</dt>
-<dd>Laid the initial ground work for the 
-internal structure and layout of the plugin.</dd>
+<dt>3/19/2014 - BombTestListener.java </dt>
+<dd>I made this testing class in order to systematically identify all the bugs and squash them. 
+Basically, this process involves breaking up the BombArenaListener into smaller pieces and 
+testing it piece by piece to see where the bugs occur. If anyone wants to use this class for 
+testing, please feel free. Simply delete everything and put whatever you want to test into this class. 
+This method has actually been quite successful in finding bugs. </dd>
+
+
+<dt>3/19/2014 - Multiple Listeners </dt>
+<dd>I gave up on multiple listeners because addArenaListner() method was not working. 
+I tried invoking the method from the constructor, init(), and onBegin() with no success. 
+It appears to be a BattleArena limitation. So unfortunately, ALL listener methods will 
+have to be condensed into the BombArenaListener file.</dd>
+
+
+<dt>3/15/2014 - Start </dt>
+<dd>Laid the initial ground work for the internal structure and layout of the plugin.</dd>
 </dl>
 
 
@@ -84,6 +89,10 @@ Planned Listener Methods:
    * There are two different ways to handle this:  
      1. cancel the event OR
 	 2. respawn a new bomb
+- onBombPlace (BlockPlaceEvent e)
+   * Improper bomb activation!
+   * Set compass to base location.
+   * client-side bug (invisible bomb)
 - onBombPlant(InventoryOpenEvent e)
    * start a 7 sec PlantTimer 
    * if successful, will start a 30 sec DetonateTimer.
@@ -93,8 +102,34 @@ Planned Listener Methods:
 - onBombDefuse(BlockBreakEvent e)
    * Get the player, get his team, and set the winners.
    
-
-
+   
+Bugs to fix:
+---
+- onBombPlace
+  * has a graphical bug which makes the bomb invisible to the client.
+- onCarrierDeath
+  * Does not current trigger onBombDrop (which does the removal of plugin.carrier)
+  * I have a line of code to trigger this event, it's just not tested yet.
+- onFinish(), onComplete()
+  * need to clear plugin.carrier
+- onBegin(), onStart()
+  * plugin.carrier is still set to the previous Match carrier.
+- plugin.carrier
+  * Needs to be changed to Key,Value pair.
+  * Match is the Key.
+  * Value is WHO has the bomb.
+  
+To-Do List
+---
+- Fix bugs.
+- Add tracking for the Team Bases.
+- Close plant+defuse exploit.
+- Kill off players that are too close to the bomb when it detonates.
+- Add compass+visual aids to let players know the location of a dropped bomb.
+- Add config options.
+- Add commands.
+- Add test classes.
+  
 
 Contact:
 ======
