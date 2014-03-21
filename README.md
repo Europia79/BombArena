@@ -119,16 +119,18 @@ Bugs to fix:
   * Match is the Key.
   * Value is WHO has the bomb.
   
+
+Known Issues:
+---
+- Arenas must be setup in such a way that the bases (brewing stands) are reset after each match.
+  
 To-Do List
 ---
-- Fix bugs.
 - Add tracking for the Team Bases.
 - Close plant+defuse exploit.
 - Kill off players that are too close to the bomb when it detonates.
 - Add compass+visual aids to let players know the location of a dropped bomb.
 - Add config options.
-- Add commands.
-- Add test classes.
   
 
 Contact:
