@@ -1,5 +1,6 @@
 package com.github.Europia79.Demolition;
 
+import com.github.Europia79.Demolition.objects.Bomb;
 import com.github.Europia79.Demolition.util.DetonateTimer;
 import com.github.Europia79.Demolition.util.PlantTimer;
 import java.util.Set;
@@ -88,7 +89,7 @@ public class BombTestListener extends Arena {
      * 1. Get the location and spawn a new bomb or
      * 2. Make sure the player drops the bomb. 
      * During testing, make sure that the
-     * PlayerDropItemEvent is trigger.
+     * PlayerDropItemEvent is triggered.
      */
     @ArenaEventHandler
     public void onBombCarrierDeath(PlayerDeathEvent e) {
@@ -98,19 +99,28 @@ public class BombTestListener extends Arena {
         }
         if (plugin.carrier.equalsIgnoreCase(e.getEntity().getPlayer().getName())) {
             e.setDeathMessage("" + e.getEntity().getPlayer().getName()
-                    + " has died and dropped the bomb at location "
+                    + " has died and dropped the bomb at "
                     + " " + (int) e.getEntity().getPlayer().getLocation().getX()
                     + " " + (int) e.getEntity().getPlayer().getLocation().getY()
                     + " " + (int) e.getEntity().getPlayer().getLocation().getZ());
             e.getDrops().clear();
-            e.getEntity().getPlayer().getWorld().dropItemNaturally(
+            // (Item) new ItemStack(Material.HARD_CLAY causes ClassCastException
+            Item bomb = new Bomb(e);
+            bomb.setPickupDelay(40);
+            PlayerDropItemEvent bombDropEvent = new PlayerDropItemEvent(e.getEntity().getPlayer(), bomb);
+            Bukkit.getServer().getPluginManager().callEvent(bombDropEvent);
+            if (bombDropEvent.isCancelled()) {
+                plugin.getLogger().warning("Something has attempted to cancel the bombDropEvent. "
+                        + "Is this intended ? Or is it a bug ?");
+                /*e.getEntity().getPlayer().getWorld().dropItemNaturally(
                     e.getEntity().getPlayer().getLocation(), 
                     new ItemStack(Material.HARD_CLAY)).setPickupDelay(40);
-            // CustomEvent event = new CustomEvent("Sample Message");
-            // PlayerDropItemEvent event = new PlayerDropItemEvent();
-            PlayerDropItemEvent event = new PlayerDropItemEvent(e.getEntity().getPlayer(), 
-                    (Item) new ItemStack(Material.HARD_CLAY));
-
+                */
+            } else {
+                bombDropEvent.getPlayer().getWorld().dropItem(
+                        bombDropEvent.getPlayer().getLocation(),
+                        bombDropEvent.getItemDrop().getItemStack());
+            }
         }
         
     }
@@ -122,7 +132,7 @@ public class BombTestListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombDrop(PlayerDropItemEvent e) {
-        // make sure the bomb didn't get thrown outside the map
+        // To-do: make sure the bomb didn't get thrown outside the map
         Location loc = e.getItemDrop().getLocation();
         if (e.getItemDrop().getItemStack().getType() == Material.HARD_CLAY) {
             if (plugin.carrier.equalsIgnoreCase(e.getPlayer().getName())) {
@@ -194,6 +204,8 @@ public class BombTestListener extends Arena {
             // and msg him to follow the compass
             // e.getPlayer().getInventory().addItem(new ItemStack(Material.HARD_CLAY));
             e.setCancelled(true);
+            e.getItemInHand().setAmount(e.getItemInHand().getAmount() + 1);
+            e.getItemInHand().setAmount(1);
         }
     }
 

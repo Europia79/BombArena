@@ -26,9 +26,10 @@ public class PlantTimer extends BukkitRunnable {
     int duration;
     Main plugin;
     Match match;
-    BombArenaListener bomb;
+    BombArenaListener arena;
     DetonateTimer dtimer;
     int i;
+    String msg;
 
     InventoryOpenEvent event;
     Player player;
@@ -63,7 +64,7 @@ public class PlantTimer extends BukkitRunnable {
         this.BOMB_LOCATION = e.getPlayer().getLocation();
         this.duration = 7;
         i = 37;
-        bomb = b;
+        arena = b;
     }
 
     public long getCurrentTime() {
@@ -83,15 +84,16 @@ public class PlantTimer extends BukkitRunnable {
     public void run() { 
         this.duration = this.duration - 1;
         i = i - 1;
-        player.sendMessage("i = " + i);
-        player.sendMessage("duration = " + this.duration);
-        if (this.duration <= 0) {
-            Set<ArenaPlayer> allplayers = bomb.getMatch().getPlayers();
+        msg = (duration >= 0) ? "" + duration : "" + i;
+        player.sendMessage(msg);
+        if (this.duration == 0) {
+            Set<ArenaPlayer> allplayers = match.getPlayers(); // arena.getMatch().getPlayers();
             for (ArenaPlayer p : allplayers) {
                 p.getPlayer().sendMessage("The bomb will detonate in 30 seconds !!!");
             }
             setBomb(event.getPlayer().getLocation(), 10);
-            event.setCancelled(true);
+            // event.setCancelled(true);
+            player.closeInventory();
             // dtimer.runTaskTimer(plugin, 0L, 20L);
             // this.cancel();
         }
@@ -101,13 +103,16 @@ public class PlantTimer extends BukkitRunnable {
             player.sendMessage(ChatColor.LIGHT_PURPLE
                     + "Congratulations, you have successfully destroyed their base.");
             Player p = plugin.getServer().getPlayer(plugin.carrier);
-            ArenaTeam t = match.getTeam((ArenaPlayer) p);
+            ArenaTeam t = match.getArena().getTeam(player); // arena.getTeam(player);
             match.setVictor(t);
             this.cancel();
         }
         
     }
-    
+    /*
+     * Block Manipulation method from 
+     * http://wiki.bukkit.org/Plugin_Tutorial
+     */
     public void setBomb(Location loc, int length){
     // Set one corner of the cube to the given location.
     // Uses getBlockN() instead of getN() to avoid casting to an int later.
