@@ -36,7 +36,7 @@ import org.bukkit.inventory.ItemStack;
  * onBombCarrierLeave() - if they log out or leave the arena.
  * onBombCarrierDeath() - drop it on the ground. 
  * onBombDrop() - is it outside the map ? 
- * onBombDespawn() - respawn or cancel the event. 
+ * onBombDespawn() - THIS BREAKS ALL OTHER EVENTS. 
  * onBombPlace() - trigger onBombPlant() if close enough. 
  * onBombPlant() - takes 7 sec to plant + 30 sec to blow up. 
  * onPlantFailure() - Self cancelled or caused by death ? 
@@ -62,18 +62,21 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombPickup(PlayerPickupItemEvent e) {
+        int id = getMatch().getID();
+        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
         e.getPlayer().sendMessage("onBombPickup() Listener works!");
         plugin.debug.messagePlayer(e.getPlayer(), "debug works!");
 
         // To-Do: sudo player hat bomb
         if (e.getItem().getItemStack().getType() == Material.HARD_CLAY) {
-            if (plugin.carrier == null) {
-                plugin.carrier = e.getPlayer().getName();
+            if (c == null) {
+                c = e.getPlayer().getName();
+                plugin.carriers.put(id, c);
             } else {
                 e.setCancelled(true);
                 plugin.debug.messagePlayer(e.getPlayer(), 
                         "There can only be ONE bomb per Match. "
-                        + plugin.carrier + " currently has the bomb.");
+                        + c + " currently has the bomb.");
                 e.getItem().remove();
             }
 
@@ -87,6 +90,8 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombCarrierLeave(ArenaPlayerLeaveEvent e) {
+        int id = getMatch().getID();
+        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
         
     }
     
@@ -99,11 +104,14 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombCarrierDeath(PlayerDeathEvent e) {
+        int id = getMatch().getID();
+        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
+        Player p = e.getEntity().getPlayer();
         // drop the bomb on the ground
-        if (plugin.carrier == null) {
+        if (c == null) {
             return;
         }
-        if (plugin.carrier.equalsIgnoreCase(e.getEntity().getPlayer().getName())) {
+        if (p.getName().equals(c)) {
             e.setDeathMessage("" + e.getEntity().getPlayer().getName()
                     + " has died and dropped the bomb at "
                     + " " + (int) e.getEntity().getPlayer().getLocation().getX()
@@ -118,10 +126,6 @@ public class BombArenaListener extends Arena {
             if (bombDropEvent.isCancelled()) {
                 plugin.getLogger().warning("Something has attempted to cancel the bombDropEvent. "
                         + "Is this intended ? Or is it a bug ?");
-                /*e.getEntity().getPlayer().getWorld().dropItemNaturally(
-                    e.getEntity().getPlayer().getLocation(), 
-                    new ItemStack(Material.HARD_CLAY)).setPickupDelay(40);
-                */
             }
             bombDropEvent.getPlayer().getWorld().dropItem(
                         bombDropEvent.getPlayer().getLocation(),
@@ -138,12 +142,16 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombDrop(PlayerDropItemEvent e) {
+        int id = getMatch().getID();
+        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
+        Material type = e.getItemDrop().getItemStack().getType();
         // To-do: make sure the bomb didn't get thrown outside the map
         Location loc = e.getItemDrop().getLocation();
-        if (e.getItemDrop().getItemStack().getType() == Material.HARD_CLAY) {
-            if (plugin.carrier != null 
-                    && plugin.carrier.equalsIgnoreCase(e.getPlayer().getName())) {
-                plugin.carrier = null;
+        if (type == Material.HARD_CLAY) {
+            if (c != null 
+                    && e.getPlayer().getName().equals(c)) {
+                // sets the carrier to null
+                plugin.carriers.remove(id);
                 // get all arena players inside this Match. 
                 // set their compass direction.
                 Set<ArenaPlayer> allplayers = getMatch().getPlayers();
@@ -168,11 +176,13 @@ public class BombArenaListener extends Arena {
      */
     /* @ArenaEventHandler
     public void onBombDespawn(ItemDespawnEvent e) {
+        int id = getMatch().getID();
+        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
         // temporary place holder
         // until I get time to implement this method.
         // respawn a new bomb OR cancel the event
         if (e.getEntity().getItemStack().getType() == Material.HARD_CLAY 
-                && plugin.carrier != null) {
+                && c != null) {
             Set<ArenaPlayer> allplayers = getMatch().getPlayers();
             for (ArenaPlayer p : allplayers) {
                 plugin.debug.messagePlayer(p.getPlayer(), "Bomb despawned cancelled. ");
@@ -180,7 +190,7 @@ public class BombArenaListener extends Arena {
             e.setCancelled(true);
         } else {
             plugin.debug.msgArenaPlayers(getMatch().getPlayers(), 
-                    "Bomb despawn allowed because " + plugin.carrier + " has the bomb.");
+                    "Bomb despawn allowed because " + c + " has the bomb.");
         }
 
     } */
@@ -188,6 +198,11 @@ public class BombArenaListener extends Arena {
     /**
      * This method handle the scenario when players attempt 
      * to place the bomb on the ground like it's a block.
+     * This method is going to help out new players 
+     * by checking the distance to the base: 
+     * if the distance is small, then trigger onBombPlant(InventoryOpenEven e).
+     * if the distance is too large, then give the player helpful hints 
+     * about the distance and compass direction to the enemy base.
      */
     @ArenaEventHandler
     public void onBombPlace(BlockPlaceEvent e) {
@@ -216,15 +231,17 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombPlant(InventoryOpenEvent e) {
+        int id = getMatch().getID();
+        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
         Player p = (Player) e.getPlayer();
         plugin.debug.messagePlayer(p, "onBombPlant() has been called");
         plugin.debug.messagePlayer(p, 
-                "carrier = " + plugin.carrier);
+                "carrier = " + c );
         // To-do: ARE THEY AT THE CORRECT BASE ?
         // start 7 second PlantTimer
         if (e.getInventory().getType() == InventoryType.BREWING 
-                && plugin.carrier != null 
-                && e.getPlayer().getName().equalsIgnoreCase(plugin.carrier)) {
+                && c != null 
+                && e.getPlayer().getName().equalsIgnoreCase(c)) {
             // converted a single Timer to one for each match.
             plugin.pTimers.put(getMatch().getID(), new PlantTimer(e, getMatch()));
             plugin.pTimers.get(getMatch().getID()).runTaskTimer(plugin, 0L, 20L);
@@ -243,23 +260,19 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombPlantFailure(InventoryCloseEvent e) {
+        int id = getMatch().getID();
+        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
         // Is it a brewing stand ?
         // Are they trying to plant ?
-        
         if (e.getPlayer().getInventory().getType() == InventoryType.BREWING
-                && plugin.carrier != null 
-                && plugin.carrier.equalsIgnoreCase(e.getPlayer().getName())) {
-            // if this is an actual death or drop
-            // then let's let those Events handle setting 
-            // the carrier to null
-            // plugin.carrier = null;
-            Set<ArenaPlayer> allplayers = getMatch().getPlayers();
-            for (ArenaPlayer p : allplayers) {
-                plugin.debug.messagePlayer(p.getPlayer(),"onBombPantFailure has been called "
-                        + "due to InventoryCloseEvent");
-            }
-            plugin.pTimers.get(getMatch().getID()).cancel();
-            plugin.ptimer.cancel();
+                && c != null 
+                && e.getPlayer().getName().equals(c)) {
+            // if this is an actual death or drop then those Events 
+            // will handle setting the carrier to null
+            plugin.debug.msgArenaPlayers(getMatch().getPlayers(), 
+                    "onBombPlantFailure has been called " 
+                    + "due to InventoryCloseEvent");
+            plugin.pTimers.get(id).cancel();
         }
 
     }
@@ -272,12 +285,46 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombDefusal(BlockBreakEvent e) {
+        int id = getMatch().getID();
+        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
         // Cancel timers and declare the winners
         if (e.getBlock().getType() == Material.HARD_CLAY) {
+            Set<ArenaPlayer> allplayers = getMatch().getPlayers();
+            for (ArenaPlayer p : allplayers) {
+                p.sendMessage("" + e.getPlayer().getName() 
+                        + " has defused the bomb for the win!");
+            }
             ArenaTeam t = getTeam(e.getPlayer());
             getMatch().setVictor(t);
+            plugin.pTimers.get(id).cancel();
         }
         
+    }
+    
+    @Override
+    public void onBegin() {
+        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onBegin");
+        super.onBegin(); 
+    }
+    
+    @Override
+    public void onStart() {
+        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onStart");
+        // temporary:
+        plugin.carriers.clear();
+        super.onStart();  
+    }
+    
+    @Override
+    public void onComplete() {
+        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onComplete");
+        super.onComplete();
+    }
+    
+    @Override
+    public void onFinish() {
+        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onFinish");
+        super.onFinish();
     }
    
     

@@ -16,8 +16,9 @@ public class Main extends JavaPlugin {
     
     public DebugInterface debug;
     // Integer = match.getID(), String = player.getName()
+    // This will contain the carrier for each arena match.
     Map<Integer, String> carriers;
-    // This will contain the carrier for each arena match in progress.
+    // The carriers Map will replace plugin.carrier
     public String carrier;
     public Map<Integer, PlantTimer> pTimers;
     public Map<Integer, DetonateTimer> dTimers;
