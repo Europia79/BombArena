@@ -92,6 +92,7 @@ public class PlantTimer extends BukkitRunnable {
                 p.getPlayer().sendMessage("The bomb will detonate in 30 seconds !!!");
             }
             setBomb(event.getPlayer().getLocation(), 10);
+            
             // event.setCancelled(true);
             player.closeInventory();
             // dtimer.runTaskTimer(plugin, 0L, 20L);
