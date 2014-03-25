@@ -67,6 +67,26 @@ Finally,
 **/bomb delete ArenaName**
 
 
+Base & Region Setup
+---
+The Demolition plugin needs some kind of way to identify bases 
+and assign players to a base that they must defend... Consequently, 
+since they're assigned to a base, they are NOT allowed to destroy their own base. 
+This is how you make bases that this plugin can read:
+
+First, make a WorldGuard region with //wand and/or //pos1 //pos2 //hpos1 //hpos2. 
+
+Then, fly next to one of the Brewing Stands and type:
+
+**/region flag RegionName teleport here**
+
+Goto the other base and do
+
+**/region flag RegionName spawn here**
+
+This might change in the future to make to easier to setup Bomb Arenas. 
+
+
 Concept to Implementation
 ---
 So the initial question is 
@@ -156,6 +176,25 @@ Known Issues:
 ---
 - Arenas must be setup in such a way that the bases (brewing stands) are reset after each match.
 - Obviously, there is NO handling for when the bomb despawns after 5 minutes because this event breaks all other events.
+
+
+Dependencies:
+---
+
+- **BattleArena**
+  * Demolition plugin is just a game-type addition to BattleArena.
+- **BattleTracker**
+  * http://dev.bukkit.org/bukkit-plugins/battletracker/
+  * Used to track player stats like "Bombs planted" and "Bombs defused"
+- **WorldGuard**
+  * http://dev.bukkit.org/bukkit-plugins/worldguard/
+  * Used to define bases and reset bases that are destroyed by the bomb.
+- **WorldEdit**
+  * http://dev.bukkit.org/bukkit-plugins/worldedit/
+  * Needed for WorldGuard.
+- **Essentials**
+  * http://dev.bukkit.org/bukkit-plugins/essentials/
+  * Used to put an identifying HAT on the bomb carrier so that players know WHO has the bomb.
   
 To-Do List
 ---
