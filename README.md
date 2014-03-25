@@ -182,6 +182,7 @@ Dependencies:
 ---
 
 - **BattleArena**
+  * http://dev.bukkit.org/bukkit-plugins/battlearena/
   * Demolition plugin is just a game-type addition to BattleArena.
 - **BattleTracker**
   * http://dev.bukkit.org/bukkit-plugins/battletracker/
@@ -195,14 +196,15 @@ Dependencies:
 - **Essentials**
   * http://dev.bukkit.org/bukkit-plugins/essentials/
   * Used to put an identifying HAT on the bomb carrier so that players know WHO has the bomb.
+  * Not yet implemented
   
 To-Do List
 ---
-- Add stats for the number of times that a player has planted/defused the bomb.
-- Add tracking for the Team Bases.
-- Close plant+defuse exploit.
+- Test lastest commit for player stats and player bases.
+- ~~Close plant+defuse exploit.~~ (Just needs to be tested).
 - Kill off players that are too close to the bomb when it detonates.
 - Add compass+visual aids to let players know the location of a dropped bomb.
+- Add HAT to the bomb carrier onBombPickup()
 - Add config options.
   
 
