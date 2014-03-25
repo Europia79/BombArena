@@ -3,15 +3,26 @@ package com.github.Europia79.Demolition;
 import com.github.Europia79.Demolition.objects.Bomb;
 import com.github.Europia79.Demolition.util.DetonateTimer;
 import com.github.Europia79.Demolition.util.PlantTimer;
+import com.sk89q.worldguard.bukkit.WGBukkit;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.flags.DefaultFlag;
+import com.sk89q.worldguard.protection.flags.Flag;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import mc.alk.arena.events.players.ArenaPlayerLeaveEvent;
 import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.arenas.Arena;
 import mc.alk.arena.objects.events.ArenaEventHandler;
 import mc.alk.arena.objects.teams.ArenaTeam;
+import mc.alk.tracker.objects.WLT;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -241,7 +252,8 @@ public class BombArenaListener extends Arena {
         // start 7 second PlantTimer
         if (e.getInventory().getType() == InventoryType.BREWING 
                 && c != null 
-                && e.getPlayer().getName().equalsIgnoreCase(c)) {
+                && e.getPlayer().getName().equalsIgnoreCase(c) 
+                && plugin.bases.get(id).get(c).distance(p.getLocation()) > 20) {
             // converted a single Timer to one for each match.
             plugin.pTimers.put(getMatch().getID(), new PlantTimer(e, getMatch()));
             plugin.pTimers.get(getMatch().getID()).runTaskTimer(plugin, 0L, 20L);
@@ -288,15 +300,22 @@ public class BombArenaListener extends Arena {
         int id = getMatch().getID();
         String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
         // Cancel timers and declare the winners
-        if (e.getBlock().getType() == Material.HARD_CLAY) {
+        if (e.getBlock().getType() == Material.HARD_CLAY 
+                && getTeam(e.getPlayer()) != getTeam(Bukkit.getServer().getPlayer(c))) {
             Set<ArenaPlayer> allplayers = getMatch().getPlayers();
             for (ArenaPlayer p : allplayers) {
                 p.sendMessage("" + e.getPlayer().getName() 
                         + " has defused the bomb for the win!");
             }
+            plugin.ti.addPlayerRecord(e.getPlayer().getName(), "bombs defused", WLT.WIN);
+            plugin.ti.addPlayerRecord(c, "bombs planted", WLT.LOSS);
             ArenaTeam t = getTeam(e.getPlayer());
             getMatch().setVictor(t);
             plugin.pTimers.get(id).cancel();
+        } else if (e.getBlock().getType() == Material.HARD_CLAY 
+                && getTeam(e.getPlayer()) == getTeam(Bukkit.getServer().getPlayer(c))) {
+            e.getPlayer().sendMessage("If you defuse the bomb, then the other team will win.");
+            e.setCancelled(true);
         }
         
     }
@@ -312,6 +331,8 @@ public class BombArenaListener extends Arena {
         plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onStart");
         // temporary:
         plugin.carriers.clear();
+        World w = getWorldGuardRegion().getWorld();
+        assignBases(getMatch().getPlayers(), w);
         super.onStart();  
     }
     
@@ -326,6 +347,64 @@ public class BombArenaListener extends Arena {
         plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onFinish");
         super.onFinish();
     }
+    
+    /*
+     * Block Manipulation method from 
+     * http://wiki.bukkit.org/Plugin_Tutorial
+     */
+    public void assignBases(Set<ArenaPlayer> players, World w) {
+        int id = getMatch().getID();
+        Map<String, Location> temp = new HashMap<String, Location>();
+        // WorldGuardRegion region = getWorldGuardRegion();
+        WorldGuardPlugin wg = WGBukkit.getPlugin();
+        RegionManager manager = wg.getRegionManager(w);
+        int length = 3;
+        for (ArenaPlayer p : players) {
+            Location loc = p.getLocation();
+            ApplicableRegionSet regions = manager.getApplicableRegions(loc);
+            // To-Do: COMPARE THESE TWO POINTS WITH THE PLAYER TO DETERMINE
+            //        WHICH BASE IS CLOSER.
+            Location teleportXYZ = (Location) regions.getFlag((Flag) DefaultFlag.TELE_LOC);
+            Location spawnXYZ = (Location) regions.getFlag((Flag) DefaultFlag.SPAWN_LOC);
+            // Set one corner of the cube to the given location.
+            // Uses getBlockN() instead of getN() to avoid casting to an int later.
+            int x1 = loc.getBlockX() - length;
+            int y1 = loc.getBlockY() - length;
+            int z1 = loc.getBlockZ() - length;
+
+            // Figure out the opposite corner of the cube by taking the corner and adding length to all coordinates.
+            int x2 = loc.getBlockX() + length;
+            int y2 = loc.getBlockY() + length;
+            int z2 = loc.getBlockZ() + length;
+
+            World world = loc.getWorld();
+
+            // Loop over the cube in the x dimension.
+            for (int xPoint = x1; xPoint <= x2; xPoint++) {
+                // Loop over the cube in the y dimension.
+                for (int yPoint = y1; yPoint <= y2; yPoint++) {
+                    // Loop over the cube in the z dimension.
+                    for (int zPoint = z1; zPoint <= z2; zPoint++) {
+                        // Get the block that we are currently looping over.
+                        Block currentBlock = world.getBlockAt(xPoint, yPoint, zPoint);
+                        // Set the block to type 57 (Diamond block!)
+                        if (currentBlock.getType() == Material.BREWING_STAND) {
+                            // currentBlock.setType(Material.HARD_CLAY);
+                            Location base_loc = new Location(w, xPoint, yPoint, zPoint);
+                            temp.put(p.getName(), base_loc);
+                            plugin.bases.put(id, temp);
+                            // Checking for the correct base below:
+                            // plugin.bases.get(id).get(p.getName()).distance(p.getLocation());
+                            // if the distance is less than 20, then don't allow the bomb to be planted.
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    public void assignBase()
+    
    
     
 }

@@ -1,11 +1,17 @@
 package com.github.Europia79.Demolition;
 
 import com.github.Europia79.Demolition.debug.*;
+import com.github.Europia79.Demolition.tracker.TrackerOff;
 import com.github.Europia79.Demolition.util.DetonateTimer;
 import com.github.Europia79.Demolition.util.PlantTimer;
 import java.util.HashMap;
 import java.util.Map;
 import mc.alk.arena.BattleArena;
+import mc.alk.tracker.Tracker;
+import mc.alk.tracker.TrackerInterface;
+import mc.alk.tracker.objects.WLT;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -18,12 +24,14 @@ public class Main extends JavaPlugin {
     // Integer = match.getID(), String = player.getName()
     // This will contain the carrier for each arena match.
     Map<Integer, String> carriers;
+    Map<Integer, Map<String, Location>> bases;
     // The carriers Map will replace plugin.carrier
     public String carrier;
     public Map<Integer, PlantTimer> pTimers;
     public Map<Integer, DetonateTimer> dTimers;
     public PlantTimer ptimer;
     public DetonateTimer dtimer;
+    public TrackerInterface ti;
     
     @Override  
     public void onEnable() {
@@ -37,6 +45,7 @@ public class Main extends JavaPlugin {
         // getCommand("demo").setExecutor(new Demo());
         
         BattleArena.registerCompetition(this, "Demolition", "demolition", BombArenaListener.class);
+        loadTracker("Demolition");
         
         
     }
@@ -44,6 +53,16 @@ public class Main extends JavaPlugin {
     @Override
     public void onDisable() {
 
+    }
+
+    private void loadTracker(String i) {
+        Tracker tracker = (Tracker) Bukkit.getPluginManager().getPlugin("BattleTracker");
+        if (tracker != null){
+            ti = Tracker.getInterface(i);
+        } else {
+            ti = new TrackerOff(this);
+            getLogger().warning("BattleTracker turned off or not found.");
+        }
     }
     
     
