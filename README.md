@@ -15,23 +15,17 @@ detonates.
 Arena Setup:
 ---
 Create the arena:
-
 /bomb create ArenaName
 
 This creates a waiting room "wr"
-
 /bomb alter ArenaName wr
-
 /bomb alter ArenaName wr 1
-
 /bomb alter ArenaName wr 2
 
 Set spawn point for Team 1:
-
 /bomb alter ArenaName 1
 
 "aa" stands for /arenaAlter:
-
 /aa select ArenaName
 
 "fs" stands for First Spawn (1 second after the match begins).
@@ -41,7 +35,6 @@ for addspawn (which means that you can spawn other items and/or mobs in other in
 /aa addspawn 172 fs=1 1
 
 This will ask you to click a block: That block will be saved:
-
 /aa addblock
 
 Alternatively, you can define a WorldGuard region. 
@@ -51,21 +44,14 @@ If the Brewing Stand is destroyed by the bomb, then you'll
 need one of these options to reset it back after each match.
 
 Also,
-
-/aa showSpawns
-
-/aa hideSpawns
-
-/aa listSpawns
+/aa showSpawns 
+/aa hideSpawns 
+/aa listSpawns 
 
 Finally,
-
-/bomb join
-
-/bomb leave
-
-/bomb forcestart
-
+/bomb join 
+/bomb leave 
+/bomb forcestart 
 /bomb delete ArenaName
 
 
