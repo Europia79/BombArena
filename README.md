@@ -12,6 +12,63 @@ There are three ways to win: 1. Eliminate the other team.
 detonates.
 
 
+Arena Setup:
+---
+Create the arena:
+
+/bomb create ArenaName
+
+This creates a waiting room "wr"
+
+/bomb alter ArenaName wr
+
+/bomb alter ArenaName wr 1
+
+/bomb alter ArenaName wr 2
+
+Set spawn point for Team 1:
+
+/bomb alter ArenaName 1
+
+"aa" stands for /arenaAlter:
+
+/aa select ArenaName
+
+"fs" stands for First Spawn (1 second after the match begins).
+172 is the bomb block (which is HARD_CLAY). The last one is the index 
+for addspawn (which means that you can spawn other items and/or mobs in other indexes).
+
+/aa addspawn 172 fs=1 1
+
+This will ask you to click a block: That block will be saved:
+
+/aa addblock
+
+Alternatively, you can define a WorldGuard region. 
+Use one of these two options on the two Brewing Stands. 
+The Brewing Stands define where a base is located. 
+If the Brewing Stand is destroyed by the bomb, then you'll 
+need one of these options to reset it back after each match.
+
+Also,
+
+/aa showSpawns
+
+/aa hideSpawns
+
+/aa listSpawns
+
+Finally,
+
+/bomb join
+
+/bomb leave
+
+/bomb forcestart
+
+/bomb delete ArenaName
+
+
 Concept to Implementation
 ---
 So the initial question is 
@@ -50,34 +107,15 @@ Any other ideas on how this can be implemented into Minecraft,
 just lemme know! (contact info below)
 
 
-Timeline:
----
-<dl>
-<dt>3/19/2014 - BombTestListener.java </dt>
-<dd>I made this testing class in order to systematically identify all the bugs and squash them. 
-Basically, this process involves breaking up the BombArenaListener into smaller pieces and 
-testing it piece by piece to see where the bugs occur. If anyone wants to use this class for 
-testing, please feel free. Simply delete everything and put whatever you want to test into this class. 
-This method has actually been quite successful in finding bugs. </dd>
-
-
-<dt>3/19/2014 - Multiple Listeners </dt>
-<dd>I gave up on multiple listeners because addArenaListner() method was not working. 
-I tried invoking the method from the constructor, init(), and onBegin() with no success. 
-It appears to be a BattleArena limitation. So unfortunately, ALL listener methods will 
-have to be condensed into the BombArenaListener file.</dd>
-
-
-<dt>3/15/2014 - Start </dt>
-<dd>Laid the initial ground work for the internal structure and layout of the plugin.</dd>
-</dl>
-
-
-Planned Listener Methods:
+Listener Methods:
 ---
 - onBombPickup(PlayerPickupEvent e)
    * put a HAT on the bomb carrier so that players know WHO has the bomb.
    * Map the Arena to a value of PlayerName (so that the plugin itself knows who has the bomb for each arena).
+   * Set the compass to the opponents base.
+- onBombCarrierLeave(ArenaPlayerLeaveEvent e)
+   * Does this person have the bomb ?
+   * if so, drop it on the ground.
 - onCarrierDeath(PlayerDeathEvent e)
    * remove them from the map listing.
    * drop the bomb on the ground.
@@ -85,47 +123,45 @@ Planned Listener Methods:
    * make sure they didn't throw it outside the map.
    * point the compass to the direction of the bomb and
    * give a visual aid so that players know the location of the bomb.
-- onBombDisappear(ItemDespawnEvent e)
+- onBombDespawn(ItemDespawnEvent e)
+   * This event breaks ALL other events.
    * There are two different ways to handle this:  
      1. cancel the event OR
 	 2. respawn a new bomb
 - onBombPlace (BlockPlaceEvent e)
-   * Improper bomb activation!
-   * Set compass to base location.
-   * client-side bug (invisible bomb)
+   * Going to help new players out by calling onBombPlant if they're close enough.
+   * If they're not close enough, then tell the player to follow their compass.
+   * client-side bug (invisible bomb) was fixed with deprecated updateInventory().
 - onBombPlant(InventoryOpenEvent e)
    * start a 7 sec PlantTimer 
    * if successful, will start a 30 sec DetonateTimer.
    * if successful, declare the winners.
 - onPlantFailure(InventoryCloseEvent e)
-   * cancel() the PlantTimer. (Notice that there's two ways for the BombPlant to fail: 1. Carrier prematurely closes the inventory, or 2. the Carrier dies).
+   * cancel() the PlantTimer. 
+   * Notice that there's two ways for the BombPlant to fail: 
+      1. Carrier prematurely closes the inventory, or 
+	  2. the Carrier dies. If the carrier dies, then we'll let onCarrierDeath handle everything.
 - onBombDefuse(BlockBreakEvent e)
    * Get the player, get his team, and set the winners.
    
    
 Bugs to fix:
 ---
-- onBombPlace
-  * has a graphical bug which makes the bomb invisible to the client.
-- onCarrierDeath
-  * Does not current trigger onBombDrop (which does the removal of plugin.carrier)
-  * I have a line of code to trigger this event, it's just not tested yet.
 - onFinish(), onComplete()
   * need to clear plugin.carrier
 - onBegin(), onStart()
   * plugin.carrier is still set to the previous Match carrier.
-- plugin.carrier
-  * Needs to be changed to Key,Value pair.
-  * Match is the Key.
-  * Value is WHO has the bomb.
+- onBombDespawn(ItemDespawnEvent e) breaks ALL other events.
   
 
 Known Issues:
 ---
 - Arenas must be setup in such a way that the bases (brewing stands) are reset after each match.
+- Obviously, there is NO handling for when the bomb despawns after 5 minutes because this event breaks all other events.
   
 To-Do List
 ---
+- Add stats for the number of times that a player has planted/defused the bomb.
 - Add tracking for the Team Bases.
 - Close plant+defuse exploit.
 - Kill off players that are too close to the bomb when it detonates.
