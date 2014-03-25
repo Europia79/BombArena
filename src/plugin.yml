@@ -4,7 +4,7 @@ version: 0.1
 website: http://www.Battlecraft.co/
 description: One bomb, two bases.
 authors: [Europia79]
-depend: [BattleArena, Essentials]
+depend: [BattleArena, BattleTracker, Essentials, WorldEdit, WorldGuard]
 prefix: Demolition
 commands:
     demolition:
