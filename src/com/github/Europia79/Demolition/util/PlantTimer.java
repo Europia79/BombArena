@@ -25,6 +25,7 @@ public class PlantTimer extends BukkitRunnable {
 
     long startTime;
     int duration;
+    private boolean cancelled;
     Main plugin;
     Match match;
     BombArenaListener arena;
@@ -46,6 +47,7 @@ public class PlantTimer extends BukkitRunnable {
     }
 
     public PlantTimer(InventoryOpenEvent e, Match m) {
+        cancelled = false;
         startTime = System.nanoTime();
         this.plugin = (Main) Bukkit.getServer().getPluginManager().getPlugin("Demolition");
         this.event = e;
@@ -110,6 +112,17 @@ public class PlantTimer extends BukkitRunnable {
             this.cancel();
         }
 
+    }
+    
+    public void setCancelled(boolean x) {
+        if (x) {
+            this.cancel();
+        } 
+        cancelled = x;
+    }
+    
+    public boolean isCancelled() {
+        return cancelled;
     }
     
     

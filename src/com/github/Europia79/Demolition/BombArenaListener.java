@@ -9,7 +9,10 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.DefaultFlag;
 import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import mc.alk.arena.events.players.ArenaPlayerLeaveEvent;
@@ -73,8 +76,8 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombPickup(PlayerPickupItemEvent e) {
-        int id = getMatch().getID();
-        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
+        int matchID = getMatch().getID();
+        String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
         e.getPlayer().sendMessage("onBombPickup() Listener works!");
         plugin.debug.messagePlayer(e.getPlayer(), "debug works!");
 
@@ -82,7 +85,15 @@ public class BombArenaListener extends Arena {
         if (e.getItem().getItemStack().getType() == Material.HARD_CLAY) {
             if (c == null) {
                 c = e.getPlayer().getName();
-                plugin.carriers.put(id, c);
+                plugin.carriers.put(matchID, c);
+                ArenaTeam team2 = null;
+                try {
+                    team2 = getOtherTeam(e.getPlayer());
+                } catch (NullPointerException ex) {
+                    plugin.getLogger().severe("Stopping match because getOtherTeam() method failed");
+                    getMatch().cancelMatch();
+                }
+                setCompass(getMatch().getPlayers(), team2);
             } else {
                 e.setCancelled(true);
                 plugin.debug.messagePlayer(e.getPlayer(), 
@@ -153,8 +164,8 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombDrop(PlayerDropItemEvent e) {
-        int id = getMatch().getID();
-        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
+        int matchID = getMatch().getID();
+        String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
         Material type = e.getItemDrop().getItemStack().getType();
         // To-do: make sure the bomb didn't get thrown outside the map
         Location loc = e.getItemDrop().getLocation();
@@ -162,12 +173,13 @@ public class BombArenaListener extends Arena {
             if (c != null 
                     && e.getPlayer().getName().equals(c)) {
                 // sets the carrier to null
-                plugin.carriers.remove(id);
+                plugin.carriers.remove(matchID);
                 // get all arena players inside this Match. 
                 // set their compass direction.
                 Set<ArenaPlayer> allplayers = getMatch().getPlayers();
                 for (ArenaPlayer p : allplayers) {
                     p.getPlayer().setCompassTarget(loc);
+                    p.sendMessage("The bomb has been dropped! Follow your compass.");
                 }
             } else {
                 plugin.getLogger().warning(""
@@ -222,9 +234,7 @@ public class BombArenaListener extends Arena {
         // if the distance is small, attempt to trigger onBombPlant()
         if (e.getBlockPlaced().getType() == Material.HARD_CLAY) {
             e.getPlayer().sendMessage("Improper bomb activation!");
-            // get the player
-            // get his team
-            // get the OTHER team
+            
             // get the other team's base location
             // set the player compass
             // and msg him to follow the compass
@@ -242,25 +252,30 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombPlant(InventoryOpenEvent e) {
-        int id = getMatch().getID();
-        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
-        Player p = (Player) e.getPlayer();
-        plugin.debug.messagePlayer(p, "onBombPlant() has been called");
-        plugin.debug.messagePlayer(p, 
+        int matchID = getMatch().getID();
+        String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
+        // Player carrier = (c == null) ? null : Bukkit.getPlayer(c);
+        Player planter = (Player) e.getPlayer();
+        int teamID = getTeam(planter).getId();
+        plugin.debug.messagePlayer(planter, "onBombPlant() has been called");
+        plugin.debug.messagePlayer(planter, 
                 "carrier = " + c );
-        // To-do: ARE THEY AT THE CORRECT BASE ?
-        // start 7 second PlantTimer
+        // ARE THEY AT THE CORRECT BASE ?
+        // Use the Match ID to get all the player bases, then
+        // get the bomb carriers base:
+        // Compare his current position with the position of HIS OWN BASE
+        // to make sure he's not trying to plant the bomb at his own base.
         if (e.getInventory().getType() == InventoryType.BREWING 
                 && c != null 
                 && e.getPlayer().getName().equalsIgnoreCase(c) 
-                && plugin.bases.get(id).get(c).distance(p.getLocation()) > 20) {
+                && plugin.bases.get(matchID).get(teamID).distance(planter.getLocation()) > 30) {
             // converted a single Timer to one for each match.
             plugin.pTimers.put(getMatch().getID(), new PlantTimer(e, getMatch()));
             plugin.pTimers.get(getMatch().getID()).runTaskTimer(plugin, 0L, 20L);
             // plugin.ptimer = new PlantTimer(e, getMatch());
             // plugin.ptimer.runTaskTimer(plugin, 0L, 20L);
         } else {
-            plugin.debug.messagePlayer(p, "e.setCancelled(true);");
+            plugin.debug.messagePlayer(planter, "event.setCancelled(true);");
             e.setCancelled(true);
         }
     }
@@ -272,19 +287,19 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombPlantFailure(InventoryCloseEvent e) {
-        int id = getMatch().getID();
-        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
+        int matchID = getMatch().getID();
+        String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
         // Is it a brewing stand ?
         // Are they trying to plant ?
-        if (e.getPlayer().getInventory().getType() == InventoryType.BREWING
+        if (e.getPlayer().getInventory().getType() == InventoryType.BREWING 
                 && c != null 
-                && e.getPlayer().getName().equals(c)) {
+                && e.getPlayer().getName().equalsIgnoreCase(c)) {
             // if this is an actual death or drop then those Events 
             // will handle setting the carrier to null
             plugin.debug.msgArenaPlayers(getMatch().getPlayers(), 
                     "onBombPlantFailure has been called " 
                     + "due to InventoryCloseEvent");
-            plugin.pTimers.get(id).cancel();
+            plugin.pTimers.get(matchID).cancel();
         }
 
     }
@@ -297,21 +312,26 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombDefusal(BlockBreakEvent e) {
-        int id = getMatch().getID();
-        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
+        int matchID = getMatch().getID();
+        String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
         // Cancel timers and declare the winners
         if (e.getBlock().getType() == Material.HARD_CLAY 
                 && getTeam(e.getPlayer()) != getTeam(Bukkit.getServer().getPlayer(c))) {
             Set<ArenaPlayer> allplayers = getMatch().getPlayers();
             for (ArenaPlayer p : allplayers) {
                 p.sendMessage("" + e.getPlayer().getName() 
-                        + " has defused the bomb for the win!");
+                        + " has defused the bomb.");
+                if (getTeam(p) == getTeam(e.getPlayer())) {
+                    p.sendMessage("You win!");
+                } else {
+                    p.sendMessage("You lost!");
+                }
             }
             plugin.ti.addPlayerRecord(e.getPlayer().getName(), "bombs defused", WLT.WIN);
             plugin.ti.addPlayerRecord(c, "bombs planted", WLT.LOSS);
             ArenaTeam t = getTeam(e.getPlayer());
             getMatch().setVictor(t);
-            plugin.pTimers.get(id).cancel();
+            plugin.pTimers.get(matchID).cancel();
         } else if (e.getBlock().getType() == Material.HARD_CLAY 
                 && getTeam(e.getPlayer()) == getTeam(Bukkit.getServer().getPlayer(c))) {
             e.getPlayer().sendMessage("If you defuse the bomb, then the other team will win.");
@@ -320,91 +340,172 @@ public class BombArenaListener extends Arena {
         
     }
     
+    // This is the Order in which they're called by BattleArena:
+    // onBegin() called first.
     @Override
     public void onBegin() {
-        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onBegin");
         super.onBegin(); 
+        plugin.getLogger().info("onBegin() has been called by Demolition plugin: BombArenaListener.java");
     }
     
+    // onStart() called at the start of a Match.
     @Override
     public void onStart() {
+        super.onStart();
         plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onStart");
         // temporary:
         plugin.carriers.clear();
-        World w = getWorldGuardRegion().getWorld();
-        assignBases(getMatch().getPlayers(), w);
-        super.onStart();  
+        // World w = getWorldGuardRegion().getWorld();
+        assignBases(getMatch().getTeams());
+        // plugin.tbases.get(getMatch().getID()).
     }
     
+    // onComplete() is called before money is given.
     @Override
     public void onComplete() {
-        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onComplete");
         super.onComplete();
+        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onComplete");
     }
     
+    // onFinish() is called after money is given.
     @Override
     public void onFinish() {
-        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onFinish");
         super.onFinish();
+        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onFinish");
     }
     
     /*
-     * Block Manipulation method from 
-     * http://wiki.bukkit.org/Plugin_Tutorial
+     * For what teams ?
      */
-    public void assignBases(Set<ArenaPlayer> players, World w) {
-        int id = getMatch().getID();
-        Map<String, Location> temp = new HashMap<String, Location>();
-        // WorldGuardRegion region = getWorldGuardRegion();
+    public void assignBases(List<ArenaTeam> bothTeams) {
+        
         WorldGuardPlugin wg = WGBukkit.getPlugin();
-        RegionManager manager = wg.getRegionManager(w);
-        int length = 3;
-        for (ArenaPlayer p : players) {
-            Location loc = p.getLocation();
-            ApplicableRegionSet regions = manager.getApplicableRegions(loc);
-            // To-Do: COMPARE THESE TWO POINTS WITH THE PLAYER TO DETERMINE
+        
+        for (ArenaTeam t : bothTeams) {
+            Set<Player> playerzSet = t.getBukkitPlayers();
+            Player playerOne = null;
+            // Use the 1st player on the Team to assign the base
+            // for the whole team.
+            for (Player first : playerzSet) {
+                playerOne = first;
+                break;
+            }
+            World w = playerOne.getWorld();
+            RegionManager manager = wg.getRegionManager(w);
+            Location loc = playerOne.getLocation();
+            ApplicableRegionSet set = manager.getApplicableRegions(loc);
+            for (ProtectedRegion region : set) {
+                region.getFlag((Flag) DefaultFlag.TELE_LOC);
+            }
+            // COMPARE THESE TWO POINTS WITH THE PLAYER TO DETERMINE
             //        WHICH BASE IS CLOSER.
-            Location teleportXYZ = (Location) regions.getFlag((Flag) DefaultFlag.TELE_LOC);
-            Location spawnXYZ = (Location) regions.getFlag((Flag) DefaultFlag.SPAWN_LOC);
-            // Set one corner of the cube to the given location.
-            // Uses getBlockN() instead of getN() to avoid casting to an int later.
-            int x1 = loc.getBlockX() - length;
-            int y1 = loc.getBlockY() - length;
-            int z1 = loc.getBlockZ() - length;
+            Location teleportXYZ = (Location) set.getFlag((Flag) DefaultFlag.TELE_LOC);
+            Location spawnXYZ = (Location) set.getFlag((Flag) DefaultFlag.SPAWN_LOC);
+            
+            double tdistance = playerOne.getLocation().distance(teleportXYZ);
+            double sdistance = playerOne.getLocation().distance(spawnXYZ);
+            
+            if (tdistance < sdistance) {
+                assignBase(t.getId(), teleportXYZ);
+            } else if ( tdistance > sdistance) {
+                assignBase(t.getId(), spawnXYZ);
+            } else if (tdistance == sdistance) {
+                plugin.getLogger().warning("Could NOT assign bases because " 
+                        + "the player's spawn is equi-distance to both.");
+                plugin.getLogger().info("Please change the spawn locations " 
+                        + "for the teams in the bomb arena.");
+            }
+            
+            
+        }
+    }
+    
+    /*
+     * For what team ?
+     * At what location ?
+     * 
+     */
+    public void assignBase(int teamID, Location loc) {
+        int length = 5;
+        int matchID = getMatch().getID();
+        Map<Integer, Location> temp = new HashMap<Integer, Location>();
+        Map<String, Location> ptemp = new HashMap<String, Location>();
 
-            // Figure out the opposite corner of the cube by taking the corner and adding length to all coordinates.
-            int x2 = loc.getBlockX() + length;
-            int y2 = loc.getBlockY() + length;
-            int z2 = loc.getBlockZ() + length;
+        // Set one corner of the cube to the given location.
+        // Uses getBlockN() instead of getN() to avoid casting to an int later.
+        int x1 = loc.getBlockX() - length;
+        int y1 = loc.getBlockY() - length;
+        int z1 = loc.getBlockZ() - length;
 
-            World world = loc.getWorld();
+        // Figure out the opposite corner of the cube by taking the corner and adding length to all coordinates.
+        int x2 = loc.getBlockX() + length;
+        int y2 = loc.getBlockY() + length;
+        int z2 = loc.getBlockZ() + length;
 
-            // Loop over the cube in the x dimension.
-            for (int xPoint = x1; xPoint <= x2; xPoint++) {
-                // Loop over the cube in the y dimension.
-                for (int yPoint = y1; yPoint <= y2; yPoint++) {
-                    // Loop over the cube in the z dimension.
-                    for (int zPoint = z1; zPoint <= z2; zPoint++) {
-                        // Get the block that we are currently looping over.
-                        Block currentBlock = world.getBlockAt(xPoint, yPoint, zPoint);
-                        // Set the block to type 57 (Diamond block!)
-                        if (currentBlock.getType() == Material.BREWING_STAND) {
-                            // currentBlock.setType(Material.HARD_CLAY);
-                            Location base_loc = new Location(w, xPoint, yPoint, zPoint);
-                            temp.put(p.getName(), base_loc);
-                            plugin.bases.put(id, temp);
-                            // Checking for the correct base below:
-                            // plugin.bases.get(id).get(p.getName()).distance(p.getLocation());
-                            // if the distance is less than 20, then don't allow the bomb to be planted.
-                        }
+        World world = loc.getWorld();
+
+        // Loop over the cube in the x dimension.
+        for (int xPoint = x1; xPoint <= x2; xPoint++) {
+            // Loop over the cube in the y dimension.
+            for (int yPoint = y1; yPoint <= y2; yPoint++) {
+                // Loop over the cube in the z dimension.
+                for (int zPoint = z1; zPoint <= z2; zPoint++) {
+                    // Get the block that we are currently looping over.
+                    Block currentBlock = world.getBlockAt(xPoint, yPoint, zPoint);
+                    // Set the block to type 57 (Diamond block!)
+                    if (currentBlock.getType() == Material.BREWING_STAND) {
+                        // currentBlock.setType(Material.HARD_CLAY);
+                        Location base_loc = new Location(world, xPoint, yPoint, zPoint);
+                        temp.put(teamID, base_loc);
+                        // ptemp.put(p.getName(), base_loc);
+                        plugin.bases.put(matchID, temp);
+                        // Checking for the correct base below:
+
+                        // plugin.bases.get(matchID).get(teamID).distance(player.getLocation);
+                        // plugin.pbases.get(id).get(p.getName()).distance(p.getLocation());
+                        // if the distance is less than 20, then don't allow the bomb to be planted.
                     }
                 }
             }
         }
     }
     
-    public void assignBase()
+    /**
+     *
+     * @param p = Player
+     * @return ArenaTeam
+     */
+    public ArenaTeam getOtherTeam(Player p) throws NullPointerException {
+        // get the player
+        // get his team
+        ArenaTeam team1 = getTeam(p);
+        // get the OTHER team
+        List<ArenaTeam> bothTeams = getTeams();
+        for (ArenaTeam t : bothTeams) {
+            if (team1 != t) {
+                return t;
+            }
+        }
+        plugin.getLogger().warning("getOtherTeam() method failed: The Bomb Arena Type must have two teams!");
+        
+        throw new NullPointerException();
+
+    }
+
+    private void setCompass(Set<ArenaPlayer> players, ArenaTeam team2) {
+        plugin.debug.log("setCompass(), team2 = " + team2);
+        int matchID = getMatch().getID();
+        int teamID = team2.getId();
+ 
+        for (ArenaPlayer p : players) {
+            p.getPlayer().setCompassTarget(plugin.bases.get(matchID).get(teamID));
+            if (p.getTeam().getId() == teamID) {
+                
+            } else {
+                
+            }
+        }
+    }
     
-   
     
 }
