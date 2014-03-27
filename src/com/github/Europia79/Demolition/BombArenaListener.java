@@ -3,12 +3,14 @@ package com.github.Europia79.Demolition;
 import com.github.Europia79.Demolition.objects.Bomb;
 import com.github.Europia79.Demolition.util.DetonateTimer;
 import com.github.Europia79.Demolition.util.PlantTimer;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldguard.bukkit.WGBukkit;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.DefaultFlag;
 import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -20,6 +22,7 @@ import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.arenas.Arena;
 import mc.alk.arena.objects.events.ArenaEventHandler;
 import mc.alk.arena.objects.teams.ArenaTeam;
+import mc.alk.arena.util.WorldGuardUtil;
 import mc.alk.tracker.objects.WLT;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -394,13 +397,22 @@ public class BombArenaListener extends Arena {
             RegionManager manager = wg.getRegionManager(w);
             Location loc = playerOne.getLocation();
             ApplicableRegionSet set = manager.getApplicableRegions(loc);
+            Vector teleportV = null;
+            Vector spawnV = null;            
             for (ProtectedRegion region : set) {
-                region.getFlag((Flag) DefaultFlag.TELE_LOC);
+                if (region.getFlag(DefaultFlag.TELE_LOC) != null) {
+                    teleportV = region.getFlag(DefaultFlag.TELE_LOC).getPosition();
+                }
+                if (region.getFlag(DefaultFlag.SPAWN_LOC) != null) {
+                    spawnV = region.getFlag(DefaultFlag.SPAWN_LOC).getPosition();
+                }
             }
             // COMPARE THESE TWO POINTS WITH THE PLAYER TO DETERMINE
             //        WHICH BASE IS CLOSER.
-            Location teleportXYZ = (Location) set.getFlag((Flag) DefaultFlag.TELE_LOC);
-            Location spawnXYZ = (Location) set.getFlag((Flag) DefaultFlag.SPAWN_LOC);
+            Location teleportXYZ = new Location(w,
+                    teleportV.getBlockX(), teleportV.getBlockY(), teleportV.getBlockZ());
+            Location spawnXYZ = new Location(w, 
+                    spawnV.getBlockX(), spawnV.getBlockY(), spawnV.getBlockZ());
             
             double tdistance = playerOne.getLocation().distance(teleportXYZ);
             double sdistance = playerOne.getLocation().distance(spawnXYZ);
@@ -496,9 +508,14 @@ public class BombArenaListener extends Arena {
         plugin.debug.log("setCompass(), team2 = " + team2);
         int matchID = getMatch().getID();
         int teamID = team2.getId();
- 
+        plugin.debug.log("getMatch().getID() = " + matchID);
+        plugin.debug.log("plugin.bases.get(matchID).get(teamID) = "
+                + plugin.bases.get(matchID).get(teamID));
+        
+        // NullPointerException if the player doesn't have a compass
+        // in their inventory
         for (ArenaPlayer p : players) {
-            p.getPlayer().setCompassTarget(plugin.bases.get(matchID).get(teamID));
+            p.getPlayer().setCompassTarget(plugin.bases.get(matchID).get(teamID)); // 519
             if (p.getTeam().getId() == teamID) {
                 
             } else {
