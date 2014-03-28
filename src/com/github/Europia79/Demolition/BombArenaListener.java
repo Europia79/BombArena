@@ -224,7 +224,7 @@ public class BombArenaListener extends Arena {
      * </pre>
      * @param e ItemDespawnEvent - Was it the bomb ? Or another item ?
      */
-    @ArenaEventHandler
+    /*@ArenaEventHandler
     public void onBombDespawn(ItemDespawnEvent e) {
         int id = getMatch().getID();
         String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
@@ -243,7 +243,7 @@ public class BombArenaListener extends Arena {
                     "Bomb despawn allowed because " + c + " has the bomb.");
         }
 
-    } 
+    }*/
     
     /**
      * Handles the scenario when players attempt to place the bomb on the ground like it's a block. <br/><br/>
