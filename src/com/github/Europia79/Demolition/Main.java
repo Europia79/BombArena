@@ -4,36 +4,32 @@ import com.github.Europia79.Demolition.debug.*;
 import com.github.Europia79.Demolition.tracker.TrackerOff;
 import com.github.Europia79.Demolition.util.DetonateTimer;
 import com.github.Europia79.Demolition.util.PlantTimer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import mc.alk.arena.BattleArena;
 import mc.alk.tracker.Tracker;
 import mc.alk.tracker.TrackerInterface;
-import mc.alk.tracker.objects.WLT;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- *
+ * Bukkit plugin that adds the Demolition game type to Minecraft servers running BattleArena.
  * @author Nikolai
  */
 public class Main extends JavaPlugin {
     
     public DebugInterface debug;
-    // Integer = match.getID(), String = player.getName()
     // This will contain the carrier for each arena match.
+    // <matchID, PlayerName>
     Map<Integer, String> carriers;
-    Map<Integer, Map<String, Location>> pbases;
+    //  <matchID,   <teamID, Base Location>>
     Map<Integer, Map<Integer, Location>> bases;
-    Map<Integer, Map<Integer, Location>> tbases;
-    // The carriers Map will replace plugin.carrier
-    public String carrier;
     public Map<Integer, PlantTimer> pTimers;
     public Map<Integer, DetonateTimer> dTimers;
-    public PlantTimer ptimer;
-    public DetonateTimer dtimer;
+    /**
+     *
+     */
     public TrackerInterface ti;
     
     @Override  
@@ -42,8 +38,6 @@ public class Main extends JavaPlugin {
         debug = new DebugOn(this);
         carriers = new HashMap<Integer, String>();
         bases = new HashMap<Integer, Map<Integer, Location>>();
-        pbases = new HashMap<Integer, Map<String, Location>>();
-        tbases = new HashMap<Integer, Map<Integer, Location>>();
         pTimers = new HashMap<Integer, PlantTimer>();
         dTimers = new HashMap<Integer, DetonateTimer>();
           
@@ -61,6 +55,10 @@ public class Main extends JavaPlugin {
 
     }
 
+    /**
+     * 
+     * @param i The tracker needs some way to identify all the different plugins that are using it to keep track of stats. This name "i" ("Demolition") will show up in the database tables too.
+     */
     private void loadTracker(String i) {
         Tracker tracker = (Tracker) Bukkit.getPluginManager().getPlugin("BattleTracker");
         if (tracker != null){

@@ -10,10 +10,8 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.DefaultFlag;
 import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
-import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,7 +20,6 @@ import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.arenas.Arena;
 import mc.alk.arena.objects.events.ArenaEventHandler;
 import mc.alk.arena.objects.teams.ArenaTeam;
-import mc.alk.arena.util.WorldGuardUtil;
 import mc.alk.tracker.objects.WLT;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -43,9 +40,11 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- *
+ * This class listens for all the bomb events and acts accordingly.
+ * 
  * @author Nikolai
- *
+ * 
+ * <pre>
  * Bomb = Hardened Clay 172
  *
  * Listen for 
@@ -59,6 +58,8 @@ import org.bukkit.inventory.ItemStack;
  * onPlantFailure() - Self cancelled or caused by death ? 
  * onBombDefuse() - takes 7 sec, declare winners. 
  * 
+ * </pre>
+ * 
  * multiple listeners are currently not possible
  * because addArenaListener() is not working: 
  * from constructor, init(), or onBegin().
@@ -68,14 +69,23 @@ public class BombArenaListener extends Arena {
 
     Main plugin;
 
-    // constructor
+    /**
+     * Constructor: gets a reference to Main.java and stores it in the plugin field.
+     */
     public BombArenaListener() {
         plugin = (Main) Bukkit.getPluginManager().getPlugin("Demolition");
-
     }
 
     /**
-     * Give the bomb carrier a hat so that other players know WHO has the bomb.
+     * This method sets plugin.carriers, compass direction, and gives a hat
+     * 
+     * <pre>
+     * 1. Give the bomb carrier a hat so that other players know WHO has the bomb.
+     * 2. Set the compass direction for all players to point to the objective:
+     *    - This helps attackers find the opponents base.
+     *    - This helps defenders find their own base.
+     * </pre>
+     * @param e PlayerPickupItemEvent: checks to see if they picked up the bomb item, or a different item.
      */
     @ArenaEventHandler
     public void onBombPickup(PlayerPickupItemEvent e) {
@@ -110,8 +120,9 @@ public class BombArenaListener extends Arena {
     }
     
     /**
-     * Handle the scenario where a player
-     * gets the bomb then logs out or leaves the arena.
+     * This method handles the scenario where a player gets the bomb then logs out or leaves the arena.
+     * 
+     * @param e ArenaPlayerLeaveEvent
      */
     @ArenaEventHandler
     public void onBombCarrierLeave(ArenaPlayerLeaveEvent e) {
@@ -121,11 +132,14 @@ public class BombArenaListener extends Arena {
     }
     
     /**
-     * Two ways to implement this: 
-     * 1. Get the location and spawn a new bomb or
-     * 2. Make sure the player drops the bomb. 
-     * During testing, make sure that the
-     * PlayerDropItemEvent is triggered.
+     * This method triggers a new bombDropEvent if a player dies with the bomb.
+     * 
+     * <pre>
+     * It also lets all the players know the location of the bomb.
+     *   - But only if it's on the ground, never if a player has it.
+     * </pre>
+     * 
+     * @param e PlayerDeathEvent - Do they have the bomb ?
      */
     @ArenaEventHandler
     public void onBombCarrierDeath(PlayerDeathEvent e) {
@@ -161,9 +175,15 @@ public class BombArenaListener extends Arena {
     }
     
     /**
-     * 1. Make sure the bomb didn't get thrown outside of the map 2. Point the
-     * compass to the direction of the bomb 3. and give a visual aid so that
-     * players know the location of bombs when they're on the ground.
+     * This event handles the scenario when the bomb is thrown on the ground.
+     * 
+     * <pre>
+     * 1. Point the compass to the direction of the bomb.
+     * 2. Give a visual aid for the bomb location (not implemented yet).
+     * 3. Make sure the bomb didn't get thrown outside the map (not implemented).
+     * </pre>
+     * 
+     * @param e PlayerDropItemEvent - Did they drop the bomb item ? Or another item ?
      */
     @ArenaEventHandler
     public void onBombDrop(PlayerDropItemEvent e) {
@@ -197,10 +217,14 @@ public class BombArenaListener extends Arena {
     }
     
     /**
-     * respawn a new bomb OR cancel the event.
      * This event breaks ALL other events.
+     * 
+     * <pre>
+     * respawn a new bomb OR cancel the despawn event.
+     * </pre>
+     * @param e ItemDespawnEvent - Was it the bomb ? Or another item ?
      */
-    /* @ArenaEventHandler
+    @ArenaEventHandler
     public void onBombDespawn(ItemDespawnEvent e) {
         int id = getMatch().getID();
         String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
@@ -219,16 +243,18 @@ public class BombArenaListener extends Arena {
                     "Bomb despawn allowed because " + c + " has the bomb.");
         }
 
-    } */
+    } 
     
     /**
-     * This method handle the scenario when players attempt 
-     * to place the bomb on the ground like it's a block.
-     * This method is going to help out new players 
-     * by checking the distance to the base: 
-     * if the distance is small, then trigger onBombPlant(InventoryOpenEven e).
-     * if the distance is too large, then give the player helpful hints 
-     * about the distance and compass direction to the enemy base.
+     * Handles the scenario when players attempt to place the bomb on the ground like it's a block. <br/><br/>
+     * 
+     * This method is going to help out new players by checking the distance to the base:<br/>
+     * 
+     *   - if the distance is small, then trigger onBombPlant(InventoryOpenEvent e). <br/>
+     *   - if they're too far away, then give the player helpful hints
+     *     about the distance and compass direction to the enemy base. <br/>
+     * 
+     * @param e BlockPlaceEvent - Is it the bomb block ?
      */
     @ArenaEventHandler
     public void onBombPlace(BlockPlaceEvent e) {
@@ -250,8 +276,18 @@ public class BombArenaListener extends Arena {
     }
     
     /**
-     * 1. Use a brewing stand for each base. 2. event cancels (inventory closes)
-     * after 5 to 8 seconds.
+     * This event handles players who access Brewing Stands. <br/>
+     * 
+     * Main if-statement checks: <br/>
+     * - Did they open a Brewing Stand Inventory ? <br/>
+     * - Does the player have the bomb ? <br/>
+     * - Are they at the enemy base ? <br/><br/>
+     * 
+     * If so, start the Plant Timer: It takes about 5 to 10 seconds to plant the bomb. <br/><br/>
+     * 
+     * If not, cancel the InventoryOpenEvent. <br/>
+     * 
+     * @param e InventoryOpenEvent - Is it a Brewing Stand Inventory ? (Each base must have a brewing stand).
      */
     @ArenaEventHandler
     public void onBombPlant(InventoryOpenEvent e) {
@@ -275,18 +311,24 @@ public class BombArenaListener extends Arena {
             // converted a single Timer to one for each match.
             plugin.pTimers.put(getMatch().getID(), new PlantTimer(e, getMatch()));
             plugin.pTimers.get(getMatch().getID()).runTaskTimer(plugin, 0L, 20L);
-            // plugin.ptimer = new PlantTimer(e, getMatch());
-            // plugin.ptimer.runTaskTimer(plugin, 0L, 20L);
-        } else {
+        } else if (e.getInventory().getType() == InventoryType.BREWING){
             plugin.debug.messagePlayer(planter, "event.setCancelled(true);");
             e.setCancelled(true);
         }
     }
     
     /**
+     * Handles the event where the Bomb Carrier does NOT complete the time required to plant the bomb. <br/>
      * 
+     * Notice that are multiple ways to trigger this event: <br/>
+     * - The bomb carrier prematurely closes the Brewing Stand 
+     *   thereby canceling the plant process. <br/>
+     * - The bomb carrier dies. <br/>
+     * - Also, when the PlantTimer is finished, it will close the player inventory.
+     *   So we need to be careful that it doesn't also cancel the 30 seconds that
+     *   it takes to destroy the base. <br/><br/>
      * 
-     * 
+     * @param e InventoryCloseEvent
      */
     @ArenaEventHandler
     public void onBombPlantFailure(InventoryCloseEvent e) {
@@ -308,10 +350,17 @@ public class BombArenaListener extends Arena {
     }
     
     /**
-     * onBombDefusal(BlockBreakEvent event)
+     * This method handles the event when players try to defuse the bomb (by breaking the bomb block). <br/><br/>
      * 
-     * Make sure that the player (or his teammates) who just planted the bomb
-     * cannot turn around and defuse it for the win.
+     * Make sure that player (or his teammates) who just planted the bomb
+     * cannot turn around and break it: <br/><br/>
+     * Such a scenario would produce 2 possible scenarios: <br/>
+     * 1. The plant/defuse for the win exploit. <br/>
+     * 2. The plant/break exploit (prevents the other team from defusing). <br/><br/>
+     * 
+     * This version currently contains bug #2.
+     * 
+     * @param e BlockBreakEvent - Is it the bomb block ?
      */
     @ArenaEventHandler
     public void onBombDefusal(BlockBreakEvent e) {
@@ -343,15 +392,28 @@ public class BombArenaListener extends Arena {
         
     }
     
-    // This is the Order in which they're called by BattleArena:
-    // onBegin() called first.
+    /**
+     * First method called by BattleArena. <br/><br/>
+     * 
+     * Do NOT handle anything specific to matches here. <br/><br/>
+     * 
+     * BattleArena method order (during matches): <br/>
+     * 1. onStart() <br/>
+     * 2. onComplete() <br/>
+     * 3. onFinish() <br/>
+     * 
+     */
     @Override
     public void onBegin() {
         super.onBegin(); 
         plugin.getLogger().info("onBegin() has been called by Demolition plugin: BombArenaListener.java");
     }
     
-    // onStart() called at the start of a Match.
+    /**
+     * onStart() is called at the start of a Match. <br/><br/>
+     * 
+     * Order: onStart(), onComplete(), onFinish() 
+     */
     @Override
     public void onStart() {
         super.onStart();
@@ -363,22 +425,41 @@ public class BombArenaListener extends Arena {
         // plugin.tbases.get(getMatch().getID()).
     }
     
-    // onComplete() is called before money is given.
+    /**
+     * onComplete() is called before money is given. <br/><br/>
+     * 
+     * Order: onStart(), onComplete(), onFinish()
+     */
     @Override
     public void onComplete() {
         super.onComplete();
-        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onComplete");
+        int matchID = getMatch().getID();
+        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onComplete matchID = " + matchID);
     }
     
-    // onFinish() is called after money is given.
+    /**
+     * onFinish() is called after money is given.
+     * 
+     * Order: onStart(), onComplete(), onFinish()
+     */
     @Override
     public void onFinish() {
         super.onFinish();
-        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onFinish");
+        int matchID = getMatch().getID();
+        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onFinish matchID = " + matchID);
+        plugin.carriers.remove(matchID);
+        plugin.bases.remove(matchID);
     }
     
-    /*
-     * For what teams ?
+    /**
+     * This is called from onStart() and assigns both Teams to a base. <br/><br/>
+     * 
+     * Since teams are assigned to a base, we can use this information to prevent them from 
+     * trying to destroy their own base. <br/><br/>
+     * 
+     * And force them to destroy the other teams base. <br/><br/>
+     * 
+     * @param bothTeams - Assign bases for what teams ?
      */
     public void assignBases(List<ArenaTeam> bothTeams) {
         
@@ -432,10 +513,11 @@ public class BombArenaListener extends Arena {
         }
     }
     
-    /*
-     * For what team ?
-     * At what location ?
+    /**
+     * DO NOT USE THIS METHOD. This method is used by assignBases() <br/><br/>
      * 
+     * @param teamID assign this team to a certain location (base).
+     * @param loc This is the location of their own base. (NOT the enemy base).
      */
     public void assignBase(int teamID, Location loc) {
         int length = 5;
@@ -483,9 +565,11 @@ public class BombArenaListener extends Arena {
     }
     
     /**
-     *
-     * @param p = Player
-     * @return ArenaTeam
+     * This method uses a Player input parameter to get the other team.
+     * 
+     * @param p Use this player to get his opponents Team.
+     * @return Returns an ArenaTeam object of the other team.
+     * @throws NullPointerException Handles the scenario where a server owner mis-configured a Bomb Arena with only ONE Team.
      */
     public ArenaTeam getOtherTeam(Player p) throws NullPointerException {
         // get the player
@@ -504,6 +588,20 @@ public class BombArenaListener extends Arena {
 
     }
 
+    /**
+     * Once the bomb is picked up, we need to set compass direction. <br/><br/>
+     * 
+     * This is to help out BOTH attackers and defenders find where they need to go 
+     * if they're unfamiliar with the map. <br/><br/>
+     * 
+     * This method generates an NPE if a player does NOT have a compass. <br/><br/>
+     * 
+     * Therefore, we need to check to make sure a player has a compass 
+     * before we try to set it.
+     * 
+     * @param players For which players are we setting the compass ?
+     * @param team2 Where are we pointing the Compass Direction ? To the other teams base.
+     */
     private void setCompass(Set<ArenaPlayer> players, ArenaTeam team2) {
         plugin.debug.log("setCompass(), team2 = " + team2);
         int matchID = getMatch().getID();
@@ -511,15 +609,19 @@ public class BombArenaListener extends Arena {
         plugin.debug.log("getMatch().getID() = " + matchID);
         plugin.debug.log("plugin.bases.get(matchID).get(teamID) = "
                 + plugin.bases.get(matchID).get(teamID));
-        
+
         // NullPointerException if the player doesn't have a compass
         // in their inventory
         for (ArenaPlayer p : players) {
-            p.getPlayer().setCompassTarget(plugin.bases.get(matchID).get(teamID)); // 519
-            if (p.getTeam().getId() == teamID) {
-                
+            if (p.getInventory().contains(Material.COMPASS)) {
+                p.getPlayer().setCompassTarget(plugin.bases.get(matchID).get(teamID)); // 519
+                if (p.getTeam().getId() == teamID) {
+                } else {
+                }
             } else {
-                
+                plugin.getLogger().warning(
+                        "Players in the bomb Arena type should have a compass so they know " 
+                        + "where bombs and bases are located.");
             }
         }
     }
