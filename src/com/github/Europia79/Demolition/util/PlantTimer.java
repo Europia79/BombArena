@@ -108,7 +108,8 @@ public class PlantTimer extends BukkitRunnable {
             plugin.ti.addPlayerRecord(player.getName(), "Bombs Planted Defused", WLT.WIN);
             // Player p = plugin.getServer().getPlayer(plugin.carrier);
             ArenaTeam t = match.getArena().getTeam(player); // arena.getTeam(player);
-            player.getWorld().createExplosion(BOMB_LOCATION, 4F);
+            player.getWorld().createExplosion(BOMB_LOCATION, 0F);
+            killPlayers(BOMB_LOCATION);
             match.setVictor(t);
             this.cancel();
         }
@@ -158,6 +159,17 @@ public class PlantTimer extends BukkitRunnable {
                         currentBlock.setType(Material.HARD_CLAY);
                     }
                 }
+            }
+        }
+    }
+
+    private void killPlayers(Location loc) {
+        Set<ArenaPlayer> players = match.getPlayers();
+        for (ArenaPlayer p : players) {
+            double distance = p.getLocation().distance(loc);
+            if (distance <= 9) {
+                double dmg = 50 - (distance * 5);
+                p.getPlayer().damage(dmg);
             }
         }
     }
