@@ -202,17 +202,17 @@ sql command:
 SELECT ID1, Wins, Losses, Ties FROM bt_Demolition_versus;
 ```
 sample output:
-| Player | # of Bombs Planted Successfully | # of Bombs Failed   | # of Bombs Defused |
+| Player | No. of Bombs Planted Successfully | No. of Bombs Failed   | No. of Bombs Defused |
 |:-------|:-------------------------------:|:-------------------:|:------------------:|
-|Autumn07     | 25  | 75 | 3  |
-|SmileyBrooke | 99  | 1  | 25 |
-|Europia79    | 9   | 1  | 25 |
-|Ralkia       | 4   | 1  | 25 |
+|`Autumn07`     | 25  | 75 | 3  |
+|`SmileyBrooke` | 99  | 1  | 25 |
+|`Europia79`    | 9   | 1  | 25 |
+|`Ralkia`       | 4   | 1  | 25 |
 |**Totals**   | 137 | 78 | 78 |
 
 
 As you can see, the number of Bombs Defused in the last column 
-will ALWAYS equal the `# of Bombs` that `Failed` to detonate.
+will ALWAYS equal the `No of Bombs` that `Failed` to detonate.
 
 
 Also notice what the SQL columns mean for the Bomb Game Type:
