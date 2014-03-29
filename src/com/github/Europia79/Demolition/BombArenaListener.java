@@ -99,6 +99,7 @@ public class BombArenaListener extends Arena {
             if (c == null) {
                 c = e.getPlayer().getName();
                 plugin.carriers.put(matchID, c);
+                e.getPlayer().getInventory().setHelmet(new ItemStack(Material.HARD_CLAY));
                 ArenaTeam team2 = null;
                 try {
                     team2 = getOtherTeam(e.getPlayer());
@@ -195,6 +196,10 @@ public class BombArenaListener extends Arena {
         if (type == Material.HARD_CLAY) {
             if (c != null 
                     && e.getPlayer().getName().equals(c)) {
+                if (e.getPlayer().getInventory().getHelmet() == new ItemStack(Material.HARD_CLAY)) {
+                    e.getPlayer().getInventory().setHelmet(new ItemStack(Material.AIR));
+                    
+                }
                 // sets the carrier to null
                 plugin.carriers.remove(matchID);
                 // get all arena players inside this Match. 
@@ -309,6 +314,9 @@ public class BombArenaListener extends Arena {
                 && e.getPlayer().getName().equalsIgnoreCase(c) 
                 && plugin.bases.get(matchID).get(teamID).distance(planter.getLocation()) > 30) {
             // converted a single Timer to one for each match.
+            if (e.getPlayer().getInventory().getHelmet() == new ItemStack(Material.HARD_CLAY)) {
+                e.getPlayer().getInventory().setHelmet(new ItemStack(Material.AIR));
+            }
             plugin.pTimers.put(getMatch().getID(), new PlantTimer(e, getMatch()));
             plugin.pTimers.get(getMatch().getID()).runTaskTimer(plugin, 0L, 20L);
         } else if (e.getInventory().getType() == InventoryType.BREWING){
