@@ -178,6 +178,64 @@ Known Issues:
 - Obviously, there is NO handling for when the bomb despawns after 5 minutes because this event breaks all other events.
 
 
+How to access Player Stats Database:
+---
+```sql
+sqlite3 tracker.sqlite
+.tables
+.schema bt_Demolition_versus
+```
+output:
+```sql
+CREATE TABLE bt_Demolition_versus 
+  (ID1 VARCHAR(32) NOT NULL,
+   ID2 VARCHAR(32) NOT NULL,
+   Wins INTEGER UNSIGNED,
+   Losses INTEGER UNSIGNED,
+   Ties INTEGER UNSIGNED,
+   PRIMARY KEY (ID1, ID2));
+CREATE UNIQUE INDEX bt_Demolition_versus_idx ON 
+   bt_Demolition_versus (ID1);
+```
+sql command:
+```sql
+SELECT ID1, Wins, Losses, Ties FROM bt_Demolition_versus;
+```
+sample output:
+| Player | # of Bombs Planted Successfully | # of Bombs Failed   | # of Bombs Defused |
+|:-------|:-------------------------------:|:-------------------:|:------------------:|
+|Autumn07     | 25  | 75 | 3  |
+|SmileyBrooke | 99  | 1  | 25 |
+|Europia79    | 9   | 1  | 25 |
+|Ralkia       | 4   | 1  | 25 |
+|**Totals**   | 137 | 78 | 78 |
+
+
+As you can see, the number of Bombs Defused in the last column 
+will ALWAYS equal the `# of Bombs` that `Failed` to detonate.
+
+
+Also notice what the SQL columns mean for the Bomb Game Type:
+```sql
+  Wins   = # of Bombs Planted Successfully
+  Losses = # of Bombs that Failed to Detonate
+  Ties   = # of Bombs Defused
+```
+
+
+Notice that each time Autumn planted the bomb, she successfully 
+destroyed the other teams based 25% of the time, and that she caused 
+her own team to lose 75% of the time. Whereas Brooke was successful 
+99% of the time. Europia was 90% successful, and Ralkia was 80% successful. 
+
+
+So... you can use BattleTracker to store player stats into either 
+an sqlite or MySQL database... You can then have your website access 
+the database and print the player stats. Just use the above SQL SELECT 
+command: it's the same for both sqlite and MySQL. Then, you can even 
+calculate the percentages and display those too if you want.
+
+
 Dependencies:
 ---
 
