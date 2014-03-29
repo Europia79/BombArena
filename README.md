@@ -212,8 +212,8 @@ sample output:
 |**Totals**   | 137 | 78 | 78 |
 
 
-As you can see, the number of Bombs Defused in the last column 
-will ALWAYS equal the `No of Bombs` that `Failed` to detonate.
+As you can see, the number of `Bombs Defused` in the last column 
+will ALWAYS equal the `No of Bombs that Failed` to detonate`.
 
 
 Also notice what the SQL columns mean for the Bomb Game Type:
@@ -252,10 +252,7 @@ Dependencies:
 - **WorldEdit**
   * http://dev.bukkit.org/bukkit-plugins/worldedit/
   * Needed for WorldGuard.
-- **Essentials**
-  * http://dev.bukkit.org/bukkit-plugins/essentials/
-  * Used to put an identifying HAT on the bomb carrier so that players know WHO has the bomb.
-  * Not yet implemented
+  
   
 To-Do List
 ---
