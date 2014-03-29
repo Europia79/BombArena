@@ -105,7 +105,7 @@ public class PlantTimer extends BukkitRunnable {
         if (i <= 0) {
             player.sendMessage(ChatColor.LIGHT_PURPLE
                     + "Congratulations, you have successfully destroyed their base.");
-            plugin.ti.addPlayerRecord(player.getName(), "bombs planted", WLT.WIN);
+            plugin.ti.addPlayerRecord(player.getName(), "Bombs Planted Defused", WLT.WIN);
             // Player p = plugin.getServer().getPlayer(plugin.carrier);
             ArenaTeam t = match.getArena().getTeam(player); // arena.getTeam(player);
             player.getWorld().createExplosion(BOMB_LOCATION, 4F);

@@ -396,8 +396,8 @@ public class BombArenaListener extends Arena {
                     p.sendMessage("You lost!");
                 }
             }
-            plugin.ti.addPlayerRecord(e.getPlayer().getName(), "bombs defused", WLT.WIN);
-            plugin.ti.addPlayerRecord(c, "bombs planted", WLT.LOSS);
+            plugin.ti.addPlayerRecord(e.getPlayer().getName(), "Bombs Planted Defused", WLT.TIE);
+            plugin.ti.addPlayerRecord(c, "Bombs Planted Defused", WLT.LOSS);
             ArenaTeam t = getTeam(e.getPlayer());
             getMatch().setVictor(t);
             plugin.pTimers.get(matchID).cancel();
