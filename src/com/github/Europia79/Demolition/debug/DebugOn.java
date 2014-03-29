@@ -20,7 +20,7 @@ public class DebugOn implements DebugInterface {
 
     @Override
     public void log(String msg) {
-        plugin.getLogger().info(ChatColor.LIGHT_PURPLE + msg);
+        plugin.getLogger().info(msg);
     }
 
     @Override

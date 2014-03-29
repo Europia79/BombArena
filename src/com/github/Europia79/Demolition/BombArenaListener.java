@@ -296,19 +296,28 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombPlant(InventoryOpenEvent e) {
+        plugin.debug.log("onBombPlant() has been called.");
         int matchID = getMatch().getID();
+        plugin.debug.log("matchID = " + matchID);
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
-        // Player carrier = (c == null) ? null : Bukkit.getPlayer(c);
+        plugin.debug.log("plugin.carriers.get(matchID) = " + plugin.carriers.get(matchID));
         Player planter = (Player) e.getPlayer();
+        plugin.debug.log("planter = " + planter.getName());
         int teamID = getTeam(planter).getId();
-        plugin.debug.messagePlayer(planter, "onBombPlant() has been called");
-        plugin.debug.messagePlayer(planter, 
-                "carrier = " + c );
+        plugin.debug.log("teamID = " + teamID);
         // ARE THEY AT THE CORRECT BASE ?
         // Use the Match ID to get all the player bases, then
         // get the bomb carriers base:
         // Compare his current position with the position of HIS OWN BASE
         // to make sure he's not trying to plant the bomb at his own base.
+        plugin.debug.messagePlayer(planter, "onBombPlant() has been called");
+        plugin.debug.log("e.getInventory().getType() = " + e.getInventory().getType());
+        plugin.debug.log("carrier, c = " + c);
+        plugin.debug.log("e.getPlayer().getName() = " + e.getPlayer().getName());
+        plugin.debug.log("planter.getLocation = " + planter.getLocation());
+        plugin.debug.log("plugin.bases.get(matchID) = " + plugin.bases.get(matchID).toString());
+        plugin.debug.log("plugin.bases.get(matchID).get(teamID) = " + plugin.bases.get(matchID).get(teamID).toString());
+        plugin.debug.log("e.getPlayer().getInventory().getHelmet = " + e.getPlayer().getInventory().getHelmet());
         if (e.getInventory().getType() == InventoryType.BREWING 
                 && c != null 
                 && e.getPlayer().getName().equalsIgnoreCase(c) 
