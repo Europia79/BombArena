@@ -202,6 +202,7 @@ sql command:
 SELECT ID1, Wins, Losses, Ties FROM bt_Demolition_versus;
 ```
 sample output:
+
 | Player | No. of Bombs Planted Successfully | No. of Bombs Failed   | No. of Bombs Defused |
 |:-------|:-------------------------------:|:-------------------:|:------------------:|
 |`Autumn07`     | 25  | 75 | 3  |
