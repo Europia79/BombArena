@@ -536,11 +536,14 @@ public class BombArenaListener extends Arena {
      * @param teamID assign this team to a certain location (base).
      * @param loc This is the location of their own base. (NOT the enemy base).
      */
-    public void assignBase(int teamID, Location loc) {
+    private void assignBase(int teamID, Location loc) {
+        plugin.debug.log("asssBase(int teamID, Location loc");
+        plugin.debug.log("teamID = " + teamID);
+        plugin.debug.log("Location loc = " + loc.toString());
         int length = 5;
         int matchID = getMatch().getID();
+        plugin.debug.log("matchID = " + matchID);
         Map<Integer, Location> temp = new HashMap<Integer, Location>();
-        Map<String, Location> ptemp = new HashMap<String, Location>();
 
         // Set one corner of the cube to the given location.
         // Uses getBlockN() instead of getN() to avoid casting to an int later.
@@ -554,6 +557,7 @@ public class BombArenaListener extends Arena {
         int z2 = loc.getBlockZ() + length;
 
         World world = loc.getWorld();
+        plugin.debug.log("World world = " + world.getName());
 
         // Loop over the cube in the x dimension.
         for (int xPoint = x1; xPoint <= x2; xPoint++) {
@@ -567,9 +571,15 @@ public class BombArenaListener extends Arena {
                     if (currentBlock.getType() == Material.BREWING_STAND) {
                         // currentBlock.setType(Material.HARD_CLAY);
                         Location base_loc = new Location(world, xPoint, yPoint, zPoint);
+                        plugin.debug.log("base_loc = " + base_loc.toString());
                         temp.put(teamID, base_loc);
-                        // ptemp.put(p.getName(), base_loc);
+                        plugin.debug.log("temp.get(teamID).toString = " + temp.get(teamID).toString());
                         plugin.bases.put(matchID, temp);
+                        plugin.debug.log("plugin.bases.get(matchID).toString = "
+                                + plugin.bases.get(matchID).toString());
+                        plugin.debug.log("plugin.bases.get(matchID).get(teamID) = " 
+                                + plugin.bases.get(matchID).get(teamID).toString());
+                        
                         // Checking for the correct base below:
 
                         // plugin.bases.get(matchID).get(teamID).distance(player.getLocation);
