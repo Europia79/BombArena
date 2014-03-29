@@ -108,6 +108,7 @@ public class PlantTimer extends BukkitRunnable {
             plugin.ti.addPlayerRecord(player.getName(), "bombs planted", WLT.WIN);
             // Player p = plugin.getServer().getPlayer(plugin.carrier);
             ArenaTeam t = match.getArena().getTeam(player); // arena.getTeam(player);
+            player.getWorld().createExplosion(BOMB_LOCATION, 4F);
             match.setVictor(t);
             this.cancel();
         }
