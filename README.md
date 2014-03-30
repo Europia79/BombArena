@@ -275,4 +275,7 @@ Nicodemis79 on Skype
 [http://www.Battlecraft.co/](http://www.Battlecraft.co/ "Battlecraft")
 
 
-[http://Rainbowcraft.net/](http://Rainbowcraft.net/ "Rainbowcraft")
+Javadocs:
+---
+
+[http://javadocs.rainbowcraft.net/](http://javadocs.rainbowcraft.net/ "javadocs")
