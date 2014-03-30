@@ -1,3 +1,6 @@
+/**
+ * Contains the classes that toggle debug on/off.
+ */
 package com.github.Europia79.Demolition.debug;
 
 import java.util.Set;

@@ -435,11 +435,13 @@ public class BombArenaListener extends Arena {
     public void onStart() {
         super.onStart();
         plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onStart");
-        // temporary:
-        plugin.carriers.clear();
-        // World w = getWorldGuardRegion().getWorld();
+        Set<ArenaPlayer> players = getMatch().getPlayers();
+        for (ArenaPlayer p : players) {
+            if (!p.getInventory().contains(Material.COMPASS)) {
+                p.getInventory().addItem(new ItemStack(Material.COMPASS));
+            }
+        }
         assignBases(getMatch().getTeams());
-        // plugin.tbases.get(getMatch().getID()).
     }
     
     /**
@@ -452,6 +454,12 @@ public class BombArenaListener extends Arena {
         super.onComplete();
         int matchID = getMatch().getID();
         plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onComplete matchID = " + matchID);
+        Set<ArenaPlayer> players = getMatch().getPlayers();
+        for (ArenaPlayer p : players) {
+            if (p.getPlayer().getInventory().getHelmet() == new ItemStack(Material.HARD_CLAY)) {
+                p.getPlayer().getInventory().setHelmet(new ItemStack(Material.AIR));
+            }
+        }
     }
     
     /**

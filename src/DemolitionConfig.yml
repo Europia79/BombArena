@@ -45,8 +45,9 @@ Demolition:
     options:
     - health=20.0
     - hunger=20
-    - invulnerable=3
+    - invulnerable=2
     - pvpOn
+    - respawnWithClass
   onDeath:
     options:
     - randomSpawn

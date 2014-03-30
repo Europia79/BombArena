@@ -1,3 +1,6 @@
+/**
+ * Bomb.java: Used to trigger a new bombDropEvent for onBombCarrierDeath().
+ */
 package com.github.Europia79.Demolition.objects;
 
 import java.util.List;

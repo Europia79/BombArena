@@ -1,3 +1,6 @@
+/**
+ * Contains timers for Planting the bomb and destroying enemy bases.
+ */
 package com.github.Europia79.Demolition.util;
 
 import com.github.Europia79.Demolition.BombArenaListener;

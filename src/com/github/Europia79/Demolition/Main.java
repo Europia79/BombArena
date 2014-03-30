@@ -1,3 +1,6 @@
+/**
+ * Main.java: Entry point. BombArenaListener.java: All bomb events.
+ */
 package com.github.Europia79.Demolition;
 
 import com.github.Europia79.Demolition.debug.*;
@@ -19,16 +22,22 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class Main extends JavaPlugin {
     
+    /**
+     * https://github.com/Europia79/debug for more info.
+     */
     public DebugInterface debug;
-    // This will contain the carrier for each arena match.
-    // <matchID, PlayerName>
+    /**
+     * This Map<matchID, playerName> contains the carrier for each match.
+     */
     Map<Integer, String> carriers;
-    //  <matchID,   <teamID, Base Location>>
+    /**
+     * <matchID, <teamID, Base Location>>
+     */
     Map<Integer, Map<Integer, Location>> bases;
     public Map<Integer, PlantTimer> pTimers;
     public Map<Integer, DetonateTimer> dTimers;
     /**
-     *
+     * 
      */
     public TrackerInterface ti;
     
