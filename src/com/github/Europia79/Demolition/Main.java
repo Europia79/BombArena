@@ -1,6 +1,3 @@
-/**
- * Main.java: Entry point. BombArenaListener.java: All bomb events.
- */
 package com.github.Europia79.Demolition;
 
 import com.github.Europia79.Demolition.debug.*;
@@ -23,21 +20,37 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Main extends JavaPlugin {
     
     /**
+     * debug = new DebugOn(); <br/>
+     * debug = new DebugOff(); <br/>
+     * debug.log("x = " + x); <br/>
+     * debug.messagePlayer(p, "debug msg"); <br/>
+     * debug.msgArenaPlayers(match.getPlayers(), "info"); <br/><br/>
+     * 
      * https://github.com/Europia79/debug for more info.
      */
     public DebugInterface debug;
     /**
      * This Map<matchID, playerName> contains the carrier for each match.
      */
-    Map<Integer, String> carriers;
+    public Map<Integer, String> carriers;
     /**
-     * <matchID, <teamID, Base Location>>
+     * <matchID, <teamID, Base Location>> contains the base location for each team & match.
      */
-    Map<Integer, Map<Integer, Location>> bases;
+    public Map<Integer, Map<Integer, Location>> bases;
+    /**
+     * <matchID, new PlantTimer(InventoryOpenEvent e, getMatch())> contains the Plant Timer for each match.
+     */
     public Map<Integer, PlantTimer> pTimers;
+    /**
+     * Possible future use to transfer responsibility of the Detonation Timer from PlantTimer to this class.
+     */
     public Map<Integer, DetonateTimer> dTimers;
     /**
-     * 
+     * Adds Bombs Planted and Bombs Defused to the database. <br/>
+     * WLT.WIN = Bomb Planted Successfully (opponents base was destroyed). <br/>
+     * WLT.LOSS = Plant Failure caused by enemy defusal of the bomb. <br/>
+     * WLT.TIE = Bomb Defused by the player. <br/>
+     * Notice that in the databse, Ties = Losses.
      */
     public TrackerInterface ti;
     

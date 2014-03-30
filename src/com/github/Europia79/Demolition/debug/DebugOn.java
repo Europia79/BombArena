@@ -7,8 +7,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 /**
- *
- * @author Nikolai
+ * debug = new DebugOn(); will toggle debugging mode ON.
+ * 
  */
 public class DebugOn implements DebugInterface {
     

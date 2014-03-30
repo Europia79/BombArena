@@ -5,8 +5,7 @@ import mc.alk.arena.objects.ArenaPlayer;
 import org.bukkit.entity.Player;
 
 /**
- *
- * @author Nikolai
+ * debug = new DebugOff(); will toggle debugging mode OFF.
  */
 public class DebugOff implements DebugInterface {
 

@@ -1,6 +1,3 @@
-/**
- * Bomb.java: Used to trigger a new bombDropEvent for onBombCarrierDeath().
- */
 package com.github.Europia79.Demolition.objects;
 
 import java.util.List;
@@ -22,8 +19,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
 /**
- *
- * @author Nikolai
+ * Bomb.java: Used to trigger a new PlayerDropItemEvent for onBombCarrierDeath().
  */
 public class Bomb implements Item {
     int pickupDelay;

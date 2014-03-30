@@ -1,6 +1,3 @@
-/**
- * TrackerOff.java: Interface used to turn player stats off.
- */
 package com.github.Europia79.Demolition.tracker;
 
 import com.github.Europia79.Demolition.Main;
@@ -21,8 +18,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 /**
- *
- * @author Nikolai
+ * TrackerInterface ti = new TrackerOff();
+ * 
  */
 public class TrackerOff implements TrackerInterface {
     

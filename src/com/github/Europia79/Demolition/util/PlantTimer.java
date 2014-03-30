@@ -1,6 +1,3 @@
-/**
- * Contains timers for Planting the bomb and destroying enemy bases.
- */
 package com.github.Europia79.Demolition.util;
 
 import com.github.Europia79.Demolition.BombArenaListener;
@@ -21,8 +18,11 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- *
- * @author Nikolai
+ * Example: new PlantTimer(InventoryOpenEvent e, getMatch()). <br/><br/>
+ * 
+ * plugin.pTimers.put(getMatch().getID(), new PlantTimer(e, getMatch())); <br/>
+ * plugin.pTimers.get(getMatch().getID()).runTaskTimer(plugin, 0L, 20L); <br/>
+ * 
  */
 public class PlantTimer extends BukkitRunnable {
 
@@ -130,10 +130,14 @@ public class PlantTimer extends BukkitRunnable {
         return cancelled;
     }
     
-    
-    /*
-     * Block Manipulation method from 
-     * http://wiki.bukkit.org/Plugin_Tutorial
+    /**
+     * Block Manipulation method from
+     * http://wiki.bukkit.org/Plugin_Tutorial <br/><br/>
+     * 
+     * This method takes an approximate location and finds the exact location of a base.
+     * 
+     * @param loc The approximate area that needs to be checked for a base.
+     * @param length This is the radius around the location that you want to search for a base.
      */
     public void setBomb(Location loc, int length) {
         // Set one corner of the cube to the given location.

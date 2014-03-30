@@ -42,8 +42,6 @@ import org.bukkit.inventory.ItemStack;
 /**
  * This class listens for all the bomb events and acts accordingly.
  * 
- * @author Nikolai
- * 
  * <pre>
  * Bomb = Hardened Clay 172
  *
