@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>mc.euro</groupId>
+  <artifactId>demolition</artifactId>
+  <packaging>jar</packaging>
+  <version>172${maven.build.timestamp}</version>
+  <name>Demolition</name>
+    <properties>
+    <maven.build.timestamp.format>yyMMdd-HHmm</maven.build.timestamp.format>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  <url>http://maven.apache.org</url>
+    <!-- Locations for jar repositories -->
+    <repositories>
+        <repository>
+            <id>battleplugins-repo</id>
+            <url>http://server.battleplugins.com/maven/repository/</url>
+        </repository>
+        <repository>
+            <id>bukkit-repo</id>
+            <url>http://repo.bukkit.org/content/groups/public</url>
+        </repository>
+        <repository>
+            <id>md_5-snapshots</id>
+            <url>http://repo.md-5.net/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>sk89q-repo</id>
+            <url>http://maven.sk89q.com/repo/</url>
+        </repository>
+        <repository>
+            <id>vault-repo</id>
+            <url>http://nexus.theyeticave.net/content/repositories/pub_releases</url>
+        </repository>
+        <repository>
+            <id>kitteh-repo</id>
+            <url>http://repo.kitteh.org/content/repositories/public/</url>
+        </repository>
+    </repositories>
+     <!-- Dependencies -->
+    <dependencies>
+        <!-- Dependencies that have maven repos -->
+        <dependency>
+            <groupId>org.bukkit</groupId>
+            <artifactId>bukkit</artifactId>
+            <version>1.7.2-R0.3-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>mc.alk</groupId>
+            <artifactId>BattleArena</artifactId>
+            <version>3.9.5.4</version>
+            <scope>provided</scope>
+        </dependency>
+		<dependency>
+            <groupId>mc.alk</groupId>
+            <artifactId>BattleTracker</artifactId>
+            <version>2.5.8.8</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.sk89q</groupId>
+            <artifactId>worldguard</artifactId>
+            <version>5.8.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- unknown plugins that I had to add to the repo -->
+        <!-- test dependencies -->
+    </dependencies>
+    <!-- How we will compile the plugin -->
+    <build>
+        <finalName>${artifactId}${version}</finalName>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh</artifactId>
+                <version>2.4</version>
+            </extension>
+        </extensions>
+        <defaultGoal>install</defaultGoal>
+        <!-- Where our source directory is -->
+        <sourceDirectory>${basedir}/src</sourceDirectory>
+        <!-- Include all the resources we need -->
+        <resources>
+            <resource>
+                <targetPath>.</targetPath>
+                <filtering>true</filtering>
+                <directory>${basedir}</directory>
+                <includes>
+                    <include>*.yml</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <!-- Specify how we build the plugin.jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
