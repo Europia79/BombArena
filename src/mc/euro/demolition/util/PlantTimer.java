@@ -1,7 +1,7 @@
-package com.github.Europia79.Demolition.util;
+package mc.euro.demolition.util;
 
-import com.github.Europia79.Demolition.BombArenaListener;
-import com.github.Europia79.Demolition.Main;
+import mc.euro.demolition.BombArenaListener;
+import mc.euro.demolition.Main;
 import java.util.Set;
 import mc.alk.arena.competition.match.Match;
 import mc.alk.arena.objects.ArenaPlayer;

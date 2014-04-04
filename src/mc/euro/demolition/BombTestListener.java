@@ -1,8 +1,8 @@
-package com.github.Europia79.Demolition;
+package mc.euro.demolition;
 
-import com.github.Europia79.Demolition.objects.Bomb;
-import com.github.Europia79.Demolition.util.DetonateTimer;
-import com.github.Europia79.Demolition.util.PlantTimer;
+import mc.euro.demolition.objects.Bomb;
+import mc.euro.demolition.util.DetonateTimer;
+import mc.euro.demolition.util.PlantTimer;
 import java.util.Set;
 import mc.alk.arena.events.players.ArenaPlayerLeaveEvent;
 import mc.alk.arena.objects.ArenaPlayer;

@@ -1,6 +1,6 @@
-package com.github.Europia79.Demolition.commands;
+package mc.euro.demolition.commands;
 
-import com.github.Europia79.Demolition.Main;
+import mc.euro.demolition.Main;
 import java.util.List;
 import mc.alk.arena.executors.CustomCommandExecutor;
 import mc.alk.arena.executors.MCCommand;

@@ -1,6 +1,6 @@
-package com.github.Europia79.Demolition.debug;
+package mc.euro.demolition.debug;
 
-import com.github.Europia79.Demolition.Main;
+import mc.euro.demolition.Main;
 import java.util.Set;
 import mc.alk.arena.objects.ArenaPlayer;
 import org.bukkit.ChatColor;

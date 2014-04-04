@@ -1,6 +1,6 @@
-package com.github.Europia79.Demolition.tracker;
+package mc.euro.demolition.tracker;
 
-import com.github.Europia79.Demolition.Main;
+import mc.euro.demolition.Main;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;

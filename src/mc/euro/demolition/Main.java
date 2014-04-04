@@ -1,10 +1,11 @@
-package com.github.Europia79.Demolition;
+package mc.euro.demolition;
 
-import com.github.Europia79.Demolition.commands.Demo;
-import com.github.Europia79.Demolition.debug.*;
-import com.github.Europia79.Demolition.tracker.TrackerOff;
-import com.github.Europia79.Demolition.util.DetonateTimer;
-import com.github.Europia79.Demolition.util.PlantTimer;
+import mc.euro.demolition.debug.DebugOn;
+import mc.euro.demolition.debug.DebugInterface;
+import mc.euro.demolition.commands.Demo;
+import mc.euro.demolition.tracker.TrackerOff;
+import mc.euro.demolition.util.DetonateTimer;
+import mc.euro.demolition.util.PlantTimer;
 import java.util.HashMap;
 import java.util.Map;
 import mc.alk.arena.BattleArena;

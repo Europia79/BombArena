@@ -1,4 +1,4 @@
-package com.github.Europia79.Demolition.debug;
+package mc.euro.demolition.debug;
 
 import java.util.Set;
 import mc.alk.arena.objects.ArenaPlayer;

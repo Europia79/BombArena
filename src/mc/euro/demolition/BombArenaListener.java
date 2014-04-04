@@ -1,8 +1,8 @@
-package com.github.Europia79.Demolition;
+package mc.euro.demolition;
 
-import com.github.Europia79.Demolition.objects.Bomb;
-import com.github.Europia79.Demolition.util.DetonateTimer;
-import com.github.Europia79.Demolition.util.PlantTimer;
+import mc.euro.demolition.objects.Bomb;
+import mc.euro.demolition.util.DetonateTimer;
+import mc.euro.demolition.util.PlantTimer;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldguard.bukkit.WGBukkit;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;

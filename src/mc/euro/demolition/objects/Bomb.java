@@ -1,4 +1,4 @@
-package com.github.Europia79.Demolition.objects;
+package mc.euro.demolition.objects;
 
 import java.util.List;
 import java.util.UUID;

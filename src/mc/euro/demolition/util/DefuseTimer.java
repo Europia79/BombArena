@@ -1,4 +1,4 @@
-package com.github.Europia79.Demolition.util;
+package mc.euro.demolition.util;
 
 import org.bukkit.scheduler.BukkitRunnable;
 
