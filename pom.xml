@@ -44,7 +44,7 @@
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>1.7.2-R0.3-SNAPSHOT</version>
+            <version>1.7.2-R0.3</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -93,8 +93,17 @@
             </resource>
         </resources>
         <plugins>
-            <!-- Specify how we build the plugin.jar -->
             <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-compiler-plugin</artifactId>
+              <version>3.1</version>
+              <configuration>
+                  <source>1.6</source>
+                  <target>1.6</target>
+              </configuration>
+          </plugin>
+            <!-- Specify how we build the plugin.jar -->
+            <!-- <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>1.6</version>
@@ -103,7 +112,7 @@
                         <phase>package</phase>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin> -->
         </plugins>
     </build>
 </project>
