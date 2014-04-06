@@ -13,7 +13,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
 /**
- *
+ * All the commands for the Demolition plugin.
  * @author Nikolai
  */
 public class Demo extends CustomCommandExecutor {

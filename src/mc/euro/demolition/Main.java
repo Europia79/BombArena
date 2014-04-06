@@ -65,7 +65,7 @@ public class Main extends JavaPlugin {
         pTimers = new HashMap<Integer, PlantTimer>();
         dTimers = new HashMap<Integer, DetonateTimer>();
           
-        // Commands are not yet implemented.
+        // Implemented "/bomb stats" command.
         getCommand("demolition").setExecutor(new Demo());
         
         BattleArena.registerCompetition(this, "Demolition", "demolition", BombArenaListener.class, new Demo());

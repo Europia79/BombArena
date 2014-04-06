@@ -9,7 +9,6 @@ import org.bukkit.scheduler.BukkitRunnable;
  * 
  * This might be changed in the future to allow more flexibility in the configuration 
  * of the Time Required for Defusal. <br/>
- * 
  */
 public class DefuseTimer extends BukkitRunnable {
 

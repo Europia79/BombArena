@@ -51,9 +51,6 @@ import org.bukkit.inventory.ItemStack;
  * onBombDefuse() - takes 7 sec, declare winners. 
  * </pre>
  * 
- * multiple listeners are currently not possible
- * because addArenaListener() is not working: 
- * from constructor, init(), or onBegin(). 
  *
  */
 public class BombTestListener extends Arena {

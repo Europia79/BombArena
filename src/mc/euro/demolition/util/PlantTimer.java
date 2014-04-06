@@ -22,7 +22,6 @@ import org.bukkit.scheduler.BukkitRunnable;
  * 
  * plugin.pTimers.put(getMatch().getID(), new PlantTimer(e, getMatch())); <br/>
  * plugin.pTimers.get(getMatch().getID()).runTaskTimer(plugin, 0L, 20L); <br/>
- * 
  */
 public class PlantTimer extends BukkitRunnable {
 

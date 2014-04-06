@@ -19,7 +19,6 @@ import org.bukkit.entity.Player;
 
 /**
  * TrackerInterface ti = new TrackerOff();
- * 
  */
 public class TrackerOff implements TrackerInterface {
     

@@ -73,7 +73,7 @@ public class Bomb implements Item {
 
     @Override
     public void setVelocity(Vector vector) {
-        
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override

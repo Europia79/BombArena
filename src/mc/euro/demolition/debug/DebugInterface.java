@@ -24,6 +24,7 @@ import org.bukkit.entity.Player;
  * </pre>
  * 
  * @author Nikolai
+ * 
  */
 public interface DebugInterface {
     

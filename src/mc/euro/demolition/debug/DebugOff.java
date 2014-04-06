@@ -11,6 +11,7 @@ public class DebugOff implements DebugInterface {
 
     @Override
     public void log(String m) {
+        // Doesn't log because Debugging is OFF.
     }
 
     @Override
