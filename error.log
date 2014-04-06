@@ -1,0 +1,44 @@
+2014-04-06 18:44:22 [Server thread][WARN] Caused by: java.lang.NullPointerException
+2014-04-06 18:44:22 [Server thread][WARN] 	at mc.euro.demolition.BombArenaListener.onBombPlant(BombArenaListener.java:312)
+2014-04-06 18:44:22 [Server thread][WARN] 	... 25 more
+2014-04-06 18:44:36 [Server thread][INFO] [Demolition] onBombPlant() has been called.
+2014-04-06 18:44:36 [Server thread][INFO] [Demolition] matchID = 2
+2014-04-06 18:44:36 [Server thread][INFO] [Demolition] plugin.carriers.get(matchID) = Europia79
+2014-04-06 18:44:36 [Server thread][INFO] [Demolition] planter = Europia79
+2014-04-06 18:44:36 [Server thread][INFO] [Demolition] teamID = 6
+2014-04-06 18:44:36 [Server thread][INFO] [Demolition] e.getInventory().getType() = BREWING
+2014-04-06 18:44:36 [Server thread][INFO] [Demolition] carrier, c = Europia79
+2014-04-06 18:44:36 [Server thread][INFO] [Demolition] e.getPlayer().getName() = Europia79
+2014-04-06 18:44:36 [Server thread][INFO] [Demolition] planter.getLocation = Location{world=CraftWorld{name=Battlecraft},x=209.7670535746527,y=74.0,z=-942.4165446255785,pitch=48.299988,yaw=-40.45612}
+2014-04-06 18:44:36 [Server thread][INFO] [Demolition] plugin.bases.get(matchID) = {7=Location{world=CraftWorld{name=Battlecraft},x=210.0,y=74.0,z=-942.0,pitch=0.0,yaw=0.0}}
+2014-04-06 18:44:36 [Server thread][ERROR] [[BattleArena v3.9.5] Error] method=public void mc.euro.demolition.BombArenaListener.onBombPlant(org.bukkit.event.inventory.InventoryOpenEvent),  types.length=1,  p=CraftPlayer{name=Europia79},  listener=[BombArenaListener : [MEM onBombPlant, InventoryOpenEvent p=HIGHEST onEnter:onLeave   playerMethod=public final org.bukkit.entity.HumanEntity org.bukkit.event.inventory.InventoryOpenEvent.getPlayer()]]
+2014-04-06 18:44:36 [Server thread][WARN] java.lang.reflect.InvocationTargetException
+2014-04-06 18:44:36 [Server thread][WARN] 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+2014-04-06 18:44:36 [Server thread][WARN] 	at sun.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)
+2014-04-06 18:44:36 [Server thread][WARN] 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+2014-04-06 18:44:36 [Server thread][WARN] 	at java.lang.reflect.Method.invoke(Unknown Source)
+2014-04-06 18:44:36 [Server thread][WARN] 	at mc.alk.arena.listeners.custom.SpecificPlayerEventListener.doMethods(SpecificPlayerEventListener.java:203)
+2014-04-06 18:44:36 [Server thread][WARN] 	at mc.alk.arena.listeners.custom.SpecificPlayerEventListener.callListeners(SpecificPlayerEventListener.java:171)
+2014-04-06 18:44:36 [Server thread][WARN] 	at mc.alk.arena.listeners.custom.SpecificPlayerEventListener.invokeEvent(SpecificPlayerEventListener.java:164)
+2014-04-06 18:44:36 [Server thread][WARN] 	at mc.alk.arena.listeners.custom.BukkitEventListener$3.execute(BukkitEventListener.java:105)
+2014-04-06 18:44:36 [Server thread][WARN] 	at org.bukkit.plugin.RegisteredListener.callEvent(RegisteredListener.java:62)
+2014-04-06 18:44:36 [Server thread][WARN] 	at org.bukkit.plugin.SimplePluginManager.fireEvent(SimplePluginManager.java:486)
+2014-04-06 18:44:36 [Server thread][WARN] 	at org.bukkit.plugin.SimplePluginManager.callEvent(SimplePluginManager.java:471)
+2014-04-06 18:44:36 [Server thread][WARN] 	at org.bukkit.craftbukkit.v1_7_R1.event.CraftEventFactory.callInventoryOpenEvent(CraftEventFactory.java:578)
+2014-04-06 18:44:36 [Server thread][WARN] 	at net.minecraft.server.v1_7_R1.EntityPlayer.openBrewingStand(EntityPlayer.java:680)
+2014-04-06 18:44:36 [Server thread][WARN] 	at net.minecraft.server.v1_7_R1.BlockBrewingStand.interact(SourceFile:66)
+2014-04-06 18:44:36 [Server thread][WARN] 	at net.minecraft.server.v1_7_R1.PlayerInteractManager.interact(PlayerInteractManager.java:383)
+2014-04-06 18:44:36 [Server thread][WARN] 	at net.minecraft.server.v1_7_R1.PlayerConnection.a(PlayerConnection.java:628)
+2014-04-06 18:44:36 [Server thread][WARN] 	at net.minecraft.server.v1_7_R1.PacketPlayInBlockPlace.a(SourceFile:60)
+2014-04-06 18:44:36 [Server thread][WARN] 	at net.minecraft.server.v1_7_R1.PacketPlayInBlockPlace.handle(SourceFile:9)
+2014-04-06 18:44:36 [Server thread][WARN] 	at net.minecraft.server.v1_7_R1.NetworkManager.a(NetworkManager.java:146)
+2014-04-06 18:44:36 [Server thread][WARN] 	at net.minecraft.server.v1_7_R1.ServerConnection.c(SourceFile:134)
+2014-04-06 18:44:36 [Server thread][WARN] 	at net.minecraft.server.v1_7_R1.MinecraftServer.u(MinecraftServer.java:655)
+2014-04-06 18:44:36 [Server thread][WARN] 	at net.minecraft.server.v1_7_R1.DedicatedServer.u(DedicatedServer.java:250)
+2014-04-06 18:44:36 [Server thread][WARN] 	at net.minecraft.server.v1_7_R1.MinecraftServer.t(MinecraftServer.java:545)
+2014-04-06 18:44:36 [Server thread][WARN] 	at net.minecraft.server.v1_7_R1.MinecraftServer.run(MinecraftServer.java:457)
+2014-04-06 18:44:36 [Server thread][WARN] 	at net.minecraft.server.v1_7_R1.ThreadServerApplication.run(SourceFile:617)
+2014-04-06 18:44:36 [Server thread][WARN] Caused by: java.lang.NullPointerException
+2014-04-06 18:44:36 [Server thread][WARN] 	at mc.euro.demolition.BombArenaListener.onBombPlant(BombArenaListener.java:312)
+2014-04-06 18:44:36 [Server thread][WARN] 	... 25 more
+2014-04-06 18:44:58 [Server thread][INFO] Europia79 lost connection: Disconnected
