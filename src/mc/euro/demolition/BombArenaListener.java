@@ -480,10 +480,11 @@ public class BombArenaListener extends Arena {
      * @param bothTeams - Assign bases for what teams ?
      */
     public void assignBases(List<ArenaTeam> bothTeams) {
-        
+        Map<Integer, Location> temp = new HashMap<Integer, Location>();
         WorldGuardPlugin wg = WGBukkit.getPlugin();
         
         for (ArenaTeam t : bothTeams) {
+            plugin.debug.log("teamOne = " + t.getName());
             Set<Player> playerzSet = t.getBukkitPlayers();
             Player playerOne = null;
             // Use the 1st player on the Team to assign the base
@@ -516,10 +517,11 @@ public class BombArenaListener extends Arena {
             double tdistance = playerOne.getLocation().distance(teleportXYZ);
             double sdistance = playerOne.getLocation().distance(spawnXYZ);
             
+            int teamID = t.getId();
             if (tdistance < sdistance) {
-                assignBase(t.getId(), teleportXYZ);
+                temp.put(teamID, getExactLocation(teamID, teleportXYZ));
             } else if ( tdistance > sdistance) {
-                assignBase(t.getId(), spawnXYZ);
+                temp.put(teamID, getExactLocation(teamID, spawnXYZ));
             } else if (tdistance == sdistance) {
                 plugin.getLogger().warning("Could NOT assign bases because " 
                         + "the player's spawn is equi-distance to both.");
@@ -529,6 +531,13 @@ public class BombArenaListener extends Arena {
             
             
         }
+        int matchID = getMatch().getID();
+        plugin.bases.put(matchID, temp);
+        plugin.debug.log("Number of Team bases: temp.size() = " + temp.size());
+        plugin.debug.log("Number of Team bases: plugin.bases.get(matchID).size() = " + plugin.bases.get(matchID).size());
+        if (temp.size() != 2) {
+            plugin.getLogger().warning("The bomb game type must have 2 teams !!!");
+        }
     }
     
     /**
@@ -537,7 +546,8 @@ public class BombArenaListener extends Arena {
      * @param teamID assign this team to a certain location (base).
      * @param loc This is the location of their own base. (NOT the enemy base).
      */
-    private void assignBase(int teamID, Location loc) {
+    private Location getExactLocation(int teamID, Location loc) {
+        Location base_loc = null;
         plugin.debug.log("asssBase(int teamID, Location loc");
         plugin.debug.log("teamID = " + teamID);
         plugin.debug.log("Location loc = " + loc.toString());
@@ -571,15 +581,16 @@ public class BombArenaListener extends Arena {
                     // Set the block to type 57 (Diamond block!)
                     if (currentBlock.getType() == Material.BREWING_STAND) {
                         // currentBlock.setType(Material.HARD_CLAY);
-                        Location base_loc = new Location(world, xPoint, yPoint, zPoint);
+                        base_loc = new Location(world, xPoint, yPoint, zPoint);
                         plugin.debug.log("base_loc = " + base_loc.toString());
-                        temp.put(teamID, base_loc);
-                        plugin.debug.log("temp.get(teamID).toString = " + temp.get(teamID).toString());
-                        plugin.bases.put(matchID, temp);
-                        plugin.debug.log("plugin.bases.get(matchID).toString = "
-                                + plugin.bases.get(matchID).toString());
-                        plugin.debug.log("plugin.bases.get(matchID).get(teamID) = " 
-                                + plugin.bases.get(matchID).get(teamID).toString());
+                        return base_loc;
+                        // ***temp.put(teamID, base_loc);
+                        // ***plugin.debug.log("temp.get(teamID).toString = " + temp.get(teamID).toString());
+                        // plugin.bases.put(matchID, temp);
+                        // plugin.debug.log("plugin.bases.get(matchID).toString = "
+                              // + plugin.bases.get(matchID).toString());
+                        // plugin.debug.log("plugin.bases.get(matchID).get(teamID) = " 
+                              //  + plugin.bases.get(matchID).get(teamID).toString());
                         
                         // Checking for the correct base below:
 
@@ -590,6 +601,7 @@ public class BombArenaListener extends Arena {
                 }
             }
         }
+        return base_loc;
     }
     
     /**
