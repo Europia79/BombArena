@@ -19,6 +19,7 @@ import mc.alk.arena.events.players.ArenaPlayerLeaveEvent;
 import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.arenas.Arena;
 import mc.alk.arena.objects.events.ArenaEventHandler;
+import mc.alk.arena.objects.events.EventPriority;
 import mc.alk.arena.objects.teams.ArenaTeam;
 import mc.alk.tracker.objects.WLT;
 import org.bukkit.Bukkit;
@@ -372,7 +373,7 @@ public class BombArenaListener extends Arena {
      * 
      * @param e BlockBreakEvent - Is it the bomb block ?
      */
-    @ArenaEventHandler
+    @ArenaEventHandler (priority=EventPriority.HIGHEST)
     public void onBombDefusal(BlockBreakEvent e) {
         int matchID = getMatch().getID();
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
