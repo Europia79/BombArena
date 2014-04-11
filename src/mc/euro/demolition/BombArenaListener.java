@@ -23,6 +23,7 @@ import mc.alk.arena.objects.events.EventPriority;
 import mc.alk.arena.objects.teams.ArenaTeam;
 import mc.alk.tracker.objects.WLT;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -32,6 +33,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -47,6 +49,7 @@ import org.bukkit.inventory.ItemStack;
  * Bomb = Hardened Clay 172
  *
  * Listen for 
+ * onBombSpawn() - set the compass for all the players.
  * onBombPickup() - set HAT & compass. 
  * onBombCarrierLeave() - if they log out or leave the arena.
  * onBombCarrierDeath() - drop it on the ground. 
@@ -68,6 +71,22 @@ public class BombArenaListener extends Arena {
      */
     public BombArenaListener() {
         plugin = (Main) Bukkit.getPluginManager().getPlugin("Demolition");
+    }
+    
+    /**
+     * This method sets the compass direction when the bomb spawns.
+     */
+    @ArenaEventHandler
+    public void onBombSpawn(ItemSpawnEvent e) {
+        int matchID = getMatch().getID();
+        if (plugin.carriers.containsKey(matchID) 
+                && plugin.carriers.get(matchID) != null) {
+            return;
+        }
+        if (e.getEntity().getItemStack().getType() == Material.HARD_CLAY) {
+            setCompass(e.getLocation());
+            msgAll(getMatch().getPlayers(), "The bomb has spawned");
+        }
     }
 
     /**
@@ -101,7 +120,12 @@ public class BombArenaListener extends Arena {
                     plugin.getLogger().severe("Stopping match because getOtherTeam() method failed");
                     getMatch().cancelMatch();
                 }
-                setCompass(getMatch().getPlayers(), team2);
+                int teamID = team2.getId();
+                Location base_loc = plugin.bases.get(matchID).get(teamID);
+                setCompass(base_loc);
+                msgAll(team2.getPlayers(), "Hurry back to defend your base from being destroyed!");
+                msgAll(getMatch().getArena().getTeam(e.getPlayer()).getPlayers(), 
+                        "Your team has the bomb! Follow your compass to find the other teams base.");
             } else {
                 e.setCancelled(true);
                 plugin.debug.messagePlayer(e.getPlayer(), 
@@ -198,11 +222,8 @@ public class BombArenaListener extends Arena {
                 plugin.carriers.remove(matchID);
                 // get all arena players inside this Match. 
                 // set their compass direction.
-                Set<ArenaPlayer> allplayers = getMatch().getPlayers();
-                for (ArenaPlayer p : allplayers) {
-                    p.getPlayer().setCompassTarget(loc);
-                    p.sendMessage("The bomb has been dropped! Follow your compass.");
-                }
+                setCompass(loc);
+                msgAll(getMatch().getPlayers(), "The bomb has been dropped! Follow your compass.");
             } else {
                 plugin.getLogger().warning(""
                         + e.getPlayer().getName()
@@ -628,37 +649,26 @@ public class BombArenaListener extends Arena {
         throw new NullPointerException();
 
     }
-
+    
     /**
-     * Once the bomb is picked up, we need to set compass direction. <br/><br/>
+     * Points to a base to destroy, or a dropped/spawned bomb. <br/><br/>
+     * 
+     * When the bomb spawns, we need to set the compass direction. <br/>
+     * When the bomb is picked up, we need to set the compass direction. <br/>
+     * When the bomb is dropped, we need to set the compass direction. <br/><br/>
      * 
      * This is to help out BOTH attackers and defenders find where they need to go 
      * if they're unfamiliar with the map. <br/><br/>
-     * 
-     * This method generates an NPE if a player does NOT have a compass. <br/><br/>
-     * 
-     * Therefore, we need to check to make sure a player has a compass 
-     * before we try to set it.
-     * 
-     * @param players For which players are we setting the compass ?
-     * @param team2 Where are we pointing the Compass Direction ? To the other teams base.
      */
-    private void setCompass(Set<ArenaPlayer> players, ArenaTeam team2) {
-        plugin.debug.log("setCompass(), team2 = " + team2);
-        int matchID = getMatch().getID();
-        int teamID = team2.getId();
-        plugin.debug.log("getMatch().getID() = " + matchID);
-        plugin.debug.log("plugin.bases.get(matchID).get(teamID) = "
-                + plugin.bases.get(matchID).get(teamID));
-
-        // NullPointerException if the player doesn't have a compass
-        // in their inventory
+    private void setCompass(Location loc) {
+        Set<ArenaPlayer> players = getMatch().getPlayers();
         for (ArenaPlayer p : players) {
+            if (!p.getInventory().contains(Material.COMPASS)) {
+                p.getInventory().addItem(new ItemStack(Material.COMPASS));
+            }
             if (p.getInventory().contains(Material.COMPASS)) {
-                p.getPlayer().setCompassTarget(plugin.bases.get(matchID).get(teamID)); // 519
-                if (p.getTeam().getId() == teamID) {
-                } else {
-                }
+                p.getPlayer().setCompassTarget(loc);
+                // p.sendMessage(ChatColor.GREEN + "Compass set.");
             } else {
                 plugin.getLogger().warning(
                         "Players in the bomb Arena type should have a compass so they know " 
@@ -666,6 +676,12 @@ public class BombArenaListener extends Arena {
             }
         }
     }
-    
+
+    private void msgAll(Set<ArenaPlayer> players, String msg, ChatColor... color) {
+        ChatColor colour = (ChatColor) ((color.length < 1) ? ChatColor.GREEN : color[0]);
+        for (ArenaPlayer p : players) {
+            p.sendMessage(colour + msg);
+        }
+    }
     
 }
