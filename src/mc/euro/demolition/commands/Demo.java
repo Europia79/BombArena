@@ -6,6 +6,9 @@ import mc.alk.arena.executors.CustomCommandExecutor;
 import mc.alk.arena.executors.MCCommand;
 import mc.alk.tracker.objects.Stat;
 import mc.alk.tracker.objects.StatType;
+import mc.euro.demolition.debug.DebugOff;
+import mc.euro.demolition.debug.DebugOn;
+import mc.euro.demolition.tracker.TrackerOff;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -27,10 +30,18 @@ public class Demo extends CustomCommandExecutor {
         plugin = (Main) Bukkit.getServer().getPluginManager().getPlugin("Demolition");
     }
     
-    // /bomb stats
+    /**
+     * Shows bomb arena stats for the command sender.
+     * Usage: /bomb stats
+     */
     @MCCommand(cmds={"stats"}, op=false)
     public boolean stats(CommandSender cs) {
             int n = 10;
+            if (plugin.ti instanceof TrackerOff) {
+                plugin.getLogger().warning(ChatColor.AQUA + "BattleTracker not found or turned off.");
+                cs.sendMessage(ChatColor.YELLOW + "Bomb Arena statistics are not being tracked.");
+                return true;
+            }
             List<Stat> planted = plugin.ti.getTopXWins(n);
             cs.sendMessage(ChatColor.AQUA + "Number of Bombs Planted Successfully");
             cs.sendMessage(ChatColor.YELLOW + "------------------------------------");
@@ -54,6 +65,21 @@ public class Demo extends CustomCommandExecutor {
             return true;
     }
 
+    /**
+     * Toggles debug mode ON / OFF.
+     * Usage: /bomb debug
+     */
+    @MCCommand(cmds={"debug"}, op=true)
+    public boolean debug(CommandSender cs) {
+        if (plugin.debug instanceof DebugOn) {
+            plugin.debug = new DebugOff();
+            return true;
+        } else if (plugin.debug instanceof DebugOff) {
+            plugin.debug = new DebugOn(plugin);
+            return true;
+        }
+        return false;
+    }
 
     
 }
