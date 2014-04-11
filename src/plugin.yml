@@ -1,10 +1,11 @@
 name: Demolition
 main: mc.euro.demolition.Main
-version: 17214410
+version: ${project.version}
 website: http://www.Battlecraft.co/
 description: One bomb, two bases.
 authors: [Europia79]
-depend: [BattleArena, BattleTracker, WorldEdit, WorldGuard]
+depend: [BattleArena, WorldEdit, WorldGuard]
+softdepnd: [BattleTracker]
 prefix: Demolition
 commands:
     demolition:
