@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>mc.euro</groupId>
-  <artifactId>demolition</artifactId>
-  <packaging>jar</packaging>
-  <version>172${maven.build.timestamp}</version>
-  <name>Demolition</name>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>mc.euro</groupId>
+    <artifactId>demolition</artifactId>
+    <packaging>jar</packaging>
+    <version>172${maven.build.timestamp}</version>
+    <name>Demolition</name>
     <properties>
-    <maven.build.timestamp.format>yyMMdd-HHmm</maven.build.timestamp.format>
-	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-  <url>http://maven.apache.org</url>
+        <maven.build.timestamp.format>yyMMdd-HHmm</maven.build.timestamp.format>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <url>http://maven.apache.org</url>
     <!-- Locations for jar repositories -->
     <repositories>
         <repository>
@@ -38,7 +38,7 @@
             <url>http://repo.kitteh.org/content/repositories/public/</url>
         </repository>
     </repositories>
-     <!-- Dependencies -->
+    <!-- Dependencies -->
     <dependencies>
         <!-- Dependencies that have maven repos -->
         <dependency>
@@ -53,11 +53,11 @@
             <version>3.9.5.4</version>
             <scope>provided</scope>
         </dependency>
-		<dependency>
+        <dependency>
             <groupId>mc.alk</groupId>
             <artifactId>BattleTracker</artifactId>
             <version>2.5.8.8</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.sk89q</groupId>
@@ -78,7 +78,7 @@
                 <version>2.4</version>
             </extension>
         </extensions>
-        <defaultGoal>install</defaultGoal>
+        <defaultGoal>package</defaultGoal>
         <!-- Where our source directory is -->
         <sourceDirectory>${basedir}/src</sourceDirectory>
         <!-- Include all the resources we need -->
@@ -94,25 +94,66 @@
         </resources>
         <plugins>
             <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-compiler-plugin</artifactId>
-              <version>3.1</version>
-              <configuration>
-                  <source>1.6</source>
-                  <target>1.6</target>
-              </configuration>
-          </plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
             <!-- Specify how we build the plugin.jar -->
-            <!-- <plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.6</version>
+                <version>2.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>true</minimizeJar>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>mc.alk.tracker</pattern>
+                                    <shadedPattern>mc.euro.demolition.mc.alk.tracker</shadedPattern>
+                                    <excludes>
+                                        <exclude>mc.alk.tracker.Tracker.*</exclude>
+                                    </excludes>
+                                </relocation>
+                                <relocation>
+                                    <pattern>mc.alk.v1r7</pattern>
+                                    <shadedPattern>mc.euro.demolition.mc.alk.v1r7</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <filters>
+                                <filter>
+                                    <artifact>mc.alk:BattleTracker</artifact>
+                                    <includes>
+                                        <!-- Required for TrackerOff --> <!--
+                                        <include>mc/alk/tracker/TrackerInterface.*</include>
+                                        <include>mc/alk/tracker/objects/PlayerStat.*</include>
+                                        <include>mc/alk/tracker/objects/Stat.*</include>
+                                        <include>mc/alk/tracker/objects/StatType.*</include>
+                                        <include>mc/alk/tracker/objects/TeamStat.*</include>
+                                        <include>mc/alk/tracker/objects/WLT.*</include>
+                                        <include>mc/alk/tracker/objects/WLTRecord.*</include>
+                                        <include>mc/alk/tracker/ranking/RatingCalculator.*</include> -->
+                                        <include>mc/alk/tracker/**/*</include>
+                                        <include>mc/alk/v1r7/core/Version.*</include>
+                                    </includes>
+                                    <excludes>
+                                        <exclude>mc/alk/tracker/Tracker.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
                     </execution>
                 </executions>
-            </plugin> -->
+            </plugin>
         </plugins>
     </build>
 </project>
