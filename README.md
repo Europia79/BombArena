@@ -201,6 +201,8 @@ Also, there's a fake player in the SQL table called
 
 Listener Methods:
 ---
+- onBombSpawn(ItemSpawnEvent e)
+   * Set the compass so players know where the bomb is located.
 - onBombPickup(PlayerPickupEvent e)
    * put a HAT on the bomb carrier so that players know WHO has the bomb.
    * Map the Arena to a value of PlayerName (so that the plugin itself knows who has the bomb for each arena).
