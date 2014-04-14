@@ -246,6 +246,7 @@ Dependencies:
 - **BattleTracker**
   * http://dev.bukkit.org/bukkit-plugins/battletracker/
   * Used to track player stats like "Bombs planted" and "Bombs defused"
+  * Optional dependency
 - **WorldGuard**
   * http://dev.bukkit.org/bukkit-plugins/worldguard/
   * Used to define bases and reset bases that are destroyed by the bomb.
@@ -262,9 +263,9 @@ To-Do List
 ---
 - test against the lastest BattleArena version.
 - have onBombPlace() trigger onBombPlant() event (if the player is close enough).
-- Close plant+defuse exploit (warning msg appears, but e.setCancelled(true) isn't working).
 - Restore missing (destroyed) brewing stands (bases) at the end of the match.
 - Add config options.
+- ~~Close plant+defuse exploit~~ done.
 - ~~Kill off players that are too close to the bomb when it detonates.~~ done.
 - ~~Add compass+visual aids to let players know the location of a dropped bomb.~~ done.
 - ~~Add HAT to the bomb carrier onBombPickup()~~ done.
