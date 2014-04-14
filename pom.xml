@@ -103,57 +103,6 @@
                 </configuration>
             </plugin>
             <!-- Specify how we build the plugin.jar -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.2</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <minimizeJar>true</minimizeJar>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <relocations>
-                                <relocation>
-                                    <pattern>mc.alk.tracker</pattern>
-                                    <shadedPattern>mc.euro.demolition.mc.alk.tracker</shadedPattern>
-                                    <excludes>
-                                        <exclude>mc.alk.tracker.Tracker.*</exclude>
-                                    </excludes>
-                                </relocation>
-                                <relocation>
-                                    <pattern>mc.alk.v1r7</pattern>
-                                    <shadedPattern>mc.euro.demolition.mc.alk.v1r7</shadedPattern>
-                                </relocation>
-                            </relocations>
-                            <filters>
-                                <filter>
-                                    <artifact>mc.alk:BattleTracker</artifact>
-                                    <includes>
-                                        <!-- Required for TrackerOff --> <!--
-                                        <include>mc/alk/tracker/TrackerInterface.*</include>
-                                        <include>mc/alk/tracker/objects/PlayerStat.*</include>
-                                        <include>mc/alk/tracker/objects/Stat.*</include>
-                                        <include>mc/alk/tracker/objects/StatType.*</include>
-                                        <include>mc/alk/tracker/objects/TeamStat.*</include>
-                                        <include>mc/alk/tracker/objects/WLT.*</include>
-                                        <include>mc/alk/tracker/objects/WLTRecord.*</include>
-                                        <include>mc/alk/tracker/ranking/RatingCalculator.*</include> -->
-                                        <include>mc/alk/tracker/**/*</include>
-                                        <include>mc/alk/v1r7/core/Version.*</include>
-                                    </includes>
-                                    <excludes>
-                                        <exclude>mc/alk/tracker/Tracker.class</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 </project>
