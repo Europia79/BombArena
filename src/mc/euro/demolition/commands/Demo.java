@@ -8,11 +8,8 @@ import mc.alk.tracker.objects.Stat;
 import mc.alk.tracker.objects.StatType;
 import mc.euro.demolition.debug.DebugOff;
 import mc.euro.demolition.debug.DebugOn;
-import mc.euro.demolition.tracker.TrackerOff;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
 /**
@@ -37,7 +34,7 @@ public class Demo extends CustomCommandExecutor {
     @MCCommand(cmds={"stats"}, op=false)
     public boolean stats(CommandSender cs) {
             int n = 10;
-            if (plugin.ti instanceof TrackerOff) {
+            if (!plugin.ti.isEnabled()) {
                 plugin.getLogger().warning(ChatColor.AQUA + "BattleTracker not found or turned off.");
                 cs.sendMessage(ChatColor.YELLOW + "Bomb Arena statistics are not being tracked.");
                 return true;

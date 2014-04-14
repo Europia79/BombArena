@@ -3,14 +3,12 @@ package mc.euro.demolition;
 import mc.euro.demolition.debug.DebugOn;
 import mc.euro.demolition.debug.DebugInterface;
 import mc.euro.demolition.commands.Demo;
-import mc.euro.demolition.tracker.TrackerOff;
 import mc.euro.demolition.util.DetonateTimer;
 import mc.euro.demolition.util.PlantTimer;
 import java.util.HashMap;
 import java.util.Map;
 import mc.alk.arena.BattleArena;
-import mc.alk.tracker.Tracker;
-import mc.alk.tracker.TrackerInterface;
+import mc.euro.demolition.tracker.PlayerStats;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -52,9 +50,10 @@ public class Main extends JavaPlugin {
      * WLT.WIN = Bomb Planted Successfully (opponents base was destroyed). <br/>
      * WLT.LOSS = Plant Failure caused by enemy defusal of the bomb. <br/>
      * WLT.TIE = Bomb Defused by the player. <br/>
-     * Notice that in the databse, Ties = Losses.
+     * Notice that in the database, Ties = Losses.
      */
-    public TrackerInterface ti;
+    public PlayerStats ti;
+    // public TrackerInterface ti;
     
     @Override  
     public void onEnable() {
@@ -69,7 +68,7 @@ public class Main extends JavaPlugin {
         getCommand("demolition").setExecutor(new Demo());
         
         BattleArena.registerCompetition(this, "Demolition", "demolition", BombArenaListener.class, new Demo());
-        loadTracker("Demolition");
+        ti = new PlayerStats("Demolition");
         getServer().dispatchCommand(Bukkit.getConsoleSender(), "bomb stats");
         
         
@@ -80,19 +79,6 @@ public class Main extends JavaPlugin {
 
     }
 
-    /**
-     * 
-     * @param i The tracker needs some way to identify all the different plugins that are using it to keep track of stats. This name "i" ("Demolition") will show up in the database tables too.
-     */
-    private void loadTracker(String i) {
-        Tracker tracker = (Tracker) Bukkit.getPluginManager().getPlugin("BattleTracker");
-        if (tracker != null){
-            ti = Tracker.getInterface(i);
-        } else {
-            ti = new TrackerOff(this);
-            getLogger().warning("BattleTracker turned off or not found.");
-        }
-    }
     
     
 
