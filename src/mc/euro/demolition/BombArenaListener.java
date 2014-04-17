@@ -367,19 +367,25 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombPlantFailure(InventoryCloseEvent e) {
+        Player p = (Player) e.getPlayer();
+        String type = p.getInventory().getType().toString();
+        plugin.debug.messagePlayer(p, "onBombPlantFailure has been called.");
         int matchID = getMatch().getID();
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
+        plugin.debug.messagePlayer(p, "matchID = " + matchID);
+        plugin.debug.messagePlayer(p, "type = " + type); // type = PLAYER
+        plugin.debug.messagePlayer(p, c);
         // Is it a brewing stand ?
         // Are they trying to plant ?
-        if (e.getPlayer().getInventory().getType() == InventoryType.BREWING 
+        if (p.getInventory().getType() == InventoryType.BREWING 
                 && c != null 
-                && e.getPlayer().getName().equalsIgnoreCase(c)) {
+                && p.getName().equalsIgnoreCase(c)) {
             // if this is an actual death or drop then those Events 
             // will handle setting the carrier to null
             plugin.debug.msgArenaPlayers(getMatch().getPlayers(), 
                     "onBombPlantFailure has been called " 
                     + "due to InventoryCloseEvent");
-            plugin.pTimers.get(matchID).cancel();
+            plugin.pTimers.get(matchID).setCancelled(true);
         }
 
     }
@@ -489,9 +495,22 @@ public class BombArenaListener extends Arena {
     public void onFinish() {
         super.onFinish();
         int matchID = getMatch().getID();
+        resetBases();
         plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onFinish matchID = " + matchID);
         plugin.carriers.remove(matchID);
         plugin.bases.remove(matchID);
+    }
+    
+    private void resetBases() {
+        int matchID = getMatch().getID();
+        Map bases = plugin.bases.get(matchID);
+        List<ArenaTeam> teams = getMatch().getTeams();
+        for (ArenaTeam t : teams) {
+            Location loc = (Location) bases.get(t.getId());
+            World world = loc.getWorld();
+            Block block = world.getBlockAt(loc);
+            block.setType(Material.BREWING_STAND);
+        }
     }
     
     /**

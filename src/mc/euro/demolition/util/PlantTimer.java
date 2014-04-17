@@ -86,10 +86,15 @@ public class PlantTimer extends BukkitRunnable {
 
     @Override
     public void run() {
+        if (isCancelled()) {
+            plugin.getLogger().warning("PlantTimer running while cancelled.");
+            return;
+        }
         this.duration = this.duration - 1;
         i = i - 1;
         msg = (duration >= 0) ? "" + duration : "" + i;
         player.sendMessage(msg);
+        
         if (this.duration == 0) {
             Set<ArenaPlayer> allplayers = match.getPlayers(); // arena.getMatch().getPlayers();
             for (ArenaPlayer p : allplayers) {
@@ -98,9 +103,10 @@ public class PlantTimer extends BukkitRunnable {
             setBomb(event.getPlayer().getLocation(), 10);
 
             // event.setCancelled(true);
+            // always be careful that this closeInventory() call doesn't stop the timer.
             player.closeInventory();
-            // dtimer.runTaskTimer(plugin, 0L, 20L);
-            // this.cancel();
+            // if so, start a new DetonationTimer()
+            // plugin.dTimers.put(match.getID(), new DetonateTimer(event, match).runTaskTimer(plugin, 0L, 20L));
         }
         // if (player.getLocation().distanceSquared(BEACON_LOCATION) > 64)
 
@@ -110,23 +116,22 @@ public class PlantTimer extends BukkitRunnable {
             plugin.ti.addPlayerRecord(player.getName(), "Bombs Planted Defused", WLT.WIN);
             // Player p = plugin.getServer().getPlayer(plugin.carrier);
             ArenaTeam t = match.getArena().getTeam(player); // arena.getTeam(player);
-            player.getWorld().createExplosion(BOMB_LOCATION, 0F);
-            killPlayers(BOMB_LOCATION);
+            createExplosion(BOMB_LOCATION);
             match.setVictor(t);
-            this.cancel();
+            this.setCancelled(true);
         }
 
     }
     
     public void setCancelled(boolean x) {
+        cancelled = x;
         if (x) {
             this.cancel();
         } 
-        cancelled = x;
     }
     
     public boolean isCancelled() {
-        return cancelled;
+        return this.cancelled;
     }
     
     /**
@@ -163,6 +168,7 @@ public class PlantTimer extends BukkitRunnable {
                     // Set the block to type 57 (Diamond block!)
                     if (currentBlock.getType() == Material.BREWING_STAND) {
                         currentBlock.setType(Material.HARD_CLAY);
+                        this.BOMB_LOCATION = currentBlock.getLocation();
                     }
                 }
             }
@@ -178,5 +184,21 @@ public class PlantTimer extends BukkitRunnable {
                 p.getPlayer().damage(dmg);
             }
         }
+    }
+
+    private void createExplosion(Location here) {
+        here.getBlock().setType(Material.AIR);
+        for (int x = -1; x < 1; x++) {
+            for (int z = -1; z < 1; z++) {
+                for (int y = 0; y < 1; y++) {
+                    double xp = here.getX() + x;
+                    double yp = here.getY() + y;
+                    double zp = here.getZ() + z;
+                    Location temp = new Location(here.getWorld(), xp, yp, zp);
+                    here.getWorld().createExplosion(temp, 0L);
+                }
+            }
+        }
+        killPlayers(BOMB_LOCATION);
     }
 }
