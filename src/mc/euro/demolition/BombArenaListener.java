@@ -49,7 +49,7 @@ import org.bukkit.inventory.ItemStack;
  * Bomb = Hardened Clay 172
  *
  * Listen for 
- * onBombSpawn() - set the compass for all the players.
+ * onBombSpawn() - THIS BREAKS ALL OTHER EVENTS.
  * onBombPickup() - set HAT & compass. 
  * onBombCarrierLeave() - if they log out or leave the arena.
  * onBombCarrierDeath() - drop it on the ground. 
@@ -74,10 +74,13 @@ public class BombArenaListener extends Arena {
     }
     
     /**
-     * This method sets the compass direction when the bomb spawns.
+     * This method sets the compass direction when the bomb spawns. <br/><br/>
+     * 
+     * ItemSpawnEvent breaks all other events.
      */
-    @ArenaEventHandler
+    /*@ArenaEventHandler
     public void onBombSpawn(ItemSpawnEvent e) {
+        msgAll(getMatch().getPlayers(), "ItemSpawnEven called");
         int matchID = getMatch().getID();
         if (plugin.carriers.containsKey(matchID) 
                 && plugin.carriers.get(matchID) != null) {
@@ -87,7 +90,7 @@ public class BombArenaListener extends Arena {
             setCompass(e.getLocation());
             msgAll(getMatch().getPlayers(), "The bomb has spawned");
         }
-    }
+    } */
 
     /**
      * This method sets plugin.carriers, compass direction, and gives a hat

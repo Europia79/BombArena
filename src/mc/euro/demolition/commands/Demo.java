@@ -70,9 +70,11 @@ public class Demo extends CustomCommandExecutor {
     public boolean debug(CommandSender cs) {
         if (plugin.debug instanceof DebugOn) {
             plugin.debug = new DebugOff();
+            cs.sendMessage("Debugging has been turned off.");
             return true;
         } else if (plugin.debug instanceof DebugOff) {
             plugin.debug = new DebugOn(plugin);
+            cs.sendMessage("Debugging has been turned on.");
             return true;
         }
         return false;
