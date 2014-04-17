@@ -265,8 +265,8 @@ To-Do List
 ---
 - test against the lastest BattleArena version.
 - have onBombPlace() trigger onBombPlant() event (if the player is close enough).
-- Restore missing (destroyed) brewing stands (bases) at the end of the match.
 - Add config options.
+- ~~Restore missing (destroyed) brewing stands (bases) at the end of the match.~~ done.
 - ~~Close plant+defuse exploit~~ done.
 - ~~Kill off players that are too close to the bomb when it detonates.~~ done.
 - ~~Add compass+visual aids to let players know the location of a dropped bomb.~~ done.
@@ -275,6 +275,11 @@ To-Do List
 
 Bugs to fix:
 ---
+- There is an exploit where a player can plant the bomb, close the bomb inventory window, 
+and it will be impossible for the other team to defuse it (since it doesn't spawn).
+- Remove the bomb when it explodes.
+- Remove HATs and bombs from the player inventory.
+- onBombSpawn(ItemSpawnEvent e) breaks ALL other events.
 - onBombDespawn(ItemDespawnEvent e) breaks ALL other events.
 - There is an exploit where a player can plant the bomb then destroy the bomb block (so that it cannot be defused by the other team). 
   
