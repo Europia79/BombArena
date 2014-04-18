@@ -18,8 +18,9 @@ public class DebugOn implements DebugInterface {
     }
 
     @Override
-    public void log(String msg) {
-        plugin.getLogger().info(msg);
+    public void log(String msg, ChatColor... c) {
+        ChatColor color = (ChatColor) ((c.length < 1) ? ChatColor.WHITE : c[0]);
+        plugin.getLogger().info(color + msg);
     }
 
     @Override

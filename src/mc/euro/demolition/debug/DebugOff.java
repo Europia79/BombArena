@@ -2,6 +2,7 @@ package mc.euro.demolition.debug;
 
 import java.util.Set;
 import mc.alk.arena.objects.ArenaPlayer;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 /**
@@ -10,7 +11,7 @@ import org.bukkit.entity.Player;
 public class DebugOff implements DebugInterface {
 
     @Override
-    public void log(String m) {
+    public void log(String m, ChatColor... c) {
         // Doesn't log because Debugging is OFF.
     }
 

@@ -2,6 +2,7 @@ package mc.euro.demolition.debug;
 
 import java.util.Set;
 import mc.alk.arena.objects.ArenaPlayer;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 /**
@@ -28,7 +29,7 @@ import org.bukkit.entity.Player;
  */
 public interface DebugInterface {
     
-    public void log(String msg);
+    public void log(String msg, ChatColor... c);
     public void messagePlayer(Player p, String msg);
     public void msgArenaPlayers(Set<ArenaPlayer> players, String msg);
     
