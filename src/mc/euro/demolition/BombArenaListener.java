@@ -22,6 +22,7 @@ import mc.alk.arena.objects.events.ArenaEventHandler;
 import mc.alk.arena.objects.events.EventPriority;
 import mc.alk.arena.objects.teams.ArenaTeam;
 import mc.alk.tracker.objects.WLT;
+import mc.euro.demolition.debug.DebugOff;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -40,6 +41,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.inventory.BrewerInventory;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -110,18 +112,19 @@ public class BombArenaListener extends Arena {
         e.getPlayer().sendMessage("onBombPickup() Listener works!");
         plugin.debug.messagePlayer(e.getPlayer(), "debug works!");
 
-        // To-Do: sudo player hat bomb
         if (e.getItem().getItemStack().getType() == Material.HARD_CLAY) {
             if (c == null) {
                 c = e.getPlayer().getName();
                 plugin.carriers.put(matchID, c);
-                e.getPlayer().getInventory().setHelmet(new ItemStack(Material.HARD_CLAY));
+                e.getPlayer().getInventory().setHelmet(new ItemStack(Material.TNT));
                 ArenaTeam team2 = null;
                 try {
                     team2 = getOtherTeam(e.getPlayer());
                 } catch (NullPointerException ex) {
-                    plugin.getLogger().severe("Stopping match because getOtherTeam() method failed");
-                    getMatch().cancelMatch();
+                    if (plugin.debug instanceof DebugOff) {
+                        plugin.getLogger().severe("Stopping match because getOtherTeam() method failed");
+                        getMatch().cancelMatch();
+                    }
                 }
                 int teamID = team2.getId();
                 Location base_loc = plugin.bases.get(matchID).get(teamID);
@@ -217,9 +220,8 @@ public class BombArenaListener extends Arena {
         if (type == Material.HARD_CLAY) {
             if (c != null 
                     && e.getPlayer().getName().equals(c)) {
-                if (e.getPlayer().getInventory().getHelmet() == new ItemStack(Material.HARD_CLAY)) {
+                if (e.getPlayer().getInventory().getHelmet().getType() == Material.TNT) {
                     e.getPlayer().getInventory().setHelmet(new ItemStack(Material.AIR));
-                    
                 }
                 // sets the carrier to null
                 plugin.carriers.remove(matchID);
@@ -233,7 +235,8 @@ public class BombArenaListener extends Arena {
                         + "has tried to drop the bomb without ever picking it up. "
                         + "Are they cheating / exploiting ? Or is this a bug ? "
                         + "Please investigate this incident and if it's a bug, then "
-                        + "notify Europia79@hotmail.com OR on the Bukkit forums.");
+                        + "notify Europia79 via hotmail, Bukkit, or github.");
+                e.getItemDrop().remove();
             }
 
         }
@@ -314,20 +317,16 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombPlant(InventoryOpenEvent e) {
-        plugin.debug.log("onBombPlant() has been called.");
         int matchID = getMatch().getID();
-        plugin.debug.log("matchID = " + matchID);
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
-        plugin.debug.log("plugin.carriers.get(matchID) = " + plugin.carriers.get(matchID));
         Player planter = (Player) e.getPlayer();
-        plugin.debug.log("planter = " + planter.getName());
         int teamID = getTeam(planter).getId();
+        
+        plugin.debug.log("onBombPlant() has been called.");
+        plugin.debug.log("matchID = " + matchID);
+        plugin.debug.log("plugin.carriers.get(matchID) = " + plugin.carriers.get(matchID));
+        plugin.debug.log("planter = " + planter.getName());
         plugin.debug.log("teamID = " + teamID);
-        // ARE THEY AT THE CORRECT BASE ?
-        // Use the Match ID to get all the player bases, then
-        // get the bomb carriers base:
-        // Compare his current position with the position of HIS OWN BASE
-        // to make sure he's not trying to plant the bomb at his own base.
         plugin.debug.messagePlayer(planter, "onBombPlant() has been called");
         plugin.debug.log("e.getInventory().getType() = " + e.getInventory().getType());
         plugin.debug.log("carrier, c = " + c);
@@ -336,13 +335,19 @@ public class BombArenaListener extends Arena {
         plugin.debug.log("plugin.bases.get(matchID) = " + plugin.bases.get(matchID).toString());
         plugin.debug.log("plugin.bases.get(matchID).get(teamID) = " + plugin.bases.get(matchID).get(teamID).toString());
         plugin.debug.log("e.getPlayer().getInventory().getHelmet = " + e.getPlayer().getInventory().getHelmet());
+        
+        // ARE THEY AT THE CORRECT BASE ?
+        // Use the Match ID to get all the player bases, then
+        // get the bomb carriers base:
+        // Compare his current position with the position of HIS OWN BASE
+        // to make sure he's not trying to plant the bomb at his own base.
         if (e.getInventory().getType() == InventoryType.BREWING 
                 && c != null 
                 && e.getPlayer().getName().equalsIgnoreCase(c) 
                 && plugin.bases.get(matchID).get(teamID).distance(planter.getLocation()) > 30) {
             // converted a single Timer to one for each match.
-            if (e.getPlayer().getInventory().getHelmet() == new ItemStack(Material.HARD_CLAY)) {
-                e.getPlayer().getInventory().setHelmet(new ItemStack(Material.AIR));
+            if (e.getPlayer().getInventory().getHelmet().getType() == Material.TNT) {
+                e.getPlayer().getInventory().getHelmet().setType(Material.AIR);
             }
             plugin.pTimers.put(getMatch().getID(), new PlantTimer(e, getMatch()));
             plugin.pTimers.get(getMatch().getID()).runTaskTimer(plugin, 0L, 20L);
@@ -368,16 +373,19 @@ public class BombArenaListener extends Arena {
     @ArenaEventHandler
     public void onBombPlantFailure(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
-        String type = p.getInventory().getType().toString();
-        plugin.debug.messagePlayer(p, "onBombPlantFailure has been called.");
+        String type = e.getInventory().getType().toString();
         int matchID = getMatch().getID();
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
+        
+        plugin.debug.messagePlayer(p, "onBombPlantFailure has been called.");
         plugin.debug.messagePlayer(p, "matchID = " + matchID);
-        plugin.debug.messagePlayer(p, "type = " + type); // type = PLAYER
-        plugin.debug.messagePlayer(p, c);
+        plugin.debug.log("type = " + type, ChatColor.LIGHT_PURPLE);
+        plugin.debug.messagePlayer(p, "carrier = " + c);
+        
         // Is it a brewing stand ?
         // Are they trying to plant ?
-        if (p.getInventory().getType() == InventoryType.BREWING 
+        // e.getInventory() instanceof BrewerInventory
+        if (e.getInventory().getType() == InventoryType.BREWING 
                 && c != null 
                 && p.getName().equalsIgnoreCase(c)) {
             // if this is an actual death or drop then those Events 
@@ -480,8 +488,8 @@ public class BombArenaListener extends Arena {
         plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onComplete matchID = " + matchID);
         Set<ArenaPlayer> players = getMatch().getPlayers();
         for (ArenaPlayer p : players) {
-            if (p.getPlayer().getInventory().getHelmet() == new ItemStack(Material.HARD_CLAY)) {
-                p.getPlayer().getInventory().setHelmet(new ItemStack(Material.AIR));
+            if (p.getPlayer().getInventory().getHelmet().getType() == Material.TNT) {
+                p.getPlayer().getInventory().getHelmet().setType(Material.AIR);
             }
         }
     }
