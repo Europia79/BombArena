@@ -1,16 +1,16 @@
 Demolition:
   name: Demolition
   command: demolition
-  prefix: '&1[BOMB]&e'
+  prefix: '&a[BOMB]&e'
   gameSize:
-    nTeams: '2'
+    nTeams: '1-2'
     teamSize: '1-16'
   nLives: '2'
   victoryCondition: LastManStanding
   times:
     matchTime: 500
   tracking:
-    database: incur1
+    database: demolition
     rated: false
     useTrackerMessages: false
   defaults:
