@@ -8,6 +8,7 @@ import mc.euro.demolition.util.PlantTimer;
 import java.util.HashMap;
 import java.util.Map;
 import mc.alk.arena.BattleArena;
+import mc.euro.demolition.debug.DebugOff;
 import mc.euro.demolition.tracker.PlayerStats;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -58,7 +59,7 @@ public class Main extends JavaPlugin {
     @Override  
     public void onEnable() {
         
-        debug = new DebugOn(this);
+        debug = new DebugOff(this);
         carriers = new HashMap<Integer, String>();
         bases = new HashMap<Integer, Map<Integer, Location>>();
         pTimers = new HashMap<Integer, PlantTimer>();
