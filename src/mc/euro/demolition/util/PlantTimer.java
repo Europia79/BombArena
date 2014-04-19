@@ -1,14 +1,10 @@
 package mc.euro.demolition.util;
 
-import mc.euro.demolition.BombArenaListener;
 import mc.euro.demolition.Main;
 import java.util.Set;
 import mc.alk.arena.competition.match.Match;
 import mc.alk.arena.objects.ArenaPlayer;
-import mc.alk.arena.objects.teams.ArenaTeam;
-import mc.alk.tracker.objects.WLT;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -25,106 +21,47 @@ import org.bukkit.scheduler.BukkitRunnable;
  */
 public class PlantTimer extends BukkitRunnable {
 
-    long startTime;
-    int duration;
-    private boolean cancelled;
+    int i;
     Main plugin;
     Match match;
-    BombArenaListener arena;
     DetonateTimer dtimer;
-    int i;
-    String msg;
     InventoryOpenEvent event;
     Player player;
     Location BOMB_LOCATION;
-
-    public PlantTimer(InventoryOpenEvent e) {
-        startTime = System.nanoTime();
-        this.plugin = (Main) Bukkit.getServer().getPluginManager().getPlugin("Demolition");
-        this.event = e;
-        this.player = (Player) e.getPlayer();
-        this.BOMB_LOCATION = e.getPlayer().getLocation();
-        this.duration = 7;
-        i = 37;
-    }
+    Long startTime;
+    private boolean cancelled;
 
     public PlantTimer(InventoryOpenEvent e, Match m) {
         cancelled = false;
-        startTime = System.nanoTime();
+        i = 8;
         this.plugin = (Main) Bukkit.getServer().getPluginManager().getPlugin("Demolition");
         this.event = e;
+        this.match = m;
         this.player = (Player) e.getPlayer();
         this.BOMB_LOCATION = e.getPlayer().getLocation();
-        this.duration = 7;
-        i = 37;
-        match = m;
-    }
-
-    public PlantTimer(InventoryOpenEvent e, BombArenaListener b) {
-        startTime = System.nanoTime();
-        this.plugin = (Main) Bukkit.getServer().getPluginManager().getPlugin("Demolition");
-        this.event = e;
-        this.player = (Player) e.getPlayer();
-        this.BOMB_LOCATION = e.getPlayer().getLocation();
-        this.duration = 7;
-        i = 37;
-        arena = b;
-    }
-
-    public long getCurrentTime() {
-        return (System.nanoTime() / 1000000000);
-    }
-
-    public long getStartTime() {
-        return (this.startTime / 1000000000);
-    }
-
-    public long getTimeElapsed() {
-        return ((getCurrentTime() - getStartTime()));
-
     }
 
     @Override
     public void run() {
-        if (isCancelled()) {
-            plugin.getLogger().warning("PlantTimer running while cancelled.");
-            return;
-        }
-        this.duration = this.duration - 1;
         i = i - 1;
-        msg = (duration >= 0) ? "" + duration : "" + i;
-        player.sendMessage(msg);
+        match.sendMessage("" + i);
         
-        if (this.duration == 0) {
-            Set<ArenaPlayer> allplayers = match.getPlayers(); // arena.getMatch().getPlayers();
+        if (i == 0) {
+            Set<ArenaPlayer> allplayers = match.getPlayers();
             for (ArenaPlayer p : allplayers) {
                 p.getPlayer().sendMessage("The bomb will detonate in 30 seconds !!!");
             }
             setBomb(event.getPlayer().getLocation(), 10);
-
-            // event.setCancelled(true);
-            // always be careful that this closeInventory() call doesn't stop the timer.
+            
+            plugin.dTimers.put(match.getID(), new DetonateTimer(event, match, BOMB_LOCATION));
+            plugin.dTimers.get(match.getID()).runTaskTimer(plugin, 0L, 20L);
             player.closeInventory();
-            // if so, start a new DetonationTimer()
-            // plugin.dTimers.put(match.getID(), new DetonateTimer(event, match).runTaskTimer(plugin, 0L, 20L));
-        }
-        // if (player.getLocation().distanceSquared(BEACON_LOCATION) > 64)
-
-        if (i <= 0) {
-            player.sendMessage(ChatColor.LIGHT_PURPLE
-                    + "Congratulations, you have successfully destroyed their base.");
-            plugin.ti.addPlayerRecord(player.getName(), "Bombs Planted Defused", WLT.WIN);
-            // Player p = plugin.getServer().getPlayer(plugin.carrier);
-            ArenaTeam t = match.getArena().getTeam(player); // arena.getTeam(player);
-            createExplosion(BOMB_LOCATION);
-            match.setVictor(t);
-            this.setCancelled(true);
         }
 
     }
     
     public void setCancelled(boolean x) {
-        cancelled = x;
+        this.cancelled = x;
         if (x) {
             this.cancel();
         } 
@@ -169,19 +106,12 @@ public class PlantTimer extends BukkitRunnable {
                     if (currentBlock.getType() == Material.BREWING_STAND) {
                         currentBlock.setType(Material.HARD_CLAY);
                         this.BOMB_LOCATION = currentBlock.getLocation();
+                        Set<ArenaPlayer> players = match.getPlayers();
+                        for (ArenaPlayer p : players) {
+                            p.getPlayer().sendBlockChange(BOMB_LOCATION, Material.TNT, (byte) 0);
+                        }
                     }
                 }
-            }
-        }
-    }
-
-    private void killPlayers(Location loc) {
-        Set<ArenaPlayer> players = match.getPlayers();
-        for (ArenaPlayer p : players) {
-            double distance = p.getLocation().distance(loc);
-            if (distance <= 9) {
-                double dmg = 50 - (distance * 5);
-                p.getPlayer().damage(dmg);
             }
         }
     }
@@ -200,5 +130,16 @@ public class PlantTimer extends BukkitRunnable {
             }
         }
         killPlayers(BOMB_LOCATION);
+    }
+    
+    private void killPlayers(Location loc) {
+        Set<ArenaPlayer> players = match.getPlayers();
+        for (ArenaPlayer p : players) {
+            double distance = p.getLocation().distance(loc);
+            if (distance <= 9) {
+                double dmg = 50 - (distance * 5);
+                p.getPlayer().damage(dmg);
+            }
+        }
     }
 }
