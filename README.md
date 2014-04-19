@@ -108,8 +108,10 @@ Finally,
 Base & Region Setup
 ---
 The Demolition plugin needs some kind of way to identify bases 
-and assign players to a base that they must defend... Consequently, 
-since they're assigned to a base, they are NOT allowed to destroy their own base. 
+and assign players to a base that they must defend... 
+and to make sure players cannot arbitrarily destroy ANY base they find 
+(like their own), but rather, force them to find and destroy the other teams base.
+
 This is how you make bases that this plugin can read:
 
 First, make a WorldGuard region with //wand and/or //pos1 //pos2 //hpos1 //hpos2. 
@@ -130,7 +132,13 @@ when using LARGE areas, it might lag your server).
 
 **/bomb alter ArenaName addregion**
 
-This might change in the future to make to easier to setup Bomb Arenas. 
+FYI: You do NOT need to use this last command.
+The Demolition plugin will automatically reset bases after each match.
+The last command should be only used if you want players to break blocks 
+in the arena and have WorldGuard reset all the broken blocks to their original 
+state after each match.
+
+Some of these steps might change in the future to make to easier to setup Bomb Arenas. 
 
 
 How to access Player Stats Database:
@@ -264,6 +272,7 @@ Dependencies:
 To-Do List
 ---
 - test against the lastest BattleArena version.
+- test the fake TNT block appearance.
 - have onBombPlace() trigger onBombPlant() event (if the player is close enough).
 - Add config options.
 - ~~Restore missing (destroyed) brewing stands (bases) at the end of the match.~~ done.
@@ -275,13 +284,10 @@ To-Do List
 
 Bugs to fix:
 ---
-- There is an exploit where a player can plant the bomb, close the bomb inventory window, 
-and it will be impossible for the other team to defuse it (since it doesn't spawn).
 - Remove the bomb when it explodes.
 - Remove HATs and bombs from the player inventory.
 - onBombSpawn(ItemSpawnEvent e) breaks ALL other events.
 - onBombDespawn(ItemDespawnEvent e) breaks ALL other events.
-- There is an exploit where a player can plant the bomb then destroy the bomb block (so that it cannot be defused by the other team). 
   
 
 Known Issues:
