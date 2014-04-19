@@ -33,7 +33,7 @@ public class Demo extends CustomCommandExecutor {
      */
     @MCCommand(cmds={"stats"}, op=false)
     public boolean stats(CommandSender cs) {
-            int n = 10;
+            int n = 3;
             if (!plugin.ti.isEnabled()) {
                 plugin.getLogger().warning(ChatColor.AQUA + "BattleTracker not found or turned off.");
                 cs.sendMessage(ChatColor.YELLOW + "Bomb Arena statistics are not being tracked.");
@@ -69,12 +69,12 @@ public class Demo extends CustomCommandExecutor {
     @MCCommand(cmds={"debug"}, op=true)
     public boolean debug(CommandSender cs) {
         if (plugin.debug instanceof DebugOn) {
-            plugin.debug = new DebugOff();
-            cs.sendMessage("Debugging has been turned off.");
+            plugin.debug = new DebugOff(plugin);
+            cs.sendMessage("Debugging mode for the BombArena has been turned off.");
             return true;
         } else if (plugin.debug instanceof DebugOff) {
             plugin.debug = new DebugOn(plugin);
-            cs.sendMessage("Debugging has been turned on.");
+            cs.sendMessage("Debugging mode for the BombArena has been turned on.");
             return true;
         }
         return false;
