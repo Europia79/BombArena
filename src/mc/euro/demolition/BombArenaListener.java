@@ -1,14 +1,12 @@
 package mc.euro.demolition;
 
 import mc.euro.demolition.objects.Bomb;
-import mc.euro.demolition.util.DetonateTimer;
 import mc.euro.demolition.util.PlantTimer;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldguard.bukkit.WGBukkit;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.DefaultFlag;
-import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import java.util.HashMap;
@@ -23,6 +21,7 @@ import mc.alk.arena.objects.events.EventPriority;
 import mc.alk.arena.objects.teams.ArenaTeam;
 import mc.alk.tracker.objects.WLT;
 import mc.euro.demolition.debug.DebugOff;
+import mc.euro.demolition.debug.DebugOn;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -33,8 +32,6 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.ItemDespawnEvent;
-import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -109,8 +106,8 @@ public class BombArenaListener extends Arena {
     public void onBombPickup(PlayerPickupItemEvent e) {
         int matchID = getMatch().getID();
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
-        e.getPlayer().sendMessage("onBombPickup() Listener works!");
-        plugin.debug.messagePlayer(e.getPlayer(), "debug works!");
+        plugin.debug.sendMessage(e.getPlayer(), "debug works!");
+        plugin.debug.sendMessage(e.getPlayer(), "onBombPickup() Listener works!");
 
         if (e.getItem().getItemStack().getType() == Material.HARD_CLAY) {
             if (c == null) {
@@ -124,9 +121,14 @@ public class BombArenaListener extends Arena {
                     if (plugin.debug instanceof DebugOff) {
                         plugin.getLogger().severe("Stopping match because getOtherTeam() method failed");
                         getMatch().cancelMatch();
+                    } else if (plugin.debug instanceof DebugOn) {
+                        plugin.getLogger().severe(ChatColor.LIGHT_PURPLE 
+                                + "getOtherTeam() failed, but match is being allowed to continue "
+                                + "because debugging mode is ON.");
                     }
                 }
                 int teamID = team2.getId();
+                // getMatch().getArena().getTeam(e.getPlayer()).getCurrentParams().
                 Location base_loc = plugin.bases.get(matchID).get(teamID);
                 setCompass(base_loc);
                 msgAll(team2.getPlayers(), "Hurry back to defend your base from being destroyed!");
@@ -134,7 +136,7 @@ public class BombArenaListener extends Arena {
                         "Your team has the bomb! Follow your compass to find the other teams base.");
             } else {
                 e.setCancelled(true);
-                plugin.debug.messagePlayer(e.getPlayer(), 
+                e.getPlayer().sendMessage(
                         "There can only be ONE bomb per Match. "
                         + c + " currently has the bomb.");
                 e.getItem().remove();
@@ -327,7 +329,7 @@ public class BombArenaListener extends Arena {
         plugin.debug.log("plugin.carriers.get(matchID) = " + plugin.carriers.get(matchID));
         plugin.debug.log("planter = " + planter.getName());
         plugin.debug.log("teamID = " + teamID);
-        plugin.debug.messagePlayer(planter, "onBombPlant() has been called");
+        plugin.debug.sendMessage(planter, "onBombPlant() has been called");
         plugin.debug.log("e.getInventory().getType() = " + e.getInventory().getType());
         plugin.debug.log("carrier, c = " + c);
         plugin.debug.log("e.getPlayer().getName() = " + e.getPlayer().getName());
@@ -352,7 +354,7 @@ public class BombArenaListener extends Arena {
             plugin.pTimers.put(getMatch().getID(), new PlantTimer(e, getMatch()));
             plugin.pTimers.get(getMatch().getID()).runTaskTimer(plugin, 0L, 20L);
         } else if (e.getInventory().getType() == InventoryType.BREWING){
-            plugin.debug.messagePlayer(planter, "event.setCancelled(true);");
+            plugin.debug.sendMessage(planter, "event.setCancelled(true);");
             e.setCancelled(true);
         }
     }
@@ -377,10 +379,10 @@ public class BombArenaListener extends Arena {
         int matchID = getMatch().getID();
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
         
-        plugin.debug.messagePlayer(p, "onBombPlantFailure has been called.");
-        plugin.debug.messagePlayer(p, "matchID = " + matchID);
-        plugin.debug.log("type = " + type, ChatColor.LIGHT_PURPLE);
-        plugin.debug.messagePlayer(p, "carrier = " + c);
+        plugin.debug.sendMessage(p, "onBombPlantFailure has been called.");
+        plugin.debug.sendMessage(p, "matchID = " + matchID);
+        plugin.debug.log("type = " + type);
+        plugin.debug.sendMessage(p, "carrier = " + c);
         
         // Is it a brewing stand ?
         // Are they trying to plant ?
@@ -488,8 +490,11 @@ public class BombArenaListener extends Arena {
         plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onComplete matchID = " + matchID);
         Set<ArenaPlayer> players = getMatch().getPlayers();
         for (ArenaPlayer p : players) {
-            if (p.getPlayer().getInventory().getHelmet().getType() == Material.TNT) {
-                p.getPlayer().getInventory().getHelmet().setType(Material.AIR);
+            if (p != null 
+                    && p.getInventory() != null 
+                    && p.getInventory().getHelmet() != null 
+                    && p.getInventory().getHelmet().getType() == Material.TNT) {
+                p.getInventory().setHelmet(new ItemStack(Material.AIR));
             }
         }
     }
