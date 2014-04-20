@@ -1,0 +1,10 @@
+Do not modify the source code.
+
+Exceptions to the rule:
+
+Community Contribution - You may modify the source code as long as you make the changes publicly, 
+and freely available on the forums with a link to your repository of changes. 
+By utilizing this exception, you grant the original author permission 
+to integrate any or all of your changes back into the original project for use by the Minecraft Community.
+
+Forums - http://dev.bukkit.org/bukkit-plugins/battlearena-demolition/forum/
