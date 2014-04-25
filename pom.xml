@@ -70,7 +70,7 @@
     </dependencies>
     <!-- How we will compile the plugin -->
     <build>
-        <finalName>${artifactId}${project.version}</finalName>
+        <finalName>BombArena</finalName>
         <extensions>
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
