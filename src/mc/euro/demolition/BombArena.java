@@ -61,15 +61,15 @@ import org.bukkit.inventory.ItemStack;
  * 
  * </pre>
  */
-public class BombArenaListener extends Arena {
+public class BombArena extends Arena {
 
-    Main plugin;
+    BombPlugin plugin;
 
     /**
      * Constructor: gets a reference to Main.java and stores it in the plugin field.
      */
-    public BombArenaListener() {
-        plugin = (Main) Bukkit.getPluginManager().getPlugin("Demolition");
+    public BombArena() {
+        plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("Demolition");
     }
     
     /**
@@ -170,8 +170,8 @@ public class BombArenaListener extends Arena {
      */
     @ArenaEventHandler
     public void onBombCarrierDeath(PlayerDeathEvent e) {
-        int id = getMatch().getID();
-        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
+        int matchID = getMatch().getID();
+        String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
         Player p = e.getEntity().getPlayer();
         // drop the bomb on the ground
         if (c == null) {

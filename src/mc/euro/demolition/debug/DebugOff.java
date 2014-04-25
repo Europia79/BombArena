@@ -2,7 +2,7 @@ package mc.euro.demolition.debug;
 
 import java.util.Set;
 import mc.alk.arena.objects.ArenaPlayer;
-import mc.euro.demolition.Main;
+import mc.euro.demolition.BombPlugin;
 import org.bukkit.entity.Player;
 
 /**
@@ -13,7 +13,7 @@ public class DebugOff implements DebugInterface {
     public DebugOff() {
     }
 
-    public DebugOff(Main m) {
+    public DebugOff(BombPlugin m) {
     }
     
     @Override

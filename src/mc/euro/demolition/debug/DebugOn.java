@@ -1,6 +1,6 @@
 package mc.euro.demolition.debug;
 
-import mc.euro.demolition.Main;
+import mc.euro.demolition.BombPlugin;
 import java.util.Set;
 import mc.alk.arena.objects.ArenaPlayer;
 import org.bukkit.entity.Player;
@@ -10,9 +10,9 @@ import org.bukkit.entity.Player;
  */
 public class DebugOn implements DebugInterface {
     
-    Main plugin;
+    BombPlugin plugin;
     
-    public DebugOn(Main reference) {
+    public DebugOn(BombPlugin reference) {
         this.plugin = reference;
     }
 

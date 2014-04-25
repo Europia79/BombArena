@@ -18,7 +18,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  * Bukkit plugin that adds the Demolition game type to Minecraft servers running BattleArena.
  * @author Nikolai
  */
-public class Main extends JavaPlugin {
+public class BombPlugin extends JavaPlugin {
     
     /**
      * debug = new DebugOn(); <br/>
@@ -68,7 +68,7 @@ public class Main extends JavaPlugin {
         // Implemented "/bomb stats" command.
         getCommand("demolition").setExecutor(new Demo());
         
-        BattleArena.registerCompetition(this, "Demolition", "demolition", BombArenaListener.class, new Demo());
+        BattleArena.registerCompetition(this, "Demolition", "demolition", BombArena.class, new Demo());
         ti = new PlayerStats("Demolition");
         getServer().dispatchCommand(Bukkit.getConsoleSender(), "bomb stats");
         

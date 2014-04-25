@@ -1,6 +1,6 @@
 package mc.euro.demolition.commands;
 
-import mc.euro.demolition.Main;
+import mc.euro.demolition.BombPlugin;
 import java.util.List;
 import mc.alk.arena.executors.CustomCommandExecutor;
 import mc.alk.arena.executors.MCCommand;
@@ -21,10 +21,10 @@ public class Demo extends CustomCommandExecutor {
     // /bomb setbase
     // then ask player to click the base.
     
-    Main plugin;
+    BombPlugin plugin;
     
     public Demo() {
-        plugin = (Main) Bukkit.getServer().getPluginManager().getPlugin("Demolition");
+        plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("Demolition");
     }
     
     /**

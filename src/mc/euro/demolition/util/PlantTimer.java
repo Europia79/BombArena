@@ -1,6 +1,6 @@
 package mc.euro.demolition.util;
 
-import mc.euro.demolition.Main;
+import mc.euro.demolition.BombPlugin;
 import java.util.Set;
 import mc.alk.arena.competition.match.Match;
 import mc.alk.arena.objects.ArenaPlayer;
@@ -22,7 +22,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class PlantTimer extends BukkitRunnable {
 
     int i;
-    Main plugin;
+    BombPlugin plugin;
     Match match;
     DetonateTimer dtimer;
     InventoryOpenEvent event;
@@ -34,7 +34,7 @@ public class PlantTimer extends BukkitRunnable {
     public PlantTimer(InventoryOpenEvent e, Match m) {
         cancelled = false;
         i = 8;
-        this.plugin = (Main) Bukkit.getServer().getPluginManager().getPlugin("Demolition");
+        this.plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("Demolition");
         this.event = e;
         this.match = m;
         this.player = (Player) e.getPlayer();

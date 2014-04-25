@@ -53,15 +53,15 @@ import org.bukkit.inventory.ItemStack;
  * 
  *
  */
-public class BombTestListener extends Arena {
+public class TestArena extends Arena {
 
-    Main plugin;
+    BombPlugin plugin;
 
     /**
      * Constructor for the TESTER class.
      */
-    public BombTestListener() {
-        plugin = (Main) Bukkit.getPluginManager().getPlugin("Demolition");
+    public TestArena() {
+        plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("Demolition");
     }
     
  

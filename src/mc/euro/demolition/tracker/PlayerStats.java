@@ -6,7 +6,7 @@ import mc.alk.tracker.TrackerInterface;
 import mc.alk.tracker.objects.Stat;
 import mc.alk.tracker.objects.StatType;
 import mc.alk.tracker.objects.WLT;
-import mc.euro.demolition.Main;
+import mc.euro.demolition.BombPlugin;
 import org.bukkit.Bukkit;
 
 /**
@@ -14,12 +14,12 @@ import org.bukkit.Bukkit;
  * @author Nikolai
  */
 public class PlayerStats {
-    Main plugin;
+    BombPlugin plugin;
     TrackerInterface tracker;
     boolean enabled;
     
     public PlayerStats(String x) {
-        plugin = (Main) Bukkit.getServer().getPluginManager().getPlugin("Demolition");
+        plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("Demolition");
         loadTracker(x);
     }
     

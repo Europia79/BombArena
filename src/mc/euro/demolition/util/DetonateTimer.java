@@ -5,7 +5,7 @@ import mc.alk.arena.competition.match.Match;
 import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.teams.ArenaTeam;
 import mc.alk.tracker.objects.WLT;
-import mc.euro.demolition.Main;
+import mc.euro.demolition.BombPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -23,7 +23,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class DetonateTimer extends BukkitRunnable {
     
     int i;
-    Main plugin;
+    BombPlugin plugin;
     Match match;
     InventoryOpenEvent event;
     Player player;
@@ -33,7 +33,7 @@ public class DetonateTimer extends BukkitRunnable {
     DetonateTimer(InventoryOpenEvent e, Match m, Location loc) {
         this.cancelled = false;
         i = 31;
-        this.plugin = (Main) Bukkit.getPluginManager().getPlugin("Demolition");
+        this.plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("Demolition");
         this.event = e;
         this.match = m;
         this.player = (Player) e.getPlayer();
@@ -79,8 +79,9 @@ public class DetonateTimer extends BukkitRunnable {
                     double xp = here.getX() + x;
                     double yp = here.getY() + y;
                     double zp = here.getZ() + z;
-                    Location temp = new Location(here.getWorld(), xp, yp, zp);
-                    here.getWorld().createExplosion(temp, 0L);
+                    Location t = new Location(here.getWorld(), xp, yp, zp);
+                    here.getWorld().createExplosion(
+                            t.getX(), t.getY(), t.getZ(), 4F, false, false);
                 }
             }
         }
