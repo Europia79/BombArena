@@ -272,7 +272,7 @@ Dependencies:
 To-Do List
 ---
 - test against the lastest BattleArena version.
-- test the fake TNT block appearance.
+- fix the fake TNT block appearance.
 - have onBombPlace() trigger onBombPlant() event (if the player is close enough).
 - Add config options.
 - ~~Restore missing (destroyed) brewing stands (bases) at the end of the match.~~ done.
@@ -284,15 +284,14 @@ To-Do List
 
 Bugs to fix:
 ---
-- Remove the bomb when it explodes.
-- Remove HATs and bombs from the player inventory.
+- Remove HATs and bombs from the player inventory after the bomb has been planted.
+- fix the fake TNT block appearance in PlantTimer
 - onBombSpawn(ItemSpawnEvent e) breaks ALL other events.
 - onBombDespawn(ItemDespawnEvent e) breaks ALL other events.
   
 
 Known Issues:
 ---
-- Arenas must be setup in such a way that the bases (brewing stands) are reset after each match.
 - Obviously, there is NO handling for when the bomb despawns after 5 minutes because this event breaks all other events.
   
 
