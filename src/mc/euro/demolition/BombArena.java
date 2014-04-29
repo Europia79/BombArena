@@ -2,13 +2,6 @@ package mc.euro.demolition;
 
 import mc.euro.demolition.objects.Bomb;
 import mc.euro.demolition.util.PlantTimer;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldguard.bukkit.WGBukkit;
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.flags.DefaultFlag;
-import com.sk89q.worldguard.protection.managers.RegionManager;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -530,20 +523,31 @@ public class BombArena extends Arena {
         }
     }
     
+    /**
+     * This is called from onStart() and assigns both Teams to a base. <br/><br/>
+     * 
+     * Since teams are assigned to a base, we can use this information to prevent them from 
+     * trying to destroy their own base. <br/><br/>
+     * 
+     * And force them to destroy the other teams base. <br/><br/>
+     * 
+     * @param bothTeams - Assign bases for what teams ?
+     */
     public void assignBases(List<ArenaTeam> bothTeams) {
         Map<Integer, Location> temp = new HashMap<Integer, Location>();
         plugin.debug.log("BombArena.java:assignBases()");
         plugin.debug.log("arena name = " + getMatch().getArena().getName());
-        plugin.debug.log("name2 = " + getName());
-        plugin.debug.log("name3 = " + getMatch().getName());
         ArrayList<Location> locations = plugin.getBases(getMatch().getArena().getName());
         if (locations == null) {
-            plugin.getLogger().warning("[BombArena]" + getName()
+            msgAll(getMatch().getPlayers(), "[BombArena]" + getName()
                     + " has stopped because no bases were found" 
                     + " inside arenas.yml");
-            plugin.getLogger().info("[BombArena] "
+            msgAll(getMatch().getPlayers(), "[BombArena] "
                     + "please use the command (/bomb setbase ArenaName Index)"
                     + " to properly setup arenas.");
+            plugin.getLogger().warning("[BombArena] No bases found inside arena.yml: "
+                    + "Please use the cmd (/bomb setbase ArenaName Index)"
+                    + "to properly setup arenas.");
             getMatch().cancelMatch();
             return;
         }
@@ -602,85 +606,10 @@ public class BombArena extends Arena {
             plugin.getLogger().warning("The bomb game type must have 2 teams !!!");
         }
     }
-    
+
     /**
-     * This is called from onStart() and assigns both Teams to a base. <br/><br/>
+     * Used by assignBases() and setbase command. <br/><br/>
      * 
-     * Since teams are assigned to a base, we can use this information to prevent them from 
-     * trying to destroy their own base. <br/><br/>
-     * 
-     * And force them to destroy the other teams base. <br/><br/>
-     * 
-     * @param bothTeams - Assign bases for what teams ?
-     */
-    public void assignBasesWG(List<ArenaTeam> bothTeams) {
-        Map<Integer, Location> temp = new HashMap<Integer, Location>();
-        WorldGuardPlugin wg = WGBukkit.getPlugin();
-        
-        for (ArenaTeam t : bothTeams) {
-            plugin.debug.log("teamOne = " + t.getName());
-            Set<Player> playerzSet = t.getBukkitPlayers();
-            Player playerOne = null;
-            // Use the 1st player on the Team to assign the base
-            // for the whole team.
-            for (Player first : playerzSet) {
-                playerOne = first;
-                break;
-            }
-            World w = playerOne.getWorld();
-            RegionManager manager = wg.getRegionManager(w);
-            Location loc = playerOne.getLocation();
-            ApplicableRegionSet set = manager.getApplicableRegions(loc);
-            Vector teleportV = null;
-            Vector spawnV = null;            
-            for (ProtectedRegion region : set) {
-                if (region.getFlag(DefaultFlag.TELE_LOC) != null) {
-                    teleportV = region.getFlag(DefaultFlag.TELE_LOC).getPosition();
-                }
-                if (region.getFlag(DefaultFlag.SPAWN_LOC) != null) {
-                    spawnV = region.getFlag(DefaultFlag.SPAWN_LOC).getPosition();
-                }
-            }
-            
-            
-            
-            // COMPARE THESE TWO POINTS WITH THE PLAYER TO DETERMINE
-            //        WHICH BASE IS CLOSER.
-            Location teleportXYZ = new Location(w,
-                    teleportV.getBlockX(), teleportV.getBlockY(), teleportV.getBlockZ());
-            Location spawnXYZ = new Location(w, 
-                    spawnV.getBlockX(), spawnV.getBlockY(), spawnV.getBlockZ());
-            
-            double tdistance = playerOne.getLocation().distance(teleportXYZ);
-            double sdistance = playerOne.getLocation().distance(spawnXYZ);
-            
-            int teamID = t.getId();
-            if (tdistance < sdistance) {
-                temp.put(teamID, getExactLocation(teleportXYZ));
-            } else if ( tdistance > sdistance) {
-                temp.put(teamID, getExactLocation(spawnXYZ));
-            } else if (tdistance == sdistance) {
-                plugin.getLogger().warning("Could NOT assign bases because " 
-                        + "the player's spawn is equi-distance to both.");
-                plugin.getLogger().info("Please change the spawn locations " 
-                        + "for the teams in the bomb arena.");
-            }
-            
-            
-        }
-        int matchID = getMatch().getID();
-        plugin.bases.put(matchID, temp);
-        plugin.debug.log("Number of Team bases: temp.size() = " + temp.size());
-        plugin.debug.log("Number of Team bases: plugin.bases.get(matchID).size() = " + plugin.bases.get(matchID).size());
-        if (temp.size() != 2) {
-            plugin.getLogger().warning("The bomb game type must have 2 teams !!!");
-        }
-    }
-    
-    /**
-     * DO NOT USE THIS METHOD. This method is used by assignBases() <br/><br/>
-     * 
-     * @param teamID assign this team to a certain location (base).
      * @param loc This is the location of their own base. (NOT the enemy base).
      */
     public Location getExactLocation(Location loc) {
