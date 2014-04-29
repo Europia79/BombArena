@@ -64,6 +64,7 @@ public class BombPlugin extends JavaPlugin {
     public int DeltaDamage;
     public int DamageRadius;
     public int StartupDisplay;
+    public String DatabaseTable;
     
     public ConfigManager manager;
     public CustomConfig arenasYml;
@@ -113,6 +114,7 @@ public class BombPlugin extends JavaPlugin {
         DeltaDamage = getConfig().getInt("DeltaDamage");
         DamageRadius = getConfig().getInt("DamageRadius");
         StartupDisplay = getConfig().getInt("StartupDisplay");
+        DatabaseTable = getConfig().getString("DatabaseTable");
         
         debug.log("PlantTime = " + PlantTime);
         debug.log("DetonationTime = " + DetonationTime);
@@ -146,7 +148,7 @@ public class BombPlugin extends JavaPlugin {
                 return temp;
             }
         }
-        getLogger().severe("BombPlug:getBases(String ArenaName) has failed to return a List of Locations.");
+        getLogger().severe("BombPlugin:getBases(String ArenaName) has failed to return a List of Locations.");
         return null;
     }
     
