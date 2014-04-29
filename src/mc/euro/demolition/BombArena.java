@@ -9,6 +9,7 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.DefaultFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +70,7 @@ public class BombArena extends Arena {
      * Constructor: gets a reference to Main.java and stores it in the plugin field.
      */
     public BombArena() {
-        plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("Demolition");
+        plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("BombArena");
     }
     
     /**
@@ -519,10 +520,86 @@ public class BombArena extends Arena {
         Map bases = plugin.bases.get(matchID);
         List<ArenaTeam> teams = getMatch().getTeams();
         for (ArenaTeam t : teams) {
+            if (bases == null || bases.isEmpty()) {
+                break;
+            }
             Location loc = (Location) bases.get(t.getId());
             World world = loc.getWorld();
             Block block = world.getBlockAt(loc);
             block.setType(Material.BREWING_STAND);
+        }
+    }
+    
+    public void assignBases(List<ArenaTeam> bothTeams) {
+        Map<Integer, Location> temp = new HashMap<Integer, Location>();
+        plugin.debug.log("BombArena.java:assignBases()");
+        plugin.debug.log("arena name = " + getMatch().getArena().getName());
+        plugin.debug.log("name2 = " + getName());
+        plugin.debug.log("name3 = " + getMatch().getName());
+        ArrayList<Location> locations = plugin.getBases(getMatch().getArena().getName());
+        if (locations == null) {
+            plugin.getLogger().warning("[BombArena]" + getName()
+                    + " has stopped because no bases were found" 
+                    + " inside arenas.yml");
+            plugin.getLogger().info("[BombArena] "
+                    + "please use the command (/bomb setbase ArenaName Index)"
+                    + " to properly setup arenas.");
+            getMatch().cancelMatch();
+            return;
+        }
+        Location ONE = locations.get(0);
+        Location TWO = locations.get(1);
+        
+        for (ArenaTeam t : bothTeams) {
+            plugin.debug.log("teamOne = " + t.getName());
+            Set<Player> playerzSet = t.getBukkitPlayers();
+            Player playerOne = null;
+            // Use the 1st player on the Team to assign the base
+            // for the whole team.
+            for (Player first : playerzSet) {
+                playerOne = first;
+                break;
+            }
+            
+            
+            // COMPARE THESE TWO POINTS WITH THE PLAYER TO DETERMINE
+            //        WHICH BASE IS CLOSER.
+            double onedistance;
+            double twodistance;
+            // try & catch VirtualPlayers 
+            // which are used to make testing arenas easier.
+            try {
+                onedistance = playerOne.getLocation().distance(ONE);
+                twodistance = playerOne.getLocation().distance(TWO);
+            } catch (Exception ex) {
+                plugin.getLogger().warning("Possible VirtualPlayer found inside BombArena.");
+                continue;
+            }
+            
+            int teamID = t.getId();
+            if (onedistance < twodistance) {
+                temp.put(teamID, getExactLocation(ONE));
+                teamID = getOtherTeam(playerOne).getId();
+                temp.put(teamID, getExactLocation(TWO));
+                break;
+            } else if (onedistance > twodistance) {
+                temp.put(teamID, getExactLocation(TWO));
+                teamID = getOtherTeam(playerOne).getId();
+                temp.put(teamID, getExactLocation(TWO));
+                break;
+            } else if (onedistance == twodistance) {
+                plugin.getLogger().warning("Could NOT assign bases because " 
+                        + "the player's spawn is equi-distance to both.");
+                plugin.getLogger().info("Please change the spawn locations " 
+                        + "for the teams in the bomb arena.");
+            }
+        }
+        int matchID = getMatch().getID();
+        plugin.bases.put(matchID, temp);
+        plugin.debug.log("Number of Team bases: temp.size() = " + temp.size());
+        plugin.debug.log("Number of Team bases: plugin.bases.get(matchID).size() = " + plugin.bases.get(matchID).size());
+        if (temp.size() != 2) {
+            plugin.getLogger().warning("The bomb game type must have 2 teams !!!");
         }
     }
     
@@ -536,7 +613,7 @@ public class BombArena extends Arena {
      * 
      * @param bothTeams - Assign bases for what teams ?
      */
-    public void assignBases(List<ArenaTeam> bothTeams) {
+    public void assignBasesWG(List<ArenaTeam> bothTeams) {
         Map<Integer, Location> temp = new HashMap<Integer, Location>();
         WorldGuardPlugin wg = WGBukkit.getPlugin();
         
@@ -564,6 +641,9 @@ public class BombArena extends Arena {
                     spawnV = region.getFlag(DefaultFlag.SPAWN_LOC).getPosition();
                 }
             }
+            
+            
+            
             // COMPARE THESE TWO POINTS WITH THE PLAYER TO DETERMINE
             //        WHICH BASE IS CLOSER.
             Location teleportXYZ = new Location(w,
@@ -576,9 +656,9 @@ public class BombArena extends Arena {
             
             int teamID = t.getId();
             if (tdistance < sdistance) {
-                temp.put(teamID, getExactLocation(teamID, teleportXYZ));
+                temp.put(teamID, getExactLocation(teleportXYZ));
             } else if ( tdistance > sdistance) {
-                temp.put(teamID, getExactLocation(teamID, spawnXYZ));
+                temp.put(teamID, getExactLocation(spawnXYZ));
             } else if (tdistance == sdistance) {
                 plugin.getLogger().warning("Could NOT assign bases because " 
                         + "the player's spawn is equi-distance to both.");
@@ -603,23 +683,15 @@ public class BombArena extends Arena {
      * @param teamID assign this team to a certain location (base).
      * @param loc This is the location of their own base. (NOT the enemy base).
      */
-    private Location getExactLocation(int teamID, Location loc) {
+    public Location getExactLocation(Location loc) {
+        int length = 10;
         Location base_loc = null;
-        plugin.debug.log("asssBase(int teamID, Location loc");
-        plugin.debug.log("teamID = " + teamID);
         plugin.debug.log("Location loc = " + loc.toString());
-        int length = 5;
-        int matchID = getMatch().getID();
-        plugin.debug.log("matchID = " + matchID);
-        Map<Integer, Location> temp = new HashMap<Integer, Location>();
 
-        // Set one corner of the cube to the given location.
-        // Uses getBlockN() instead of getN() to avoid casting to an int later.
         int x1 = loc.getBlockX() - length;
         int y1 = loc.getBlockY() - length;
         int z1 = loc.getBlockZ() - length;
 
-        // Figure out the opposite corner of the cube by taking the corner and adding length to all coordinates.
         int x2 = loc.getBlockX() + length;
         int y2 = loc.getBlockY() + length;
         int z2 = loc.getBlockZ() + length;
@@ -637,23 +709,9 @@ public class BombArena extends Arena {
                     Block currentBlock = world.getBlockAt(xPoint, yPoint, zPoint);
                     // Set the block to type 57 (Diamond block!)
                     if (currentBlock.getType() == Material.BREWING_STAND) {
-                        // currentBlock.setType(Material.HARD_CLAY);
                         base_loc = new Location(world, xPoint, yPoint, zPoint);
                         plugin.debug.log("base_loc = " + base_loc.toString());
                         return base_loc;
-                        // ***temp.put(teamID, base_loc);
-                        // ***plugin.debug.log("temp.get(teamID).toString = " + temp.get(teamID).toString());
-                        // plugin.bases.put(matchID, temp);
-                        // plugin.debug.log("plugin.bases.get(matchID).toString = "
-                              // + plugin.bases.get(matchID).toString());
-                        // plugin.debug.log("plugin.bases.get(matchID).get(teamID) = " 
-                              //  + plugin.bases.get(matchID).get(teamID).toString());
-                        
-                        // Checking for the correct base below:
-
-                        // plugin.bases.get(matchID).get(teamID).distance(player.getLocation);
-                        // plugin.pbases.get(id).get(p.getName()).distance(p.getLocation());
-                        // if the distance is less than 20, then don't allow the bomb to be planted.
                     }
                 }
             }

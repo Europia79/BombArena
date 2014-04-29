@@ -1,14 +1,13 @@
-name: Demolition
-main: mc.euro.demolition.Main
+name: BombArena
+main: mc.euro.demolition.BombPlugin
 version: ${project.version}
-website: http://www.Battlecraft.co/
+website: http://battleplugin.com/
 description: One bomb, two bases.
 authors: [Europia79]
-depend: [BattleArena, WorldEdit, WorldGuard]
+depend: [BattleArena]
 softdepnd: [BattleTracker]
-prefix: Demolition
+prefix: BombArena
 commands:
-    demolition:
-        aliases: [bomb,demo,obliterate,obliteration,obl]
-        description: Bomb, Demolition, Obliteration command
-        usage: Problem loading plugin, please send errors on startup to alkarin_v
+    bomb:
+        description: All BombArena commands.
+        usage: Problem loading plugin, please send errors on startup to Europia79

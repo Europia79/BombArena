@@ -34,7 +34,7 @@ public class PlantTimer extends BukkitRunnable {
     public PlantTimer(InventoryOpenEvent e, Match m) {
         cancelled = false;
         i = 8;
-        this.plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("Demolition");
+        this.plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
         this.event = e;
         this.match = m;
         this.player = (Player) e.getPlayer();

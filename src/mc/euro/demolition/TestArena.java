@@ -61,7 +61,7 @@ public class TestArena extends Arena {
      * Constructor for the TESTER class.
      */
     public TestArena() {
-        plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("Demolition");
+        plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("BombArena");
     }
     
  

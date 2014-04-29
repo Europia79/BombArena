@@ -33,7 +33,7 @@ public class DetonateTimer extends BukkitRunnable {
     DetonateTimer(InventoryOpenEvent e, Match m, Location loc) {
         this.cancelled = false;
         i = 31;
-        this.plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("Demolition");
+        this.plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("BombArena");
         this.event = e;
         this.match = m;
         this.player = (Player) e.getPlayer();

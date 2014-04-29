@@ -15,11 +15,11 @@ import org.bukkit.Bukkit;
  */
 public class PlayerStats {
     BombPlugin plugin;
-    TrackerInterface tracker;
+    public TrackerInterface tracker;
     boolean enabled;
     
     public PlayerStats(String x) {
-        plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("Demolition");
+        plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
         loadTracker(x);
     }
     
@@ -32,6 +32,7 @@ public class PlayerStats {
         if (t != null){
             enabled = true;
             tracker = Tracker.getInterface(i);
+            tracker.hidePlayer("Bombs Planted Defused", true);
         } else {
             enabled = false;
             plugin.getLogger().warning("BattleTracker turned off or not found.");
