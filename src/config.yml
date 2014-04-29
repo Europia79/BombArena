@@ -36,6 +36,12 @@
 #     the default killzone is 6 blocks from the base eventho the bomb does dmg up to 8 blocks away.
 #     And 9 blocks does NOT do 5 dmg because the Radius is set to 8.
 # StartupDisplay: (integer) The number of ranks to print to the console during server startup.
+# DatabaseTable: '' This is the name of the table.
+#      # This name does NOT include the prefix & suffix that BattleTracker uses.
+#      # Exampe: 'Bomb' will show up in the database as
+#      # bt_Bomb_overall
+#      # bt_Bomb_tally
+#      # bt_Bomb_versus
 PlantTime: 8
 DetonationTime: 35
 DefuseTime: 1
@@ -47,3 +53,4 @@ MaxDamage: 50
 DeltaDamage: 5
 DamageRadius: 9
 StartupDisplay: 3
+DatabaseTable: 'Demolition'
