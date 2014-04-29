@@ -1,0 +1,64 @@
+BombArena:
+  name: BombArena
+  command: bomb
+  prefix: '&a[BOMB]&e'
+  gameSize:
+    nTeams: '2'
+    teamSize: '1-16'
+  nLives: '2'
+  victoryCondition: LastManStanding
+  times:
+    matchTime: 500
+  tracking:
+    database: stats
+    rated: false
+    useTrackerMessages: false
+  defaults:
+    options:
+    - alwaysTeamNames
+  onEnter:
+    options:
+    - deEnchant
+  onJoin:
+    options:
+    - teleportWaitroom
+    - health=20.0
+    - hunger=20
+    - pvpOff
+    - dropItemOff
+  onLeave:
+    options:
+    - restoreItems
+  onStart:
+    options:
+    - teleportIn
+    - pvpOn
+    - blockBreakOn
+    - wgNoLeave
+  onComplete:
+    options:
+    - teleportOut
+    - storeItems
+    - wgClearRegion
+    - wgResetRegion
+  onSpawn:
+    options:
+    - health=20.0
+    - hunger=20
+    - invulnerable=2
+    - pvpOn
+    - respawnWithClass
+  onDeath:
+    options:
+    - randomSpawn
+    - pvpOff
+  winners:
+    options:
+    - health=20.0
+    - hunger=20
+    - money=100
+  losers:
+    options:
+    - health=20.0
+    - hunger=20
+    - money=50
