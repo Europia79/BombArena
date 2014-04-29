@@ -1,0 +1,49 @@
+# Anticipated Configuration Options.
+# Some options may not be implemented depending on your version.
+# 
+# Recommended values:
+# PlantTime: 5 to 10 seconds
+# DetonationTime: 25 to 45 seconds
+# DefuseTime: 1 # Number of Times that the BombBlock must be destroyed in order to be defused.
+#               # Recommend one for most blocks.
+#               # Recommend for TNT is about 15 per second.
+#               # So if you want TNT and you also want a 3 second defuse timer, then 
+#               # set DefuseTime: 45
+#               # 3 times 15 = 45
+# BombBlock: HARD_CLAY x1 is recommended. Or SPONGE x4. Or TNT x120
+#            # Approximate Time to destroy one block:
+#            # 12 seconds = MOSSY_COBBLESTONE
+#            # 10 seconds = BRICK, NETHER_BRICK
+#            # 7 seconds = HARD_CLAY
+#            # 5 seconds = SANDSTONE
+#            # 4 seconds = LOG, WOOD
+#            # 2 seconds = SAND, SPONGE, MELON_BLOCK, WOOL
+#            # 1 second = GLASS, GLOWSTONE, SOUL_SAND, (TNT x15)
+#            # 0 seconds = TNT x1
+# BaseBlock: Any Block with an Inventory:
+# BaseBlock: BREWING_STAND, ANVIL, BEACON, CHEST, ENDER_CHEST, TRAPPED_CHEST, DISPENSER, FURNACE, WORKBENCH
+#     ### DO NOT CHANGE FakePlayerName:
+#     ### use ChangeFakePlayerName: 'New Name' to let the plugin make changes to the database.
+# FakeName: "Bombs Planted Defuse", "Bomb Totals"
+# ChangeFakeName: ''
+# ExplosionMaxDamage: 50 # DMG = MAX - (DELTA * DISTANCE)
+# ExplosionDeltaDamage: 5 # DMG = MAX - (DELTA * DISTANCE)
+# ExplosionRadius: 8
+# ### Distance to Damage Table:
+# ### DISTANCE:   0   1   2   3   4   5   6   7   8   9   10   11
+# ### DAMAGE:     50  45  40  35  30  25  20  15  10  0   0    0
+#     As you can see: according to this table,
+#     the default killzone is 6 blocks from the base eventho the bomb does dmg up to 8 blocks away.
+#     And 9 blocks does NOT do 5 dmg because the Radius is set to 8.
+# StartupDisplay: (integer) The number of ranks to print to the console during server startup.
+PlantTime: 8
+DetonationTime: 35
+DefuseTime: 1
+BombBlock: HARD_CLAY
+BaseBlock: BREWING_STAND
+FakeName: 'Bombs Planted Defused'
+ChangeFakeName: ''
+MaxDamage: 50
+DeltaDamage: 5
+DamageRadius: 9
+StartupDisplay: 3
