@@ -257,24 +257,44 @@ Dependencies:
   * http://dev.bukkit.org/bukkit-plugins/battletracker/
   * Used to track player stats like "Bombs planted" and "Bombs defused"
   * Optional dependency
-- **WorldGuard**
-  * http://dev.bukkit.org/bukkit-plugins/worldguard/
-  * Used to define bases and reset bases that are destroyed by the bomb.
-- **WorldEdit**
-  * http://dev.bukkit.org/bukkit-plugins/worldedit/
-  * Needed for WorldGuard.
 - **Holographic Displays**
   * http://dev.bukkit.org/bukkit-plugins/holographic-displays/
   * Adds visual aid for when the bomb is dropped on the ground.
   * Future dependency (not currently implemented).
   
-  
+Downloads:
+---
+
+**Official builds**
+
+You can find the official builds at dev.bukkit.org .The source code for these builds 
+have been checked to make sure that they do NOT contain any malicious code. 
+
+[http://dev.bukkit.org/bukkit-plugins/bombarena/] (http://dev.bukkit.org/bukkit-plugins/bombarena/ "Official builds")
+
+
+**Development builds**
+
+```python
+"Development builds of this project can be acquired at the provided continuous integration server.
+These builds have not been approved by the BukkitDev staff. Use them at your own risk."
+```
+
+[http://ci.battleplugins.com/job/BombArena/](http://ci.battleplugins.com/job/BombArena/ "dev builds")
+
+The dev builds are primarily for testing purposes.
+
+
 To-Do List
 ---
-- test against the lastest BattleArena version.
+- test against the lastest versions of BattleArena and Craftbukkit.
+- update to UUID
 - fix the fake TNT block appearance.
 - have onBombPlace() trigger onBombPlant() event (if the player is close enough).
-- Add config options.
+- Take away the HAT+BombBlock after the player plants the bomb (instead of at the end of the match).
+- Implement config options.
+- Add & implement other commands:
+- /bomb setconfig <option> <value>
 - ~~Restore missing (destroyed) brewing stands (bases) at the end of the match.~~ done.
 - ~~Close plant+defuse exploit~~ done.
 - ~~Kill off players that are too close to the bomb when it detonates.~~ done.
@@ -292,7 +312,6 @@ Bugs to fix:
 
 Known Issues:
 ---
-- Obviously, there is NO handling for when the bomb despawns after 5 minutes because this event breaks all other events.
   
 
 Contact:
@@ -306,7 +325,8 @@ Nicodemis79 on Skype
 [http://www.Battlecraft.co/](http://www.Battlecraft.co/ "Battlecraft")
 
 
-Javadocs:
+Javadocs & Wiki
 ---
 
-[http://javadocs.rainbowcraft.net/](http://javadocs.rainbowcraft.net/ "javadocs")
+[http://ci.battleplugins.com/job/BombArena/javadoc/](http://ci.battleplugins.com/job/BombArena/javadoc/ "javadocs")
+[http://wiki.battleplugins.com/w/index.php/BombArena](http://wiki.battleplugins.com/w/index.php/BombArena "wiki")
