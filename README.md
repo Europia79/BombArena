@@ -52,49 +52,29 @@ just lemme know! (contact info below)
 
 Arena Setup:
 ---
-Create the arena:
-**/bomb create ArenaName**
 
-This creates one waiting room "wr" shared by both teams: 
+`/bomb create ArenaName`
 
-**/bomb alter ArenaName wr**
+`/bomb alter ArenaName wr 1` (Waiting rooms)
 
-This creates a waiting room "wr" for each team: 
+`/bomb alter ArenaName wr 2` (Waiting rooms)
 
-**/bomb alter ArenaName wr 1**
+`/bomb alter <arena> 1` (spawn point for team1)
 
-**/bomb alter ArenaName wr 2**
+`/bomb spawnbomb <arena>` (sets the bomb spawn location)
 
-Set spawn point for Team 1:
-**/bomb alter ArenaName 1**
+If the `/bomb spawnbomb <arena>` command ever breaks, then you can 
+use these two commands instead:
 
-"aa" stands for /arenaAlter:
-**/aa select ArenaName**
+`/aa select <arena>`
 
-"fs" stands for First Spawn (1 second after the match begins).
-172 is the bomb block (which is HARD_CLAY). The last one is the index 
-for addspawn (which means that you can spawn other items and/or mobs in other indexes).
+`/aa addspawn 172 fs=1 rs=300 1`
 
-**/aa addspawn 172 fs=1 1**
+"aa stands for `/arenaAlter`. `fs` stands for First Spawn (1 second after the match begins). 
+`rs=300` stands for ReSpawn after 300 seconds. `172` is HARD_CLAY (substitute it with whatever 
+you've defined the BombBlock to be inside config.yml). 
 
-This will ask you to click a block: That block will be saved:
-**/aa addblock**
-
-Alternatively, you can define a WorldGuard region. 
-Use one of these two options on the two Brewing Stands. 
-The Brewing Stands define where a base is located. 
-If the Brewing Stand is destroyed by the bomb, then you'll 
-need one of these options to reset it back after each match.
-
-Also,
-
-**/aa showSpawns**
-
-**/aa hideSpawns**
-
-**/aa listSpawns**
-
-Finally,
+Other commands:
 
 **/bomb join**
 
@@ -105,40 +85,36 @@ Finally,
 **/bomb delete ArenaName**
 
 
-Base & Region Setup
+Base Setup
 ---
-The Demolition plugin needs some kind of way to identify bases 
+
+
+The plugin needs some kind of way to identify bases 
 and assign players to a base that they must defend... 
 and to make sure players cannot arbitrarily destroy ANY base they find 
 (like their own), but rather, force them to find and destroy the other teams base.
 
-This is how you make bases that this plugin can read:
+This is how you make bases:
 
-First, make a WorldGuard region with //wand and/or //pos1 //pos2 //hpos1 //hpos2. 
+# place two BaseBlocks (1 at each base. The default BaseBlock is BREWING_STAND, but this can be changed in the config.yml)
+# do `/bomb setbase <arena> <team>` (value for team can be 1 or 2)
 
-Then, fly next to one of the Brewing Stands and type:
+You can now join a BombArena (or even get a VirtualPlayer 
+to test it out).
 
-**/region flag RegionName teleport here**
-
-Goto the other base and do
-
-**/region flag RegionName spawn here**
-
-Optional, add the Worldguard region to BattleArena 
+(Optional) You can add a Worldguard region to BattleArena 
 so that block changes reset after each match. (Be careful 
 when using LARGE areas, it might lag your server).
 
-**/region select RegionName**
+`/region select RegionName`
 
-**/bomb alter ArenaName addregion**
+`/bomb alter <arena> addregion`
 
 FYI: You do NOT need to use this last command.
 The Demolition plugin will automatically reset bases after each match.
 The last command should be only used if you want players to break blocks 
-in the arena and have WorldGuard reset all the broken blocks to their original 
-state after each match.
-
-Some of these steps might change in the future to make to easier to setup Bomb Arenas. 
+(or access chests) in the arena and have WorldGuard reset all the broken blocks 
+to their original state after each match.
 
 
 How to access Player Stats Database:
@@ -276,8 +252,8 @@ have been checked to make sure that they do NOT contain any malicious code.
 **Development builds**
 
 ```python
-"Development builds of this project can be acquired at the provided continuous integration server.
-These builds have not been approved by the BukkitDev staff. Use them at your own risk."
+"Development builds of this project can be acquired at the provided continuous integration server."
+"These builds have not been approved by the BukkitDev staff. Use them at your own risk."
 ```
 
 [http://ci.battleplugins.com/job/BombArena/](http://ci.battleplugins.com/job/BombArena/ "dev builds")
@@ -295,6 +271,7 @@ To-Do List
 - Implement config options.
 - Add & implement other commands:
 - /bomb setconfig <option> <value>
+- write PHP script to access the database & display player stats on a website.
 - ~~Restore missing (destroyed) brewing stands (bases) at the end of the match.~~ done.
 - ~~Close plant+defuse exploit~~ done.
 - ~~Kill off players that are too close to the bomb when it detonates.~~ done.
@@ -329,4 +306,5 @@ Javadocs & Wiki
 ---
 
 [http://ci.battleplugins.com/job/BombArena/javadoc/](http://ci.battleplugins.com/job/BombArena/javadoc/ "javadocs")
+
 [http://wiki.battleplugins.com/w/index.php/BombArena](http://wiki.battleplugins.com/w/index.php/BombArena "wiki")
