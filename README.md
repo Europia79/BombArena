@@ -96,8 +96,8 @@ and to make sure players cannot arbitrarily destroy ANY base they find
 
 This is how you make bases:
 
-# place two BaseBlocks (1 at each base. The default BaseBlock is BREWING_STAND, but this can be changed in the config.yml)
-# do `/bomb setbase <arena> <team>` (value for team can be 1 or 2)
+- place two BaseBlocks (1 at each base. The default BaseBlock is BREWING_STAND, but this can be changed in the config.yml)
+- do `/bomb setbase <arena> <teamID>` (value for team can be 1 or 2)
 
 You can now join a BombArena (or even get a VirtualPlayer 
 to test it out).
