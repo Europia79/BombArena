@@ -8,6 +8,7 @@ import java.util.Set;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin; 
 import org.bukkit.util.Vector;
  
@@ -26,6 +27,10 @@ public class CustomConfig
         this.file = configFile;
         this.config = YamlConfiguration.loadConfiguration(configStream);
     }
+    
+    public ItemStack getItemStack(String path) { return this.config.getItemStack(path);}
+    
+    public ItemStack getItemStack(String path, ItemStack item) { return this.config.getItemStack(path, item);}
     
     public Vector getVector(String path) {return this.config.getVector(path);}
  
