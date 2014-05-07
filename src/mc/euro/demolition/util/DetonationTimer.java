@@ -20,7 +20,7 @@ import org.bukkit.scheduler.BukkitRunnable;
  * Right now, the PlantTimer handles the 8 seconds plant timer AND the 30 second detonation timer. <br/>
  * The 30 sec timer might be refactored here in the future. <br/>
  */
-public class DetonateTimer extends BukkitRunnable {
+public class DetonationTimer extends BukkitRunnable {
     
     BombPlugin plugin;
     int duration;
@@ -30,9 +30,9 @@ public class DetonateTimer extends BukkitRunnable {
     Location BOMB_LOCATION;
     boolean cancelled;
     
-    DefuseCounter counter;
+    DefuseTimer counter;
 
-    DetonateTimer(InventoryOpenEvent e, Match m, Location loc) {
+    DetonationTimer(InventoryOpenEvent e, Match m, Location loc) {
         this.cancelled = false;
         this.plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("BombArena");
         this.duration = plugin.DetonationTime + 1;
@@ -41,7 +41,7 @@ public class DetonateTimer extends BukkitRunnable {
         this.player = (Player) e.getPlayer();
         this.BOMB_LOCATION = loc;
         
-        this.counter = new DefuseCounter(m.getPlayers());
+        this.counter = new DefuseTimer(m.getPlayers());
         
     }
 
@@ -64,7 +64,7 @@ public class DetonateTimer extends BukkitRunnable {
         
     }
     
-    public DefuseCounter getCounter() {
+    public DefuseTimer getCounter() {
         return this.counter;
     }
     
