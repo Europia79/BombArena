@@ -22,42 +22,50 @@ import org.bukkit.scheduler.BukkitRunnable;
  */
 public class DetonateTimer extends BukkitRunnable {
     
-    int i;
     BombPlugin plugin;
+    int duration;
     Match match;
     InventoryOpenEvent event;
     Player player;
     Location BOMB_LOCATION;
     boolean cancelled;
+    
+    DefuseCounter counter;
 
     DetonateTimer(InventoryOpenEvent e, Match m, Location loc) {
         this.cancelled = false;
-        i = 31;
         this.plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("BombArena");
+        this.duration = plugin.DetonationTime + 1;
         this.event = e;
         this.match = m;
         this.player = (Player) e.getPlayer();
         this.BOMB_LOCATION = loc;
         
+        this.counter = new DefuseCounter(m.getPlayers());
+        
     }
 
     @Override
     public void run() {
-        i = i - 1;
-        match.sendMessage("" + i);
+        duration = duration - 1;
+        match.sendMessage("" + duration);
         
-        if (i <= 0) {
+        if (duration <= 0) {
             ArenaTeam t = match.getArena().getTeam(player);
             t.sendMessage(ChatColor.LIGHT_PURPLE 
                     + "Congratulations, "
                     + t.getTeamChatColor() + player.getName() + ChatColor.LIGHT_PURPLE
                     + " has successfully destroyed the other teams base.");
-            plugin.ti.addPlayerRecord(player.getName(), "Bombs Planted Defused", WLT.WIN);
+            plugin.ti.addPlayerRecord(player.getName(), plugin.FakeName, WLT.WIN);
             createExplosion(BOMB_LOCATION);
             match.setVictor(t);
             this.setCancelled(true);
         }
         
+    }
+    
+    public DefuseCounter getCounter() {
+        return this.counter;
     }
     
     public void setCancelled(boolean x) {
@@ -92,8 +100,8 @@ public class DetonateTimer extends BukkitRunnable {
         Set<ArenaPlayer> players = match.getPlayers();
         for (ArenaPlayer p : players) {
             double distance = p.getLocation().distance(loc);
-            if (distance <= 9) {
-                double dmg = 50 - (distance * 5);
+            if (distance <= plugin.DamageRadius) {
+                double dmg = plugin.MaxDamage - (distance * plugin.DeltaDamage);
                 p.getPlayer().damage(dmg);
             }
         }
