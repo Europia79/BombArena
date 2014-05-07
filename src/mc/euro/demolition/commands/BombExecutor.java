@@ -9,13 +9,12 @@ import mc.alk.arena.executors.CustomCommandExecutor;
 import mc.alk.arena.executors.MCCommand;
 import mc.alk.arena.objects.arenas.Arena;
 import mc.alk.arena.objects.spawns.TimedSpawn;
+import mc.alk.arena.serializers.ArenaSerializer;
 import mc.alk.arena.util.SerializerUtil;
 import mc.alk.tracker.objects.PlayerStat;
 import mc.alk.tracker.objects.Stat;
 import mc.alk.tracker.objects.StatType;
-import mc.euro.demolition.tests.BlockBreak;
 import mc.euro.demolition.BombArena;
-import mc.euro.demolition.tests.BombBreak;
 import mc.euro.demolition.debug.DebugOff;
 import mc.euro.demolition.debug.DebugOn;
 import mc.euro.demolition.objects.BaseType;
@@ -41,18 +40,16 @@ public class BombExecutor extends CustomCommandExecutor {
         plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
     }
     
-    @MCCommand(cmds={"setbase"}, perm="bomb.setbase", usage="setbase <arena>")
-    public boolean setbase(Player sender, String a, Integer i) {
+    @MCCommand(cmds={"setbase"}, perm="bomb.setbase", usage="setbase <arena> <teamID>")
+    public boolean setbase(Player sender, Arena arena, Integer i) {
         if (i < 1 || i > 2) {
-            sender.sendMessage("Bomb arenas can only have 2 teams");
+            sender.sendMessage("Bomb arenas can only have 2 teams: 1 or 2");
             return true;
         }
+        String a = arena.getName();
         Location loc = sender.getLocation();
-        BombArena arena = (BombArena) BattleArena.getArena(a);
-        if (arena == null) {
-            return false;
-        }
-        Location base_loc = arena.getExactLocation(loc);
+        BombArena bombarena = (BombArena) BattleArena.getArena(arena.getName());
+        Location base_loc = bombarena.getExactLocation(loc);
         if (base_loc == null) {
             sender.sendMessage("setbase command failed to find a BaseBlock near your location.");
             sender.sendMessage("Please set 2 BaseBlocks in the arena (1 for each team).");
@@ -67,20 +64,16 @@ public class BombExecutor extends CustomCommandExecutor {
         // Set<String> keys = plugin.getConfig("arenas").getConfigurationSection(path).getKeys(false);
         // ArenaSerializer.saveArenas(plugin);
         sender.sendMessage("Base set! " + wxyz);
-        plugin.getLogger().info("[BOMB] Player " + sender.getName()
-                + " has set a base for arena (" + a + ") to " + wxyz);
+        String msg = "[BOMB] Player " + sender.getName()
+                + " has set a base for arena (" + a + ") to " + wxyz;
+        plugin.getLogger().info(msg);
         return true;
     }
     
     @MCCommand(cmds={"spawnbomb"}, perm="bomb.spawnbomb", usage="spawnbomb <arena>")
     public boolean spawnbomb(Player sender, Arena arena) {
         int despawn = arena.getParams().getMatchTime();
-        plugin.debug.log("spawnbomb() duration = " + despawn);
-        if (arena == null) {
-            sender.sendMessage("You must specify an ArenaName with this command.");
-            sender.sendMessage("Command syntax: /bomb spawnbomb <arena>");
-            return false;
-        }
+        plugin.debug.log("spawnbomb() despawn = MatchTime = " + despawn);
         // shortcut and alias for
         // /aa select ArenaName
         // /aa addspawn BombBlock.name() fs=1 rs=300 ds=1200 index=1 1
@@ -88,6 +81,7 @@ public class BombExecutor extends CustomCommandExecutor {
         plugin.getServer().dispatchCommand(sender, 
                 "aa addspawn " + plugin.getBombBlock().name() 
                 + "1 fs=1 rs=300 ds=" + despawn + " index=1");
+        ArenaSerializer.saveArenas(plugin);
         sender.sendMessage("The bomb spawn for " + arena.getName() + " has been set!");
         // Add to documentation:
         // sender.sendMessage("Because this command was an alias for /aa, "
@@ -247,18 +241,10 @@ public class BombExecutor extends CustomCommandExecutor {
         return false;
     }
     
-    @MCCommand(cmds={"test"}, perm="bombarena.test")
-    public boolean simulateBombBreak(Player p) {
-        p.sendMessage("You can now simulate the length of time required to defused the bomb.");
-        p.sendMessage("Please break a block of " + plugin.getBombBlock());
-        plugin.getServer().getPluginManager().registerEvents(new BombBreak(p), plugin);
-        return true;
-    }
-    
-    @MCCommand(cmds={"record"}, perm="bombarena.record")
+    @MCCommand(cmds={"getname"}, perm="bombarena.getname")
     public boolean setBreakTime(Player p) {
-        p.sendMessage("Destroy a block to measure it's break time: ");
-        plugin.getServer().getPluginManager().registerEvents(new BlockBreak(p), plugin);
+        String name = p.getItemInHand().getType().name();
+        p.sendMessage("You are holding " + name);
         return true;
     }
 
