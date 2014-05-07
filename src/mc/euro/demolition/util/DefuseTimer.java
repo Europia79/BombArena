@@ -15,7 +15,7 @@ import org.bukkit.entity.Player;
  *
  * @author Nikolai
  */
-public class DefuseCounter {
+public class DefuseTimer {
     
     private Map<String, Integer> total;
     private Map<String, Integer> timesBroken;
@@ -25,7 +25,7 @@ public class DefuseCounter {
     BombPlugin plugin;
     Match match;
 
-    public DefuseCounter(Set players) {
+    public DefuseTimer(Set players) {
         plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
         // Tolerance = BlockBreakTime + tolerance;
         this.tolerance = setTolerance(plugin.Tolerance);
