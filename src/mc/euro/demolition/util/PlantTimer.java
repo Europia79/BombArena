@@ -21,8 +21,8 @@ import org.bukkit.scheduler.BukkitRunnable;
  */
 public class PlantTimer extends BukkitRunnable {
 
-    int i;
     BombPlugin plugin;
+    int duration;
     Match match;
     DetonateTimer dtimer;
     InventoryOpenEvent event;
@@ -33,8 +33,8 @@ public class PlantTimer extends BukkitRunnable {
 
     public PlantTimer(InventoryOpenEvent e, Match m) {
         cancelled = false;
-        i = 8;
         this.plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
+        this.duration = this.plugin.PlantTime;
         this.event = e;
         this.match = m;
         this.player = (Player) e.getPlayer();
@@ -43,13 +43,14 @@ public class PlantTimer extends BukkitRunnable {
 
     @Override
     public void run() {
-        i = i - 1;
-        match.sendMessage("" + i);
+        duration = duration - 1;
+        match.sendMessage("" + duration);
         
-        if (i == 0) {
+        if (duration == 0) {
             Set<ArenaPlayer> allplayers = match.getPlayers();
             for (ArenaPlayer p : allplayers) {
-                p.getPlayer().sendMessage("The bomb will detonate in 30 seconds !!!");
+                p.getPlayer().sendMessage("The bomb will detonate in " 
+                        + plugin.DetonationTime + " seconds !!!");
             }
             setBomb(event.getPlayer().getLocation(), 10);
             
@@ -102,44 +103,20 @@ public class PlantTimer extends BukkitRunnable {
                 for (int zPoint = z1; zPoint <= z2; zPoint++) {
                     // Get the block that we are currently looping over.
                     Block currentBlock = world.getBlockAt(xPoint, yPoint, zPoint);
-                    // Set the block to type 57 (Diamond block!)
-                    if (currentBlock.getType() == Material.BREWING_STAND) {
-                        currentBlock.setType(Material.HARD_CLAY);
+                    // Set the block to type 172 (HARD_CLAY) or plugin.BombBlock
+                    if (currentBlock.getType() == plugin.BaseBlock) {
+                        currentBlock.setType(plugin.BombBlock);
                         this.BOMB_LOCATION = currentBlock.getLocation();
+                        /*
                         Set<ArenaPlayer> players = match.getPlayers();
                         for (ArenaPlayer p : players) {
                             p.getPlayer().sendBlockChange(BOMB_LOCATION, Material.TNT, (byte) 0);
-                        }
+                        } */
                     }
                 }
             }
         }
     }
-
-    private void createExplosion(Location here) {
-        here.getBlock().setType(Material.AIR);
-        for (int x = -1; x < 1; x++) {
-            for (int z = -1; z < 1; z++) {
-                for (int y = 0; y < 1; y++) {
-                    double xp = here.getX() + x;
-                    double yp = here.getY() + y;
-                    double zp = here.getZ() + z;
-                    Location temp = new Location(here.getWorld(), xp, yp, zp);
-                    here.getWorld().createExplosion(temp, 0L);
-                }
-            }
-        }
-        killPlayers(BOMB_LOCATION);
-    }
     
-    private void killPlayers(Location loc) {
-        Set<ArenaPlayer> players = match.getPlayers();
-        for (ArenaPlayer p : players) {
-            double distance = p.getLocation().distance(loc);
-            if (distance <= 9) {
-                double dmg = 50 - (distance * 5);
-                p.getPlayer().damage(dmg);
-            }
-        }
-    }
+
 }
