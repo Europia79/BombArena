@@ -24,7 +24,7 @@ public class PlantTimer extends BukkitRunnable {
     BombPlugin plugin;
     int duration;
     Match match;
-    DetonateTimer dtimer;
+    DetonationTimer dtimer;
     InventoryOpenEvent event;
     Player player;
     Location BOMB_LOCATION;
@@ -54,7 +54,7 @@ public class PlantTimer extends BukkitRunnable {
             }
             setBomb(event.getPlayer().getLocation(), 10);
             
-            plugin.dTimers.put(match.getID(), new DetonateTimer(event, match, BOMB_LOCATION));
+            plugin.dTimers.put(match.getID(), new DetonationTimer(event, match, BOMB_LOCATION));
             plugin.dTimers.get(match.getID()).runTaskTimer(plugin, 0L, 20L);
             player.closeInventory();
         }

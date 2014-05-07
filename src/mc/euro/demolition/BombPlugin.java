@@ -15,8 +15,8 @@ import mc.euro.demolition.commands.BombExecutor;
 import mc.euro.demolition.debug.*;
 import mc.euro.demolition.objects.BaseType;
 import mc.euro.demolition.tracker.PlayerStats;
-import mc.euro.demolition.util.DefuseCounter;
-import mc.euro.demolition.util.DetonateTimer;
+import mc.euro.demolition.util.DefuseTimer;
+import mc.euro.demolition.util.DetonationTimer;
 import mc.euro.demolition.util.PlantTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -44,7 +44,7 @@ public class BombPlugin extends JavaPlugin {
     public Map<Integer, Map<Integer, Location>> bases; // <matchID, <teamID, BaseLocation>>
     public Map<String, ArrayList<Location>> allbases; // <ArenaName, Set<BaseLocations>>
     public Map<Integer, PlantTimer> pTimers; // <matchID, new PlantTimer(event, getMatch())>
-    public Map<Integer, DetonateTimer> dTimers; // <matchID, new DetonateTimer(event, getMatch())>
+    public Map<Integer, DetonationTimer> dTimers; // <matchID, new DetonateTimer(event, getMatch())>
     /**
      * Adds Bombs Planted and Bombs Defused to the database. <br/>
      * WLT.WIN = Bomb Planted Successfully (opponents base was destroyed). <br/>
@@ -84,7 +84,7 @@ public class BombPlugin extends JavaPlugin {
         bases = new HashMap<Integer, Map<Integer, Location>>();
         allbases = new HashMap<String, ArrayList<Location>>();
         pTimers = new HashMap<Integer, PlantTimer>();
-        dTimers = new HashMap<Integer, DetonateTimer>();
+        dTimers = new HashMap<Integer, DetonationTimer>();
         
         manager = new ConfigManager(this);
         arenasYml = manager.getNewConfig("arenas.yml");
@@ -178,7 +178,7 @@ public class BombPlugin extends JavaPlugin {
         return this.bases.get(matchID).get(teamID);
     }
     
-    public DefuseCounter getCounter(int matchID) {
+    public DefuseTimer getCounter(int matchID) {
         return this.dTimers.get(matchID).getCounter();
     }
 
