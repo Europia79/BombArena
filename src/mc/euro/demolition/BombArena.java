@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import mc.alk.arena.competition.match.Match;
 import mc.alk.arena.events.players.ArenaPlayerLeaveEvent;
 import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.arenas.Arena;
@@ -24,7 +25,9 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -34,6 +37,8 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.BrewerInventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 /**
  * This class listens for all the bomb events and acts accordingly.
@@ -79,7 +84,7 @@ public class BombArena extends Arena {
                 && plugin.carriers.get(matchID) != null) {
             return;
         }
-        if (e.getEntity().getItemStack().getType() == Material.HARD_CLAY) {
+        if (e.getEntity().getItemStack().getType() == plugin.BombBlock) {
             setCompass(e.getLocation());
             msgAll(getMatch().getPlayers(), "The bomb has spawned");
         }
@@ -102,8 +107,8 @@ public class BombArena extends Arena {
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
         plugin.debug.sendMessage(e.getPlayer(), "debug works!");
         plugin.debug.sendMessage(e.getPlayer(), "onBombPickup() Listener works!");
-
-        if (e.getItem().getItemStack().getType() == Material.HARD_CLAY) {
+        
+        if (e.getItem().getItemStack().getType() == plugin.BombBlock) {
             if (c == null) {
                 c = e.getPlayer().getName();
                 plugin.carriers.put(matchID, c);
@@ -138,7 +143,7 @@ public class BombArena extends Arena {
 
 
         }
-    }
+    } // END OF PlayerPickupItemEvent
     
     /**
      * This method handles the scenario where a player gets the bomb then logs out or leaves the arena.
@@ -150,7 +155,7 @@ public class BombArena extends Arena {
         int id = getMatch().getID();
         String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
         
-    }
+    } // END OF ArenaPlayerLeaveEvent
     
     /**
      * This method triggers a new bombDropEvent if a player dies with the bomb.
@@ -193,7 +198,7 @@ public class BombArena extends Arena {
             
         }
         
-    }
+    } // END OF PlayerDeathEvent
     
     /**
      * This event handles the scenario when the bomb is thrown on the ground.
@@ -213,7 +218,7 @@ public class BombArena extends Arena {
         Material type = e.getItemDrop().getItemStack().getType();
         // To-do: make sure the bomb didn't get thrown outside the map
         Location loc = e.getItemDrop().getLocation();
-        if (type == Material.HARD_CLAY) {
+        if (type == plugin.BombBlock) {
             if (c != null 
                     && e.getPlayer().getName().equals(c)) {
                 if (e.getPlayer().getInventory().getHelmet().getType() == Material.TNT) {
@@ -236,7 +241,7 @@ public class BombArena extends Arena {
             }
 
         }
-    }
+    } // END OF PlayerDropItemEvent
     
     /**
      * This event breaks ALL other events.
@@ -253,7 +258,7 @@ public class BombArena extends Arena {
         // temporary place holder
         // until I get time to implement this method.
         // respawn a new bomb OR cancel the event
-        if (e.getEntity().getItemStack().getType() == Material.HARD_CLAY 
+        if (e.getEntity().getItemStack().getType() == plugin.BombBlock 
                 && c != null) {
             Set<ArenaPlayer> allplayers = getMatch().getPlayers();
             for (ArenaPlayer p : allplayers) {
@@ -283,19 +288,19 @@ public class BombArena extends Arena {
         // Get the coordinates to the base
         // calculate the distance to the base
         // if the distance is small, attempt to trigger onBombPlant()
-        if (e.getBlockPlaced().getType() == Material.HARD_CLAY) {
+        if (e.getBlockPlaced().getType() == plugin.BombBlock) {
             e.getPlayer().sendMessage("Improper bomb activation!");
             
             // get the other team's base location
             // set the player compass
             // and msg him to follow the compass
-            // e.getPlayer().getInventory().addItem(new ItemStack(Material.HARD_CLAY));
+            // e.getPlayer().getInventory().addItem(new ItemStack(plugin.BombBlock));
             e.setCancelled(true);
             // updateInventory() is deprecated
             // Must eventually find another solution.
             e.getPlayer().updateInventory();
         }
-    }
+    } // END OF BlockPlaceEvent
     
     /**
      * This event handles players who access Brewing Stands. <br/>
@@ -311,7 +316,7 @@ public class BombArena extends Arena {
      * 
      * @param e InventoryOpenEvent - Is it a Brewing Stand Inventory ? (Each base must have a brewing stand).
      */
-    @ArenaEventHandler
+    @ArenaEventHandler (priority=EventPriority.HIGHEST)
     public void onBombPlant(InventoryOpenEvent e) {
         int matchID = getMatch().getID();
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
@@ -337,21 +342,23 @@ public class BombArena extends Arena {
         // get the bomb carriers base:
         // Compare his current position with the position of HIS OWN BASE
         // to make sure he's not trying to plant the bomb at his own base.
-        if (e.getInventory().getType() == InventoryType.BREWING 
+        if (e.getInventory().getType() == plugin.Baseinv 
                 && c != null 
                 && e.getPlayer().getName().equalsIgnoreCase(c) 
                 && plugin.bases.get(matchID).get(teamID).distance(planter.getLocation()) > 30) {
-            // converted a single Timer to one for each match.
+            
             if (e.getPlayer().getInventory().getHelmet().getType() == Material.TNT) {
                 e.getPlayer().getInventory().getHelmet().setType(Material.AIR);
             }
-            plugin.pTimers.put(getMatch().getID(), new PlantTimer(e, getMatch()));
-            plugin.pTimers.get(getMatch().getID()).runTaskTimer(plugin, 0L, 20L);
-        } else if (e.getInventory().getType() == InventoryType.BREWING){
+            // each match has its own Timer.
+            plugin.pTimers.put(matchID, new PlantTimer(e, getMatch()));
+            plugin.pTimers.get(matchID).runTaskTimer(plugin, 0L, 20L);
+            // slowBlockBreak(getMatch());
+        } else if (e.getInventory().getType() == plugin.Baseinv){
             plugin.debug.sendMessage(planter, "event.setCancelled(true);");
             e.setCancelled(true);
         }
-    }
+    } // END OF InventoryOpenEvent
     
     /**
      * Handles the event where the Bomb Carrier does NOT complete the time required to plant the bomb. <br/>
@@ -366,7 +373,7 @@ public class BombArena extends Arena {
      * 
      * @param e InventoryCloseEvent
      */
-    @ArenaEventHandler
+    @ArenaEventHandler (priority=EventPriority.HIGHEST)
     public void onBombPlantFailure(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
         String type = e.getInventory().getType().toString();
@@ -381,7 +388,7 @@ public class BombArena extends Arena {
         // Is it a brewing stand ?
         // Are they trying to plant ?
         // e.getInventory() instanceof BrewerInventory
-        if (e.getInventory().getType() == InventoryType.BREWING 
+        if (e.getInventory().getType() == plugin.Baseinv 
                 && c != null 
                 && p.getName().equalsIgnoreCase(c)) {
             // if this is an actual death or drop then those Events 
@@ -392,7 +399,7 @@ public class BombArena extends Arena {
             plugin.pTimers.get(matchID).setCancelled(true);
         }
 
-    }
+    } // END OF InventoryCloseEvent
     
     /**
      * This method handles the event when players try to defuse the bomb (by breaking the bomb block). <br/><br/>
@@ -410,32 +417,42 @@ public class BombArena extends Arena {
     @ArenaEventHandler (priority=EventPriority.HIGHEST)
     public void onBombDefusal(BlockBreakEvent e) {
         int matchID = getMatch().getID();
+        int otherTeam = getOtherTeam(e.getPlayer()).getId();
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
-        // Cancel timers and declare the winners
-        if (e.getBlock().getType() == Material.HARD_CLAY 
-                && getTeam(e.getPlayer()) != getTeam(Bukkit.getServer().getPlayer(c))) {
-            Set<ArenaPlayer> allplayers = getMatch().getPlayers();
-            for (ArenaPlayer p : allplayers) {
-                p.sendMessage("" + e.getPlayer().getName() 
-                        + " has defused the bomb.");
-                if (getTeam(p) == getTeam(e.getPlayer())) {
-                    p.sendMessage("You win!");
-                } else {
-                    p.sendMessage("You lost!");
+        
+        // add location check
+        if (e.getBlock().getType() == plugin.BombBlock 
+                && getTeam(e.getPlayer()) != getTeam(Bukkit.getServer().getPlayer(c))) 
+        {
+            int timesBroken = plugin.getCounter(matchID).addBlockBreak(e.getPlayer());
+            
+            if (timesBroken >= plugin.getDefuseTime()) {
+                Set<ArenaPlayer> allplayers = getMatch().getPlayers();
+                for (ArenaPlayer p : allplayers) {
+                    p.sendMessage("" + e.getPlayer().getName()
+                            + " has defused the bomb.");
+                    if (getTeam(p) == getTeam(e.getPlayer())) {
+                        p.sendMessage("You win!");
+                    } else {
+                        p.sendMessage("You lost!");
+                    }
                 }
+                plugin.ti.addPlayerRecord(e.getPlayer().getName(), "Bombs Planted Defused", WLT.TIE);
+                plugin.ti.addPlayerRecord(c, "Bombs Planted Defused", WLT.LOSS);
+                ArenaTeam t = getTeam(e.getPlayer());
+                getMatch().setVictor(t);
+                plugin.dTimers.get(matchID).cancel();
+
+            } else if (timesBroken < plugin.getDefuseTime()) {
+                e.setCancelled(true);
             }
-            plugin.ti.addPlayerRecord(e.getPlayer().getName(), "Bombs Planted Defused", WLT.TIE);
-            plugin.ti.addPlayerRecord(c, "Bombs Planted Defused", WLT.LOSS);
-            ArenaTeam t = getTeam(e.getPlayer());
-            getMatch().setVictor(t);
-            plugin.pTimers.get(matchID).cancel();
-        } else if (e.getBlock().getType() == Material.HARD_CLAY 
+        } else if (e.getBlock().getType() == plugin.BombBlock 
                 && getTeam(e.getPlayer()) == getTeam(Bukkit.getServer().getPlayer(c))) {
             e.getPlayer().sendMessage("If you defuse the bomb, then the other team will win.");
             e.setCancelled(true);
         }
         
-    }
+    } // END OF onBombDefusal
     
     /**
      * First method called by BattleArena. <br/><br/>
@@ -463,6 +480,7 @@ public class BombArena extends Arena {
     public void onStart() {
         super.onStart();
         plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onStart");
+        setBases(getMatch().getArena().getName());
         Set<ArenaPlayer> players = getMatch().getPlayers();
         for (ArenaPlayer p : players) {
             if (!p.getInventory().contains(Material.COMPASS)) {
@@ -470,6 +488,16 @@ public class BombArena extends Arena {
             }
         }
         assignBases(getMatch().getTeams());
+    }
+    
+    public void setBases(String arena) {
+        // PATH = "arenas.{arena}.spawns.{n}.spawn"
+        ArrayList<Location> locations = plugin.getBases(getMatch().getArena().getName());
+        for (Location loc : locations) {
+            World w = loc.getWorld();
+            Block block = w.getBlockAt(loc);
+            block.setType(plugin.getBaseBlock());
+        }
     }
     
     /**
@@ -519,7 +547,7 @@ public class BombArena extends Arena {
             Location loc = (Location) bases.get(t.getId());
             World world = loc.getWorld();
             Block block = world.getBlockAt(loc);
-            block.setType(Material.BREWING_STAND);
+            block.setType(plugin.BaseBlock);
         }
     }
     
@@ -605,7 +633,7 @@ public class BombArena extends Arena {
         if (temp.size() != 2) {
             plugin.getLogger().warning("The bomb game type must have 2 teams !!!");
         }
-    }
+    }  // END OF assignBases()
 
     /**
      * Used by assignBases() and setbase command. <br/><br/>
@@ -637,7 +665,7 @@ public class BombArena extends Arena {
                     // Get the block that we are currently looping over.
                     Block currentBlock = world.getBlockAt(xPoint, yPoint, zPoint);
                     // Set the block to type 57 (Diamond block!)
-                    if (currentBlock.getType() == Material.BREWING_STAND) {
+                    if (currentBlock.getType() == plugin.BaseBlock) {
                         base_loc = new Location(world, xPoint, yPoint, zPoint);
                         plugin.debug.log("base_loc = " + base_loc.toString());
                         return base_loc;
@@ -646,7 +674,7 @@ public class BombArena extends Arena {
             }
         }
         return base_loc;
-    }
+    } // END OF getExactLocation()
     
     /**
      * This method uses a Player input parameter to get the other team.
