@@ -32,7 +32,8 @@ public class PlayerStats {
         if (t != null){
             enabled = true;
             tracker = Tracker.getInterface(i);
-            tracker.hidePlayer("Bombs Planted Defused", true);
+            tracker.hidePlayer(plugin.FakeName, true);
+            tracker.stopTracking(Bukkit.getServer().getOfflinePlayer(plugin.FakeName));
         } else {
             enabled = false;
             plugin.getLogger().warning("BattleTracker turned off or not found.");
@@ -51,6 +52,18 @@ public class PlayerStats {
 
     public List<Stat> getTopX(StatType statType, int n) {
         return tracker.getTopX(statType, n);
+    }
+    
+    public WLT getPlantSuccess() {
+        return WLT.WIN;
+    }
+    
+    public WLT getPlantFailure() {
+        return WLT.LOSS;
+    }
+    
+    public WLT getDefuseSuccess() {
+        return WLT.TIE;
     }
     
 }
