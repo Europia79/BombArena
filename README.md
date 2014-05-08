@@ -299,7 +299,7 @@ Nick at Nikolai.Kalashnikov@hotmail.com
 Nicodemis79 on Skype
 
 
-[http://www.Battlecraft.co/](http://www.Battlecraft.co/ "Battlecraft")
+[http://rainbowcraft.net/](http://Rainbowcraft.net/ "Rainbowcraft")
 
 
 Javadocs & Wiki
