@@ -4,8 +4,8 @@ import java.util.Set;
 import mc.alk.arena.competition.match.Match;
 import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.teams.ArenaTeam;
-import mc.alk.tracker.objects.WLT;
 import mc.euro.demolition.BombPlugin;
+import mc.euro.demolition.tracker.OUTCOME;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -15,10 +15,17 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- * Possible future use for being responsible for the Detonation timer (instead of PlantTimer). <br/><br/>
+ * Example: new DetonationTimer(event, match, BOMB_LOCATION). <br/><br/>
  * 
- * Right now, the PlantTimer handles the 8 seconds plant timer AND the 30 second detonation timer. <br/>
- * The 30 sec timer might be refactored here in the future. <br/>
+ * plugin.detTimers.put(match.getID(), new DetonationTimer(event, match, BOMB_LOCATION)); <br/>
+ * plugin.detTimers.get(match.getID()).runTaskTimer(plugin, 0L, 20L); <br/>
+ * player.closeInventory(); <br/><br/>
+ * 
+ * This is always the 2nd Timer to be started. <br/>
+ * There can only be one DetonationTimer per match. <br/>
+ * 
+ * getPlayer() - used to get the player that started this timer. <br/>
+ * 
  */
 public class DetonationTimer extends BukkitRunnable {
     
@@ -41,8 +48,6 @@ public class DetonationTimer extends BukkitRunnable {
         this.player = (Player) e.getPlayer();
         this.BOMB_LOCATION = loc;
         
-        this.counter = new DefuseTimer(m.getPlayers());
-        
     }
 
     @Override
@@ -56,16 +61,12 @@ public class DetonationTimer extends BukkitRunnable {
                     + "Congratulations, "
                     + t.getTeamChatColor() + player.getName() + ChatColor.LIGHT_PURPLE
                     + " has successfully destroyed the other teams base.");
-            plugin.ti.addPlayerRecord(player.getName(), plugin.FakeName, WLT.WIN);
+            plugin.ti.addPlayerRecord(player.getName(), plugin.FakeName, OUTCOME.getPlantSuccess());
             createExplosion(BOMB_LOCATION);
             match.setVictor(t);
             this.setCancelled(true);
         }
         
-    }
-    
-    public DefuseTimer getCounter() {
-        return this.counter;
     }
     
     public void setCancelled(boolean x) {
@@ -77,6 +78,10 @@ public class DetonationTimer extends BukkitRunnable {
     
     public boolean isCancelled() {
         return this.cancelled;
+    }
+    
+    public Player getPlayer() {
+        return this.player;
     }
     
     private void createExplosion(Location here) {

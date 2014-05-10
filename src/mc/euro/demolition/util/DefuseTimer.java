@@ -1,127 +1,85 @@
 package mc.euro.demolition.util;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import mc.alk.arena.competition.match.Match;
-import mc.alk.arena.objects.ArenaPlayer;
 import mc.euro.demolition.BombPlugin;
+import mc.alk.arena.competition.match.Match;
+import mc.alk.arena.objects.teams.ArenaTeam;
+import mc.euro.demolition.tracker.OUTCOME;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- *
- * @author Nikolai
+ * Example: new DefuseTimer(InventoryOpenEvent e, getMatch()). <br/><br/>
+ * 
+ * plugin.defTimers.put(getMatch().getID(), new PlantTimer(e, getMatch())); <br/>
+ * plugin.defTimers.get(getMatch().getID()).runTaskTimer(plugin, 0L, 20L); <br/><br/>
+ * 
+ * There can be a DefuseTimer for each player attempting to defuse the bomb. <br/><br/>
+ * 
  */
-public class DefuseTimer {
-    
-    private Map<String, Integer> total;
-    private Map<String, Integer> timesBroken;
-    private Map<String, Long> lastTime;
-    
-    private long tolerance;
+public class DefuseTimer extends BukkitRunnable {
+
     BombPlugin plugin;
+    int duration;
     Match match;
+    InventoryOpenEvent event;
+    Player player;
+    Location BOMB_LOCATION;
+    Long startTime;
+    private boolean cancelled;
 
-    public DefuseTimer(Set players) {
-        plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
-        // Tolerance = BlockBreakTime + tolerance;
-        this.tolerance = setTolerance(plugin.Tolerance);
-        
-        total = new HashMap<String, Integer>();
-        timesBroken = new HashMap<String, Integer>();
-        lastTime = new HashMap<String, Long>();
-        
-        initializeMaps(convert(players));
-    }
-
-    public int getTimesBroken(Player p) {
-        return this.timesBroken.get(p.getName());
-    }
-    
-    public int addBlockBreak(Player p) {
-        String name = p.getName();
-        
-        int newTotal = total.get(name) + 1;
-        total.put(name, newTotal);
-        
-        String msgTotal = " (" + total.get(name) + ")";
-        plugin.debug.log("DefuseCounter.addBlockBreak() called for " + name + msgTotal);
-        
-        if (true) {
-            return total.get(name);
-        }
-        
-        plugin.debug.log("lastTime = " + this.lastTime);
-        plugin.debug.log("elapsedTime = " + getMilliElapsed(name) + " milliseconds");
-        
-        if (getLastTime(name) >= this.tolerance) {
-            String msg2 = "Player " + name + " has had his total block broken reset"
-                    + " because they weren't defusing fast enough.";
-            plugin.debug.log(msg2);
-            this.timesBroken.put(name, 0);
-        }
-        
-        int t = this.timesBroken.get(name);
-        t = t + 1;
-        this.timesBroken.put(name, t);
-        
-        setLastTime(name);
-        return this.timesBroken.get(name);
-    }
-    
-
-    private long getSecondsElapsed(String name) {
-        return (getMilliElapsed(name) / 1000);
+    public DefuseTimer(InventoryOpenEvent e, Match m) {
+        cancelled = false;
+        this.plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
+        this.duration = this.plugin.PlantTime;
+        this.event = e;
+        this.match = m;
+        this.player = (Player) e.getPlayer();
+        this.BOMB_LOCATION = plugin.getExactLocation(e.getPlayer().getLocation());
+        match.sendMessage("" + player.getName() + " has started to defuse the bomb!");
     }
 
-    private long getMilliElapsed(String name) {
-        return (getNanoElapsed(name) / 1000000);
-    }
-
-    private long getNanoElapsed(String name) {
-        return ((getCurrentTime() - getLastTime(name)));
-    }
-
-    private long getLastTime(String name) {
-        return this.lastTime.get(name);
-    }
-    
-    private void setLastTime(String name) {
-        this.lastTime.put(name, getCurrentTime());
-    }
-    
-    public static long getCurrentTime() {
-        return System.nanoTime();
-    }
-
-    private long setTolerance(int milli) {
-        // Tolerance = BlockBreakTime + tolerance;
-        Material m = plugin.BombBlock;
-        int breakTime = plugin.getConfig().getInt("BreakTimes." + m.name());
-        return breakTime + milli;
-    }
-    
-    private Set<Player> convert(Set players) {
-        Set<Player> temp = new HashSet<Player>();
-        if (players.toArray()[0] instanceof Player) {
-            temp.addAll(players);
-        } else if (players.toArray()[0] instanceof ArenaPlayer) {
-            for (Object p : players) {
-                ArenaPlayer ap = (ArenaPlayer) p;
-                temp.add(ap.getPlayer());
+    @Override
+    public void run() {
+        duration = duration - 1;
+        player.sendMessage("" + ChatColor.RED + "" + duration);
+        
+        if (duration <= 0) {
+            int matchID = match.getID();
+            ArenaTeam t = match.getArena().getTeam(player);
+            t.sendMessage(ChatColor.LIGHT_PURPLE 
+                    + "Congratulations, "
+                    + t.getTeamChatColor() + "" + player.getName() + ChatColor.LIGHT_PURPLE
+                    + " has successfully defused the bomb. You win!");
+            plugin.ti.addPlayerRecord(player.getName(), plugin.FakeName, OUTCOME.getDefuseSuccess());
+            plugin.ti.addPlayerRecord(plugin.carriers.get(matchID), plugin.FakeName, OUTCOME.getPlantFailure());
+            match.setVictor(t);
+            Map<String, DefuseTimer> temp = plugin.defTimers.get(matchID);
+            for (DefuseTimer d : temp.values()) {
+                d.setCancelled(true);
             }
+            plugin.detTimers.get(matchID).setCancelled(true);
+            plugin.defTimers.get(matchID).clear();
         }
-        return temp;
     }
-
-    private void initializeMaps(Set<Player> allplayers) {
-        for (Player p : allplayers) {
-            this.total.put(p.getName(), 0);
-            this.timesBroken.put(p.getName(), 0);
-            this.lastTime.put(p.getName(), getCurrentTime());
-        }
+    
+    public void setCancelled(boolean x) {
+        this.cancelled = x;
+        if (x) {
+            this.player.closeInventory();
+            this.cancel();
+        } 
+    }
+    
+    public boolean isCancelled() {
+        return this.cancelled;
+    }
+    
+    public Player getPlayer() {
+        return this.player;
     }
 }

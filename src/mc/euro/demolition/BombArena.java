@@ -7,15 +7,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import mc.alk.arena.BattleArena;
+import mc.alk.arena.controllers.BattleArenaController;
 import mc.alk.arena.events.players.ArenaPlayerLeaveEvent;
 import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.arenas.Arena;
+import mc.alk.arena.objects.arenas.ArenaType;
 import mc.alk.arena.objects.events.ArenaEventHandler;
 import mc.alk.arena.objects.events.EventPriority;
+import mc.alk.arena.objects.spawns.ItemSpawn;
+import mc.alk.arena.objects.spawns.SpawnInstance;
+import mc.alk.arena.objects.spawns.TimedSpawn;
 import mc.alk.arena.objects.teams.ArenaTeam;
-import mc.alk.tracker.objects.WLT;
+import mc.alk.arena.serializers.ArenaSerializer;
 import mc.euro.demolition.debug.DebugOff;
 import mc.euro.demolition.debug.DebugOn;
+import mc.euro.demolition.tracker.OUTCOME;
+import mc.euro.demolition.util.DefuseTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -32,6 +40,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * This class listens for all the bomb events and acts accordingly.
@@ -310,45 +319,50 @@ public class BombArena extends Arena {
      * @param e InventoryOpenEvent - Is it a Brewing Stand Inventory ? (Each base must have a brewing stand).
      */
     @ArenaEventHandler (priority=EventPriority.HIGHEST)
-    public void onBombPlant(InventoryOpenEvent e) {
+    public void onBombPlantDefuse(InventoryOpenEvent e) {
         int matchID = getMatch().getID();
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
-        Player planter = (Player) e.getPlayer();
-        int teamID = getTeam(planter).getId();
+        
+        // EXIT CONDITIONS:
+        if (e.getInventory().getType() != plugin.Baseinv) return;
+        if (c == null) {
+            e.setCancelled(true);
+            return;
+        }
+        
+        Player eplayer = (Player) e.getPlayer();
+        int teamID = getTeam(eplayer).getId();
+        int cTeamID = getTeam(Bukkit.getPlayer(c)).getId();
         
         plugin.debug.log("onBombPlant() has been called.");
         plugin.debug.log("matchID = " + matchID);
         plugin.debug.log("plugin.carriers.get(matchID) = " + plugin.carriers.get(matchID));
-        plugin.debug.log("planter = " + planter.getName());
+        plugin.debug.log("planter/defuser = " + eplayer.getName());
         plugin.debug.log("teamID = " + teamID);
-        plugin.debug.sendMessage(planter, "onBombPlant() has been called");
+        plugin.debug.sendMessage(eplayer, "onBombPlant() has been called");
         plugin.debug.log("e.getInventory().getType() = " + e.getInventory().getType());
         plugin.debug.log("carrier, c = " + c);
         plugin.debug.log("e.getPlayer().getName() = " + e.getPlayer().getName());
-        plugin.debug.log("planter.getLocation = " + planter.getLocation());
+        plugin.debug.log("planter.getLocation = " + eplayer.getLocation());
         plugin.debug.log("plugin.bases.get(matchID) = " + plugin.bases.get(matchID).toString());
         plugin.debug.log("plugin.bases.get(matchID).get(teamID) = " + plugin.bases.get(matchID).get(teamID).toString());
         plugin.debug.log("e.getPlayer().getInventory().getHelmet = " + e.getPlayer().getInventory().getHelmet());
         
-        // ARE THEY AT THE CORRECT BASE ?
-        // Use the Match ID to get all the player bases, then
-        // get the bomb carriers base:
-        // Compare his current position with the position of HIS OWN BASE
-        // to make sure he's not trying to plant the bomb at his own base.
-        if (e.getInventory().getType() == plugin.Baseinv 
-                && c != null 
-                && e.getPlayer().getName().equalsIgnoreCase(c) 
-                && plugin.bases.get(matchID).get(teamID).distance(planter.getLocation()) > 30) {
-            
-            if (e.getPlayer().getInventory().getHelmet().getType() == Material.TNT) {
-                e.getPlayer().getInventory().getHelmet().setType(Material.AIR);
-            }
-            // each match has its own Timer.
+        // DEFUSE CONDITIONS:
+        if (plugin.detTimers.containsKey(matchID)
+                && teamID != cTeamID
+                && plugin.bases.get(matchID).get(teamID).distance(eplayer.getLocation()) < 6) {
+            plugin.defTimers.get(matchID).put(eplayer.getName(), new DefuseTimer(e, getMatch()));
+            plugin.defTimers.get(matchID).get(eplayer.getName()).runTaskTimer(plugin, 0L, 20L);
+            // PLANT CONDITIONS:
+        } else if (eplayer.getName().equalsIgnoreCase(c) 
+                && plugin.bases.get(matchID).get(teamID).distance(eplayer.getLocation()) > 30
+                && !plugin.detTimers.containsKey(matchID)) {
             plugin.pTimers.put(matchID, new PlantTimer(e, getMatch()));
             plugin.pTimers.get(matchID).runTaskTimer(plugin, 0L, 20L);
-            // slowBlockBreak(getMatch());
         } else if (e.getInventory().getType() == plugin.Baseinv){
-            plugin.debug.sendMessage(planter, "event.setCancelled(true);");
+            // NOT A PLANT OR DEFUSAL ATTEMPT ?
+            plugin.debug.sendMessage(eplayer, "event.setCancelled(true);");
             e.setCancelled(true);
         }
     } // END OF InventoryOpenEvent
@@ -373,17 +387,23 @@ public class BombArena extends Arena {
         int matchID = getMatch().getID();
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
         
+        // EXIT CONDITIONS:
+        if (e.getInventory().getType() != plugin.Baseinv) return;
+        if (c == null) return;
+        
         plugin.debug.sendMessage(p, "onBombPlantFailure has been called.");
         plugin.debug.sendMessage(p, "matchID = " + matchID);
         plugin.debug.log("type = " + type);
         plugin.debug.sendMessage(p, "carrier = " + c);
-        
-        // Is it a brewing stand ?
-        // Are they trying to plant ?
-        // e.getInventory() instanceof BrewerInventory
-        if (e.getInventory().getType() == plugin.Baseinv 
-                && c != null 
-                && p.getName().equalsIgnoreCase(c)) {
+
+        Map<String, DefuseTimer> temp = plugin.defTimers.get(matchID);
+        for (String defuser : temp.keySet()) {
+            if (p.getName().equalsIgnoreCase(defuser)) {
+                temp.get(defuser).setCancelled(true);
+            }
+        }
+
+        if (p.getName().equalsIgnoreCase(c)) {
             // if this is an actual death or drop then those Events 
             // will handle setting the carrier to null
             plugin.debug.msgArenaPlayers(getMatch().getPlayers(), 
@@ -408,7 +428,8 @@ public class BombArena extends Arena {
      * @param e BlockBreakEvent - Is it the bomb block ?
      */
     @ArenaEventHandler (priority=EventPriority.HIGHEST)
-    public void onBombDefusal(BlockBreakEvent e) {
+    public void onBaseBreakExploit(BlockBreakEvent e) {
+        // close the exploit where players can destroy the BaseBlock.
         int matchID = getMatch().getID();
         int otherTeam = getOtherTeam(e.getPlayer()).getId();
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
@@ -417,28 +438,12 @@ public class BombArena extends Arena {
         if (e.getBlock().getType() == plugin.BombBlock 
                 && getTeam(e.getPlayer()) != getTeam(Bukkit.getServer().getPlayer(c))) 
         {
-            int timesBroken = plugin.getCounter(matchID).addBlockBreak(e.getPlayer());
-            
-            if (timesBroken >= plugin.getDefuseTime()) {
-                Set<ArenaPlayer> allplayers = getMatch().getPlayers();
-                for (ArenaPlayer p : allplayers) {
-                    p.sendMessage("" + e.getPlayer().getName()
-                            + " has defused the bomb.");
-                    if (getTeam(p) == getTeam(e.getPlayer())) {
-                        p.sendMessage("You win!");
-                    } else {
-                        p.sendMessage("You lost!");
-                    }
-                }
-                plugin.ti.addPlayerRecord(e.getPlayer().getName(), "Bombs Planted Defused", WLT.TIE);
-                plugin.ti.addPlayerRecord(c, "Bombs Planted Defused", WLT.LOSS);
+                plugin.ti.addPlayerRecord(e.getPlayer().getName(), "Bombs Planted Defused", OUTCOME.getDefuseSuccess());
+                plugin.ti.addPlayerRecord(c, "Bombs Planted Defused", OUTCOME.getPlantFailure());
                 ArenaTeam t = getTeam(e.getPlayer());
                 getMatch().setVictor(t);
-                plugin.dTimers.get(matchID).cancel();
+                plugin.detTimers.get(matchID).cancel();
 
-            } else if (timesBroken < plugin.getDefuseTime()) {
-                e.setCancelled(true);
-            }
         } else if (e.getBlock().getType() == plugin.BombBlock 
                 && getTeam(e.getPlayer()) == getTeam(Bukkit.getServer().getPlayer(c))) {
             e.getPlayer().sendMessage("If you defuse the bomb, then the other team will win.");
@@ -472,15 +477,17 @@ public class BombArena extends Arena {
     @Override
     public void onStart() {
         super.onStart();
-        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onStart");
+        int matchID = getMatch().getID();
+        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onStart matchID = " + matchID);
         setBases(getMatch().getArena().getName());
-        Set<ArenaPlayer> players = getMatch().getPlayers();
-        for (ArenaPlayer p : players) {
+        Set<ArenaPlayer> allplayers = getMatch().getPlayers();
+        for (ArenaPlayer p : allplayers) {
             if (!p.getInventory().contains(Material.COMPASS)) {
                 p.getInventory().addItem(new ItemStack(Material.COMPASS));
             }
         }
         assignBases(getMatch().getTeams());
+        plugin.defTimers.put(matchID, new HashMap<String, DefuseTimer>());
     }
     
     public void setBases(String arena) {
@@ -527,6 +534,14 @@ public class BombArena extends Arena {
         plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onFinish matchID = " + matchID);
         plugin.carriers.remove(matchID);
         plugin.bases.remove(matchID);
+        
+        if (plugin.pTimers.containsKey(matchID)) {
+            plugin.pTimers.remove(matchID);
+        }
+        if (plugin.detTimers.containsKey(matchID)) {
+            plugin.detTimers.remove(matchID);
+        }
+        plugin.defTimers.remove(matchID);
     }
     
     private void resetBases() {
@@ -603,14 +618,14 @@ public class BombArena extends Arena {
             
             int teamID = t.getId();
             if (onedistance < twodistance) {
-                temp.put(teamID, getExactLocation(ONE));
+                temp.put(teamID, plugin.getExactLocation(ONE));
                 teamID = getOtherTeam(playerOne).getId();
-                temp.put(teamID, getExactLocation(TWO));
+                temp.put(teamID, plugin.getExactLocation(TWO));
                 break;
             } else if (onedistance > twodistance) {
-                temp.put(teamID, getExactLocation(TWO));
+                temp.put(teamID, plugin.getExactLocation(TWO));
                 teamID = getOtherTeam(playerOne).getId();
-                temp.put(teamID, getExactLocation(TWO));
+                temp.put(teamID, plugin.getExactLocation(TWO));
                 break;
             } else if (onedistance == twodistance) {
                 plugin.getLogger().warning("Could NOT assign bases because " 
@@ -627,47 +642,6 @@ public class BombArena extends Arena {
             plugin.getLogger().warning("The bomb game type must have 2 teams !!!");
         }
     }  // END OF assignBases()
-
-    /**
-     * Used by assignBases() and setbase command. <br/><br/>
-     * 
-     * @param loc This is the location of their own base. (NOT the enemy base).
-     */
-    public Location getExactLocation(Location loc) {
-        int length = 10;
-        Location base_loc = null;
-        plugin.debug.log("Location loc = " + loc.toString());
-
-        int x1 = loc.getBlockX() - length;
-        int y1 = loc.getBlockY() - length;
-        int z1 = loc.getBlockZ() - length;
-
-        int x2 = loc.getBlockX() + length;
-        int y2 = loc.getBlockY() + length;
-        int z2 = loc.getBlockZ() + length;
-
-        World world = loc.getWorld();
-        plugin.debug.log("World world = " + world.getName());
-
-        // Loop over the cube in the x dimension.
-        for (int xPoint = x1; xPoint <= x2; xPoint++) {
-            // Loop over the cube in the y dimension.
-            for (int yPoint = y1; yPoint <= y2; yPoint++) {
-                // Loop over the cube in the z dimension.
-                for (int zPoint = z1; zPoint <= z2; zPoint++) {
-                    // Get the block that we are currently looping over.
-                    Block currentBlock = world.getBlockAt(xPoint, yPoint, zPoint);
-                    // Set the block to type 57 (Diamond block!)
-                    if (currentBlock.getType() == plugin.BaseBlock) {
-                        base_loc = new Location(world, xPoint, yPoint, zPoint);
-                        plugin.debug.log("base_loc = " + base_loc.toString());
-                        return base_loc;
-                    }
-                }
-            }
-        }
-        return base_loc;
-    } // END OF getExactLocation()
     
     /**
      * This method uses a Player input parameter to get the other team.

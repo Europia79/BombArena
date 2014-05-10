@@ -6,7 +6,11 @@ import java.util.List;
 import java.util.Map;
 import mc.alk.arena.BattleArena;
 import mc.alk.arena.controllers.BattleArenaController;
+import mc.alk.arena.objects.arenas.Arena;
+import mc.alk.arena.objects.spawns.ItemSpawn;
 import mc.alk.arena.objects.spawns.SpawnInstance;
+import mc.alk.arena.objects.spawns.TimedSpawn;
+import mc.alk.arena.serializers.ArenaSerializer;
 import mc.alk.arena.serializers.SpawnSerializer;
 import mc.alk.arena.util.SerializerUtil;
 import mc.euro.demolition.appljuze.ConfigManager;
@@ -21,9 +25,13 @@ import mc.euro.demolition.util.PlantTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * Bukkit plugin that adds the Demolition game type to Minecraft servers running BattleArena.
@@ -44,7 +52,8 @@ public class BombPlugin extends JavaPlugin {
     public Map<Integer, Map<Integer, Location>> bases; // <matchID, <teamID, BaseLocation>>
     public Map<String, ArrayList<Location>> allbases; // <ArenaName, Set<BaseLocations>>
     public Map<Integer, PlantTimer> pTimers; // <matchID, new PlantTimer(event, getMatch())>
-    public Map<Integer, DetonationTimer> dTimers; // <matchID, new DetonateTimer(event, getMatch())>
+    public Map<Integer, DetonationTimer> detTimers; // <matchID, new DetonationTimer(event, getMatch())>
+    public Map<Integer, Map<String, DefuseTimer>> defTimers; // <matchID, <PlayerName, new DefuseTimer()>>
     /**
      * Adds Bombs Planted and Bombs Defused to the database. <br/>
      * WLT.WIN = Bomb Planted Successfully (opponents base was destroyed). <br/>
@@ -72,7 +81,6 @@ public class BombPlugin extends JavaPlugin {
     public String DatabaseTable;
     
     public ConfigManager manager;
-    public CustomConfig arenasYml;
     
     @Override  
     public void onEnable() {
@@ -84,10 +92,10 @@ public class BombPlugin extends JavaPlugin {
         bases = new HashMap<Integer, Map<Integer, Location>>();
         allbases = new HashMap<String, ArrayList<Location>>();
         pTimers = new HashMap<Integer, PlantTimer>();
-        dTimers = new HashMap<Integer, DetonationTimer>();
+        detTimers = new HashMap<Integer, DetonationTimer>();
+        defTimers = new HashMap<Integer, Map<String, DefuseTimer>>();
         
-        manager = new ConfigManager(this);
-        arenasYml = manager.getNewConfig("arenas.yml");
+        
 
         loadDefaultConfig();
         
@@ -97,7 +105,8 @@ public class BombPlugin extends JavaPlugin {
         BattleArena.registerCompetition(this, "BombArena", "bomb", BombArena.class, new BombExecutor());
         getServer().dispatchCommand(Bukkit.getConsoleSender(), "bomb stats top " + StartupDisplay);
         // getServer().dispatchCommand(Bukkit.getConsoleSender(), "bomb update arenas");
-        // updateArenasYml(this.BombBlock.name());
+        manager = new ConfigManager(this);
+        updateArenasYml(this.BombBlock);
         
     }
     
@@ -125,6 +134,7 @@ public class BombPlugin extends JavaPlugin {
             getLogger().warning("loadDefaultConfig() has thrown an IllegalArgumentException");
             getLogger().warning("InventoryType has been set to default, BREWING");
             this.Baseinv = InventoryType.BREWING;
+            this.setBaseBlock(Material.BREWING_STAND);
         }
         FakeName = getConfig().getString("FakeName", "Bombs Planted Defused");
         ChangeFakeName = getConfig().getString("ChangeFakeName");
@@ -154,6 +164,7 @@ public class BombPlugin extends JavaPlugin {
     public ArrayList<Location> getBases(String a) {
         // PATH = "arenas.{arena}.spawns.{n}.spawn"
         String path = "arenas." + a + ".bases";
+        CustomConfig arenasYml = getConfig("arenas.yml");
         if (arenasYml.getConfigurationSection(path) != null
                 && arenasYml.getConfigurationSection(path).getKeys(false) != null
                 && arenasYml.getConfigurationSection(path).getKeys(false).size() >= 2) {
@@ -178,8 +189,49 @@ public class BombPlugin extends JavaPlugin {
         return this.bases.get(matchID).get(teamID);
     }
     
-    public DefuseTimer getCounter(int matchID) {
-        return this.dTimers.get(matchID).getCounter();
+    /**
+     * Used by assignBases() and setbase command. <br/><br/>
+     * 
+     * @param loc This is the location of their own base. (NOT the enemy base).
+     */
+    public Location getExactLocation(Location loc) {
+        int length = 10;
+        Location base_loc = null;
+        this.debug.log("Location loc = " + loc.toString());
+
+        int x1 = loc.getBlockX() - length;
+        int y1 = loc.getBlockY() - length;
+        int z1 = loc.getBlockZ() - length;
+
+        int x2 = loc.getBlockX() + length;
+        int y2 = loc.getBlockY() + length;
+        int z2 = loc.getBlockZ() + length;
+
+        World world = loc.getWorld();
+        this.debug.log("World world = " + world.getName());
+
+        // Loop over the cube in the x dimension.
+        for (int xPoint = x1; xPoint <= x2; xPoint++) {
+            // Loop over the cube in the y dimension.
+            for (int yPoint = y1; yPoint <= y2; yPoint++) {
+                // Loop over the cube in the z dimension.
+                for (int zPoint = z1; zPoint <= z2; zPoint++) {
+                    // Get the block that we are currently looping over.
+                    Block currentBlock = world.getBlockAt(xPoint, yPoint, zPoint);
+                    // Set the block to type 57 (Diamond block!)
+                    if (currentBlock.getType() == this.BaseBlock) {
+                        base_loc = new Location(world, xPoint, yPoint, zPoint);
+                        this.debug.log("base_loc = " + base_loc.toString());
+                        return base_loc;
+                    }
+                }
+            }
+        }
+        return base_loc;
+    } // END OF getExactLocation()
+    
+    public DefuseTimer getDefuseTimer(int matchID, String p) {
+        return this.defTimers.get(matchID).get(p);
     }
 
     public int getPlantTime() {
@@ -207,49 +259,38 @@ public class BombPlugin extends JavaPlugin {
     }
 
     public Material getBombBlock() {
-        return BombBlock;
+        return this.BombBlock;
     }
 
     public void setBombBlock(Material type) {
         this.BombBlock = type;                      // IN MEMORY
         this.getConfig().set("BombBlock", type.name()); // update config.yml
         this.saveConfig();                              // save to disk (config.yml)
-        // this.updateArenasYml(this.BombBlock.name()); // update arenas.yml
+        this.updateArenasYml(this.BombBlock);           // update arenas.yml
     }
     
-    private void updateArenasYml(String x) {
-        // PATH = "arenas.arena.basesN.spawn"
-        // Map<Long, TimedSpawn> timedSpawns = BattleArena.getBAController().getArena("b2").getTimedSpawns();
-        BattleArenaController ac;
-        // ac.
-        String value = x + " 1";
-        String BombBlockString = this.BombBlock.name();
-        this.debug.log("updating arenas.yml with " + x);
-        ConfigurationSection arenas = this.arenasYml.getConfigurationSection("arenas");
-        this.debug.log("" + arenas.getKeys(false).toString());
-        for (String arena : arenas.getKeys(false)) {
-            this.debug.log("" + arena.toString());
-            ConfigurationSection spawns = this.arenasYml.getConfigurationSection("arenas." + arena);
-            this.debug.log("" + spawns.getKeys(false).toString());
-            for (String n : spawns.getKeys(false)) {
-                String path = "arenas." + arena + ".spawns." + n + ".spawn";
-                List<String> KEYS = new ArrayList(spawns.getKeys(false));
-                List<SpawnInstance> spawnables = SpawnSerializer.parseSpawnable(KEYS);
-                this.debug.log("spawnables = " + spawnables.toString());
-                for (SpawnInstance i : spawnables) {
-                    this.debug.log("string = " + i.toString());
-                    this.debug.log("Class = " + i.getClass());
+    private void updateArenasYml(Material x) {
+        // PATH = "arenas.{arenaName}.spawns.{index}.spawn"
+        this.debug.log("updating arenas.yml with " + x.name());
+        BattleArenaController bc = BattleArena.getBAController();
+        Map<String, Arena> amap = bc.getArenas();
+        for (String key : amap.keySet()) {
+            if (amap.get(key).getArenaType().toString().equalsIgnoreCase("BombArena")
+                    && amap.get(key).getTimedSpawns().containsKey(1L)) {
+                long fs = 1L;
+                long rs = amap.get(key).getParams().getMatchTime();
+                long ds = amap.get(key).getParams().getMatchTime();
+                ItemSpawn item = new ItemSpawn(new ItemStack(this.BombBlock, 1));
+                TimedSpawn timedSpawn = new TimedSpawn(fs, rs, ds, item);
+                Map<Long, TimedSpawn> temp2 = amap.get(key).getTimedSpawns();
+                for (Long index : temp2.keySet()) {
+                    temp2.get(index).getSpawn().toString();
                 }
-                /* String old = this.arenasYml.getItemStack(path).toString();
-                if (!old.startsWith(BombBlockString)) {
-                    this.debug.log("BombArena arenas.yml has an item/mob spawn that is NOT a Bomb! " + old);
-                    continue;
-                } */
-                getLogger().info("" + path + " has been changed from to " + value);
-                this.arenasYml.set(path, value);
+                temp2.put(1L, timedSpawn);
+                bc.updateArena(amap.get(key));
             }
         }
-        this.arenasYml.saveConfig();
+        ArenaSerializer.saveAllArenas(true);
     }
 
     public Material getBaseBlock() {
@@ -338,6 +379,7 @@ public class BombPlugin extends JavaPlugin {
         this.saveConfig();
     }
     
-    
-    
+    public CustomConfig getConfig(String x) {
+        return this.manager.getNewConfig(x);
+    }
 }

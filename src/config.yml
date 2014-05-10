@@ -47,4 +47,4 @@ MaxDamage: 50
 DeltaDamage: 5
 DamageRadius: 9
 StartupDisplay: 3
-DatabaseTable: 'bomb'
+DatabaseTable: 'Demolition'
