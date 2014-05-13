@@ -4,10 +4,10 @@
     <groupId>mc.euro</groupId>
     <artifactId>demolition</artifactId>
     <packaging>jar</packaging>
-    <version>172${maven.build.timestamp}</version>
+    <version>179.3973.${maven.build.timestamp}</version>
     <name>Demolition</name>
     <properties>
-        <maven.build.timestamp.format>yyMMdd-HHmm</maven.build.timestamp.format>
+        <maven.build.timestamp.format>MMdd</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <url>http://maven.apache.org</url>
@@ -50,23 +50,15 @@
         <dependency>
             <groupId>mc.alk</groupId>
             <artifactId>BattleArena</artifactId>
-            <version>3.9.5.4</version>
+            <version>3.9.7.3</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>mc.alk</groupId>
             <artifactId>BattleTracker</artifactId>
             <version>2.5.8.8</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.sk89q</groupId>
-            <artifactId>worldguard</artifactId>
-            <version>5.8.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
-        <!-- unknown plugins that I had to add to the repo -->
-        <!-- test dependencies -->
     </dependencies>
     <!-- How we will compile the plugin -->
     <build>
@@ -103,6 +95,22 @@
                 </configuration>
             </plugin>
             <!-- Specify how we build the plugin.jar -->
+            <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <configuration>
+                <tasks>
+                    <copy file="target/BombArena.jar" tofile="server/plugins/BombArena.jar"/>
+                </tasks>
+            </configuration>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>run</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
         </plugins>
     </build>
 </project>
