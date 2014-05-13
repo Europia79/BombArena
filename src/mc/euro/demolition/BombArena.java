@@ -1,29 +1,21 @@
 package mc.euro.demolition;
 
 import mc.euro.demolition.objects.Bomb;
-import mc.euro.demolition.util.PlantTimer;
-import java.util.ArrayList;
+import mc.euro.demolition.timers.PlantTimer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import mc.alk.arena.BattleArena;
-import mc.alk.arena.controllers.BattleArenaController;
 import mc.alk.arena.events.players.ArenaPlayerLeaveEvent;
 import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.arenas.Arena;
-import mc.alk.arena.objects.arenas.ArenaType;
 import mc.alk.arena.objects.events.ArenaEventHandler;
 import mc.alk.arena.objects.events.EventPriority;
-import mc.alk.arena.objects.spawns.ItemSpawn;
-import mc.alk.arena.objects.spawns.SpawnInstance;
-import mc.alk.arena.objects.spawns.TimedSpawn;
 import mc.alk.arena.objects.teams.ArenaTeam;
-import mc.alk.arena.serializers.ArenaSerializer;
 import mc.euro.demolition.debug.DebugOff;
 import mc.euro.demolition.debug.DebugOn;
 import mc.euro.demolition.tracker.OUTCOME;
-import mc.euro.demolition.util.DefuseTimer;
+import mc.euro.demolition.timers.DefuseTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -32,15 +24,16 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * This class listens for all the bomb events and acts accordingly.
@@ -305,6 +298,20 @@ public class BombArena extends Arena {
     } // END OF BlockPlaceEvent
     
     /**
+     * Is WorldGuard denying bomb plants ?
+     */
+    @ArenaEventHandler (priority=EventPriority.HIGHEST)
+    public void onBaseInteraction(PlayerInteractEvent e) {
+        if (e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (e.getClickedBlock().getType() != plugin.getBaseBlock()) return;
+        
+        if (e.isCancelled()) {
+            e.setCancelled(false);
+        }
+        
+    } // END OF onBaseInteraction()
+    
+    /**
      * This event handles players who access Brewing Stands. <br/>
      * 
      * Main if-statement checks: <br/>
@@ -329,6 +336,7 @@ public class BombArena extends Arena {
             e.setCancelled(true);
             return;
         }
+        if (e.isCancelled()) e.setCancelled(false);
         
         Player eplayer = (Player) e.getPlayer();
         int teamID = getTeam(eplayer).getId();
@@ -339,7 +347,7 @@ public class BombArena extends Arena {
         plugin.debug.log("plugin.carriers.get(matchID) = " + plugin.carriers.get(matchID));
         plugin.debug.log("planter/defuser = " + eplayer.getName());
         plugin.debug.log("teamID = " + teamID);
-        plugin.debug.sendMessage(eplayer, "onBombPlant() has been called");
+        plugin.debug.sendMessage(eplayer, "onBombPlantDefuse() has been called");
         plugin.debug.log("e.getInventory().getType() = " + e.getInventory().getType());
         plugin.debug.log("carrier, c = " + c);
         plugin.debug.log("e.getPlayer().getName() = " + e.getPlayer().getName());
@@ -415,42 +423,21 @@ public class BombArena extends Arena {
     } // END OF InventoryCloseEvent
     
     /**
-     * This method handles the event when players try to defuse the bomb (by breaking the bomb block). <br/><br/>
+     * This method handles the exploit where players try to break their BaseBlock
+     * to prevent the other team from planting the bomb or defusing it. <br/><br/>
      * 
-     * Make sure that player (or his teammates) who just planted the bomb
-     * cannot turn around and break it: <br/><br/>
-     * Such a scenario would produce 2 possible scenarios: <br/>
-     * 1. The plant/defuse for the win exploit. <br/>
-     * 2. The plant/break exploit (prevents the other team from defusing). <br/><br/>
-     * 
-     * This version currently contains bug #2.
-     * 
-     * @param e BlockBreakEvent - Is it the bomb block ?
+     * @param e BlockBreakEvent - Is it the base block ?
      */
     @ArenaEventHandler (priority=EventPriority.HIGHEST)
-    public void onBaseBreakExploit(BlockBreakEvent e) {
+    public void onBaseExploit(BlockBreakEvent e) {
         // close the exploit where players can destroy the BaseBlock.
-        int matchID = getMatch().getID();
-        int otherTeam = getOtherTeam(e.getPlayer()).getId();
-        String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
+        // EXIT CONDITION:
+        if (e.getBlock().getType() != plugin.getBaseBlock()) return;
         
-        // add location check
-        if (e.getBlock().getType() == plugin.BombBlock 
-                && getTeam(e.getPlayer()) != getTeam(Bukkit.getServer().getPlayer(c))) 
-        {
-                plugin.ti.addPlayerRecord(e.getPlayer().getName(), "Bombs Planted Defused", OUTCOME.getDefuseSuccess());
-                plugin.ti.addPlayerRecord(c, "Bombs Planted Defused", OUTCOME.getPlantFailure());
-                ArenaTeam t = getTeam(e.getPlayer());
-                getMatch().setVictor(t);
-                plugin.detTimers.get(matchID).cancel();
-
-        } else if (e.getBlock().getType() == plugin.BombBlock 
-                && getTeam(e.getPlayer()) == getTeam(Bukkit.getServer().getPlayer(c))) {
-            e.getPlayer().sendMessage("If you defuse the bomb, then the other team will win.");
-            e.setCancelled(true);
-        }
+        e.getPlayer().sendMessage("Stop trying to cheat!");
+        e.setCancelled(true);
         
-    } // END OF onBombDefusal
+    } // END OF onBaseExploit()
     
     /**
      * First method called by BattleArena. <br/><br/>
@@ -466,7 +453,7 @@ public class BombArena extends Arena {
     @Override
     public void onBegin() {
         super.onBegin(); 
-        plugin.getLogger().info("onBegin() has been called by Demolition plugin: BombArenaListener.java");
+        plugin.debug.log("onBegin() has been called by Demolition plugin: BombArenaListener.java");
     }
     
     /**
@@ -491,8 +478,7 @@ public class BombArena extends Arena {
     }
     
     public void setBases(String arena) {
-        // PATH = "arenas.{arena}.spawns.{n}.spawn"
-        ArrayList<Location> locations = plugin.getBases(getMatch().getArena().getName());
+        List<Location> locations = plugin.getBases(getMatch().getArena().getName());
         for (Location loc : locations) {
             World w = loc.getWorld();
             Block block = w.getBlockAt(loc);
@@ -573,7 +559,8 @@ public class BombArena extends Arena {
         Map<Integer, Location> temp = new HashMap<Integer, Location>();
         plugin.debug.log("BombArena.java:assignBases()");
         plugin.debug.log("arena name = " + getMatch().getArena().getName());
-        ArrayList<Location> locations = plugin.getBases(getMatch().getArena().getName());
+        // ArrayList<Location> locations = plugin.getBases(getMatch().getArena().getName());
+        List<Location> locations = plugin.getBases(getMatch().getArena().getName());
         if (locations == null) {
             msgAll(getMatch().getPlayers(), "[BombArena]" + getName()
                     + " has stopped because no bases were found" 
@@ -625,7 +612,7 @@ public class BombArena extends Arena {
             } else if (onedistance > twodistance) {
                 temp.put(teamID, plugin.getExactLocation(TWO));
                 teamID = getOtherTeam(playerOne).getId();
-                temp.put(teamID, plugin.getExactLocation(TWO));
+                temp.put(teamID, plugin.getExactLocation(ONE));
                 break;
             } else if (onedistance == twodistance) {
                 plugin.getLogger().warning("Could NOT assign bases because " 
@@ -695,8 +682,9 @@ public class BombArena extends Arena {
     }
 
     private void msgAll(Set<ArenaPlayer> players, String msg, ChatColor... color) {
-        ChatColor colour = (ChatColor) ((color.length < 1) ? ChatColor.GREEN : color[0]);
         for (ArenaPlayer p : players) {
+            ChatColor colour = (ChatColor) ((color.length < 1) ? 
+                    p.getTeam().getTeamChatColor() : color[0]);
             p.sendMessage(colour + msg);
         }
     }
