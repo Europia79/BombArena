@@ -1,6 +1,3 @@
-# Anticipated Configuration Options.
-# Some options may not be implemented depending on your version.
-# 
 # Recommended values:
 # PlantTime: 5 to 10 seconds
 # DetonationTime: 25 to 45 seconds
@@ -42,7 +39,7 @@ DefuseTime: 8
 BombBlock: TNT
 BaseBlock: BREWING_STAND
 FakeName: 'Bombs Planted Defused'
-ChangeFakeName: ''
+ChangeFakeName: 'Not Implemented'
 MaxDamage: 50
 DeltaDamage: 5
 DamageRadius: 9
