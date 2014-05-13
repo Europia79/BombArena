@@ -14,7 +14,6 @@ import mc.alk.arena.objects.events.EventPriority;
 import mc.alk.arena.objects.teams.ArenaTeam;
 import mc.euro.demolition.debug.DebugOff;
 import mc.euro.demolition.debug.DebugOn;
-import mc.euro.demolition.tracker.OUTCOME;
 import mc.euro.demolition.timers.DefuseTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
