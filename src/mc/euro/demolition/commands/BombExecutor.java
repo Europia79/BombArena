@@ -12,13 +12,15 @@ import mc.alk.arena.util.SerializerUtil;
 import mc.alk.tracker.objects.PlayerStat;
 import mc.alk.tracker.objects.Stat;
 import mc.alk.tracker.objects.StatType;
+import mc.euro.demolition.BombArena;
 import mc.euro.demolition.appljuze.CustomConfig;
 import mc.euro.demolition.debug.DebugOff;
 import mc.euro.demolition.debug.DebugOn;
-import mc.euro.demolition.objects.BaseType;
+import mc.euro.demolition.util.BaseType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -44,10 +46,8 @@ public class BombExecutor extends CustomCommandExecutor {
             sender.sendMessage("Bomb arenas can only have 2 teams: 1 or 2");
             return true;
         }
-        ArenaSerializer.saveAllArenas(true);
-        BattleArenaController bac = BattleArena.getBAController();
-        CustomConfig arenasYml = plugin.getConfig("arenas.yml");
-        String a = arena.getName();
+        // path {arenaName}.{index}
+        String path = arena.getName() + "." + i.toString();
         Location loc = sender.getLocation();
         Location base_loc = plugin.getExactLocation(loc);
         if (base_loc == null) {
@@ -56,47 +56,31 @@ public class BombExecutor extends CustomCommandExecutor {
             sender.sendMessage("If you have already set BaseBlocks, then stand closer and re-run the command.");
             return true;
         }
-        String path = "arenas." + a + ".bases";
-        String wxyz = SerializerUtil.getLocString(base_loc);
-        arenasYml.set(path + "." + i.toString(), wxyz);
-        arenasYml.saveConfig();
-        ConfigurationSection cs = arenasYml.getConfigurationSection("arenas." + a);
-        boolean b = ArenaSerializer.loadArena(plugin, bac, cs);
-        if (b) {
-            plugin.debug.log("arena (" + a + ") was successfully loaded.");
-        } else {
-            plugin.debug.log("arena (" + a + ") was NOT loaded.");
-        }
-
-        // Set<String> keys = plugin.getConfig("arenas").getConfigurationSection(path).getKeys(false);
-        // ArenaSerializer.saveArenas(plugin);
-        sender.sendMessage("Base set! " + wxyz);
-        String msg = "[BOMB] Player " + sender.getName()
-                + " has set a base for arena (" + a + ") to " + wxyz;
-        plugin.getLogger().info(msg);
+        String sloc = SerializerUtil.getLocString(base_loc);
+        plugin.basesYml.set(path, sloc);
+        plugin.basesYml.saveConfig();
         return true;
+
     }
     
     @MCCommand(cmds={"spawnbomb"}, perm="bombarena.spawnbomb", usage="spawnbomb <arena>")
-    public boolean spawnbomb(Player sender, Arena arena) {
+    public boolean spawnbomb(Player sender, String a) {
+        plugin.debug.log("arena = " + a);
+        Arena arena =(BombArena) BattleArena.getArena(a);
+        if (arena == null) return false;
+        Material bomb = plugin.getBombBlock();
         int matchTime = arena.getParams().getMatchTime();
-        plugin.debug.log("spawnbomb() despawn = MatchTime = " + matchTime);
-        int rs = matchTime;
-        int ds = matchTime;
-        // shortcut and alias for
-        // /aa select ArenaName
-        // /aa addspawn BombBlock.name() fs=1 rs=300 ds=1200 index=1 1
-        // /aa addspawn 172 1 fs=1 rs=500 ds=500 index=1
-        String cmd1 = "aa select " + arena.getName();
-        String cmd2 = "aa addspawn " + plugin.getBombBlock().name() 
-                + " 1 fs=1 rs= " + rs + " ds=" + ds + " index=1";
-        plugin.getServer().dispatchCommand(sender, cmd1);
-        plugin.getServer().dispatchCommand(sender, cmd2);
-        ArenaSerializer.saveArenas(plugin);
+        
+        plugin.debug.log("spawnbomb() MatchTime = " + matchTime);
+        
+        String selectArena = "aa select " + arena.getName();
+        
+        plugin.getServer().dispatchCommand(sender, selectArena);
+        plugin.getServer().dispatchCommand(sender, 
+                Command.addspawn(bomb, matchTime));
+        
         sender.sendMessage("The bomb spawn for " + arena.getName() + " has been set!");
-        // Add to documentation:
-        // sender.sendMessage("Because this command was an alias for /aa, "
-        //        + "please do not use the /aa command without first using /aa select");
+        
         return true;
     }
     
