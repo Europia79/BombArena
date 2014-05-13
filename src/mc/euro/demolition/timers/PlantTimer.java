@@ -1,5 +1,6 @@
-package mc.euro.demolition.util;
+package mc.euro.demolition.timers;
 
+import mc.euro.demolition.timers.DetonationTimer;
 import mc.euro.demolition.BombPlugin;
 import java.util.Set;
 import mc.alk.arena.competition.match.Match;

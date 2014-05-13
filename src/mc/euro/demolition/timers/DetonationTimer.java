@@ -1,5 +1,6 @@
-package mc.euro.demolition.util;
+package mc.euro.demolition.timers;
 
+import mc.euro.demolition.timers.DefuseTimer;
 import java.util.Set;
 import mc.alk.arena.competition.match.Match;
 import mc.alk.arena.objects.ArenaPlayer;

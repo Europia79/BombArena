@@ -1,4 +1,4 @@
-package mc.euro.demolition.util;
+package mc.euro.demolition.timers;
 
 import java.util.Map;
 import mc.euro.demolition.BombPlugin;
@@ -62,6 +62,7 @@ public class DefuseTimer extends BukkitRunnable {
             for (DefuseTimer d : temp.values()) {
                 d.setCancelled(true);
             }
+            this.player.closeInventory();
             plugin.detTimers.get(matchID).setCancelled(true);
             plugin.defTimers.get(matchID).clear();
         }
@@ -70,7 +71,6 @@ public class DefuseTimer extends BukkitRunnable {
     public void setCancelled(boolean x) {
         this.cancelled = x;
         if (x) {
-            this.player.closeInventory();
             this.cancel();
         } 
     }
