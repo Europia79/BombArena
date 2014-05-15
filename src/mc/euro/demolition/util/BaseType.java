@@ -6,7 +6,6 @@ import java.util.EnumMap;
 import java.util.Map;
 import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.ItemStack;
 
 /**
  * Handles the conversion from Material.X to InventoryType.X
