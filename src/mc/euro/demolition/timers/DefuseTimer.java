@@ -35,7 +35,7 @@ public class DefuseTimer extends BukkitRunnable {
     public DefuseTimer(InventoryOpenEvent e, Match m) {
         cancelled = false;
         this.plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
-        this.duration = this.plugin.PlantTime;
+        this.duration = this.plugin.getDefuseTime() + 1;
         this.event = e;
         this.match = m;
         this.player = (Player) e.getPlayer();
@@ -55,8 +55,8 @@ public class DefuseTimer extends BukkitRunnable {
                     + "Congratulations, "
                     + t.getTeamChatColor() + "" + player.getName() + ChatColor.LIGHT_PURPLE
                     + " has successfully defused the bomb. You win!");
-            plugin.ti.addPlayerRecord(player.getName(), plugin.FakeName, OUTCOME.getDefuseSuccess());
-            plugin.ti.addPlayerRecord(plugin.carriers.get(matchID), plugin.FakeName, OUTCOME.getPlantFailure());
+            plugin.ti.addPlayerRecord(player.getName(), plugin.getFakeName(), OUTCOME.getDefuseSuccess());
+            plugin.ti.addPlayerRecord(plugin.carriers.get(matchID), plugin.getFakeName(), OUTCOME.getPlantFailure());
             match.setVictor(t);
             Map<String, DefuseTimer> temp = plugin.defTimers.get(matchID);
             for (DefuseTimer d : temp.values()) {

@@ -40,7 +40,7 @@ public class PlantTimer extends BukkitRunnable {
     public PlantTimer(InventoryOpenEvent e, Match m) {
         cancelled = false;
         this.plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
-        this.duration = this.plugin.PlantTime;
+        this.duration = this.plugin.getPlantTime() + 1;
         this.event = e;
         this.match = m;
         this.player = (Player) e.getPlayer();
@@ -56,13 +56,13 @@ public class PlantTimer extends BukkitRunnable {
             Set<ArenaPlayer> allplayers = match.getPlayers();
             for (ArenaPlayer p : allplayers) {
                 p.getPlayer().sendMessage("The bomb will detonate in " 
-                        + plugin.DetonationTime + " seconds !!!");
+                        + plugin.getDetonationTime() + " seconds !!!");
             }
             if (player.getInventory().getHelmet().getType() == Material.TNT) {
                 player.getInventory().setHelmet(new ItemStack(Material.AIR));
             }
-            if (player.getInventory().contains(plugin.BombBlock)) {
-                player.getInventory().remove(plugin.BombBlock);
+            if (player.getInventory().contains(plugin.getBombBlock())) {
+                player.getInventory().remove(plugin.getBombBlock());
                 player.updateInventory();
             }
             plugin.detTimers.put(match.getID(), new DetonationTimer(event, match, BOMB_LOCATION));

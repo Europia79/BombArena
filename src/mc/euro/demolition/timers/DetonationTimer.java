@@ -43,7 +43,7 @@ public class DetonationTimer extends BukkitRunnable {
     DetonationTimer(InventoryOpenEvent e, Match m, Location loc) {
         this.cancelled = false;
         this.plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("BombArena");
-        this.duration = plugin.DetonationTime + 1;
+        this.duration = plugin.getDetonationTime() + 1;
         this.event = e;
         this.match = m;
         this.player = (Player) e.getPlayer();
@@ -62,7 +62,7 @@ public class DetonationTimer extends BukkitRunnable {
                     + "Congratulations, "
                     + t.getTeamChatColor() + player.getName() + ChatColor.LIGHT_PURPLE
                     + " has successfully destroyed the other teams base.");
-            plugin.ti.addPlayerRecord(player.getName(), plugin.FakeName, OUTCOME.getPlantSuccess());
+            plugin.ti.addPlayerRecord(player.getName(), plugin.getFakeName(), OUTCOME.getPlantSuccess());
             createExplosion(BOMB_LOCATION);
             match.setVictor(t);
             this.setCancelled(true);
@@ -106,8 +106,8 @@ public class DetonationTimer extends BukkitRunnable {
         Set<ArenaPlayer> players = match.getPlayers();
         for (ArenaPlayer p : players) {
             double distance = p.getLocation().distance(loc);
-            if (distance <= plugin.DamageRadius) {
-                double dmg = plugin.MaxDamage - (distance * plugin.DeltaDamage);
+            if (distance <= plugin.getDamageRadius()) {
+                double dmg = plugin.getMaxDamage() - (distance * plugin.getDeltaDamage());
                 p.getPlayer().damage(dmg);
             }
         }

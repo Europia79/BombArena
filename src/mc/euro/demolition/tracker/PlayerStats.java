@@ -32,7 +32,7 @@ public class PlayerStats {
         if (t != null){
             enabled = true;
             tracker = Tracker.getInterface(i);
-            tracker.stopTracking(Bukkit.getServer().getOfflinePlayer(plugin.FakeName));
+            tracker.stopTracking(Bukkit.getServer().getOfflinePlayer(plugin.getFakeName()));
         } else {
             enabled = false;
             plugin.getLogger().warning("BattleTracker turned off or not found.");

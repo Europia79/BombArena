@@ -102,7 +102,7 @@ public class BombArena extends Arena {
         plugin.debug.sendMessage(e.getPlayer(), "debug works!");
         plugin.debug.sendMessage(e.getPlayer(), "onBombPickup() Listener works!");
         
-        if (e.getItem().getItemStack().getType() == plugin.BombBlock) {
+        if (e.getItem().getItemStack().getType() == plugin.getBombBlock()) {
             if (c == null) {
                 c = e.getPlayer().getName();
                 plugin.carriers.put(matchID, c);
@@ -212,7 +212,7 @@ public class BombArena extends Arena {
         Material type = e.getItemDrop().getItemStack().getType();
         // To-do: make sure the bomb didn't get thrown outside the map
         Location loc = e.getItemDrop().getLocation();
-        if (type == plugin.BombBlock) {
+        if (type == plugin.getBombBlock()) {
             if (c != null 
                     && e.getPlayer().getName().equals(c)) {
                 if (e.getPlayer().getInventory().getHelmet().getType() == Material.TNT) {
@@ -282,7 +282,7 @@ public class BombArena extends Arena {
         // Get the coordinates to the base
         // calculate the distance to the base
         // if the distance is small, attempt to trigger onBombPlant()
-        if (e.getBlockPlaced().getType() == plugin.BombBlock) {
+        if (e.getBlockPlaced().getType() == plugin.getBombBlock()) {
             e.getPlayer().sendMessage("Improper bomb activation!");
             
             // get the other team's base location
@@ -330,7 +330,7 @@ public class BombArena extends Arena {
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
         
         // EXIT CONDITIONS:
-        if (e.getInventory().getType() != plugin.Baseinv) return;
+        if (e.getInventory().getType() != plugin.getBaseinv()) return;
         if (c == null) {
             e.setCancelled(true);
             return;
@@ -367,7 +367,7 @@ public class BombArena extends Arena {
                 && !plugin.detTimers.containsKey(matchID)) {
             plugin.pTimers.put(matchID, new PlantTimer(e, getMatch()));
             plugin.pTimers.get(matchID).runTaskTimer(plugin, 0L, 20L);
-        } else if (e.getInventory().getType() == plugin.Baseinv){
+        } else if (e.getInventory().getType() == plugin.getBaseinv()){
             // NOT A PLANT OR DEFUSAL ATTEMPT ?
             plugin.debug.sendMessage(eplayer, "event.setCancelled(true);");
             e.setCancelled(true);
@@ -395,7 +395,7 @@ public class BombArena extends Arena {
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
         
         // EXIT CONDITIONS:
-        if (e.getInventory().getType() != plugin.Baseinv) return;
+        if (e.getInventory().getType() != plugin.getBaseinv()) return;
         if (c == null) return;
         
         plugin.debug.sendMessage(p, "onBombPlantFailure has been called.");
@@ -540,7 +540,7 @@ public class BombArena extends Arena {
             Location loc = (Location) bases.get(t.getId());
             World world = loc.getWorld();
             Block block = world.getBlockAt(loc);
-            block.setType(plugin.BaseBlock);
+            block.setType(plugin.getBaseBlock());
         }
     }
     

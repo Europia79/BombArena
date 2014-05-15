@@ -64,22 +64,19 @@ public class BombPlugin extends JavaPlugin {
     /**
      * Configuration variables
      */
-    public int PlantTime;
-    public int DetonationTime;
-    public int DefuseTime;
-    public int Tolerance;
-    public Material BombBlock;
-    public Material BaseBlock;
-    public InventoryType Baseinv;
-    public String FakeName;
-    public String ChangeFakeName;
-    public int MaxDamage;
-    public int DeltaDamage;
-    public int DamageRadius;
-    public int StartupDisplay;
-    public String DatabaseTable;
-    
-    public int version; // BattleArena six digit version
+    private int PlantTime;
+    private int DetonationTime;
+    private int DefuseTime;
+    private Material BombBlock;
+    private Material BaseBlock;
+    private InventoryType Baseinv;
+    private String FakeName;
+    private String ChangeFakeName;
+    private int MaxDamage;
+    private int DeltaDamage;
+    private int DamageRadius;
+    private int StartupDisplay;
+    private String DatabaseTable;
     
     public ConfigManager manager;
     public CustomConfig basesYml;
@@ -90,20 +87,28 @@ public class BombPlugin extends JavaPlugin {
         saveDefaultConfig();
 
         debug = new DebugOn(this);
+        
+        debug.log("BattleArena version = " + VersionFormat.getBAversion());
+        // requires 3.9.7.3 or newer
+        if (VersionFormat.getBAversion() <= 397000) {
+            getLogger().severe("BombArena requires BattleArena v3.9.7.3 or newer.");
+            getLogger().info("Disabling BombArena");
+            getLogger().info("Please update BattleArena or recompile BombArena "
+                    + "to use the old version of SerializerUtil.");
+            Bukkit.getPluginManager().disablePlugin(this); 
+            return;
+        }
+
         carriers = new HashMap<Integer, String>();
         bases = new HashMap<Integer, Map<Integer, Location>>();
         pTimers = new HashMap<Integer, PlantTimer>();
         detTimers = new HashMap<Integer, DetonationTimer>();
         defTimers = new HashMap<Integer, Map<String, DefuseTimer>>();
 
-
-
         loadDefaultConfig();
 
         // Database Tables: bt_Demolition_*
-        ti = new PlayerStats(this.DatabaseTable);
-
-        debug.log("BattleArena version = " + VersionFormat.getBAversion());
+        setTracker(this.DatabaseTable);
 
         BattleArena.registerCompetition(this, "BombArena", "bomb", BombArena.class, new BombExecutor());
         getServer().dispatchCommand(Bukkit.getConsoleSender(), "bomb stats top " + StartupDisplay);
@@ -117,7 +122,7 @@ public class BombPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // saveConfig();
+        saveConfig();
     }
 
     public void loadDefaultConfig() {
@@ -153,7 +158,13 @@ public class BombPlugin extends JavaPlugin {
         debug.log("BombBlock = " + BombBlock.toString());
         debug.log("BaseBlock = " + BaseBlock.toString());
         debug.log("Baseinv = " + Baseinv.toString());
-
+        
+        boolean b = getConfig().getBoolean("Debug", false);
+        if (b) {
+            debug = new DebugOn(this);
+        } else {
+            debug = new DebugOff(this);
+        }
     }
 
     /**
@@ -196,7 +207,6 @@ public class BombPlugin extends JavaPlugin {
     }
     
     public Location getBaseLocation(int matchID, int teamID) {
-        Location temp = this.bases.get(matchID).get(teamID);
         return this.bases.get(matchID).get(teamID);
     }
     
@@ -402,6 +412,15 @@ arenas:
         this.DatabaseTable = table;
         this.getConfig().set("DatabaseTable", table);
         this.saveConfig();
+        this.setTracker(table);
+    }
+    
+    public void setTracker(String x) {
+        ti = new PlayerStats(x);
+    }
+    
+    public PlayerStats getTracker() {
+        return ti;
     }
     
     public CustomConfig getConfig(String x) {
