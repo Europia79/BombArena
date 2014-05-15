@@ -2,18 +2,16 @@ package mc.euro.demolition.commands;
 
 import mc.euro.demolition.BombPlugin;
 import java.util.List;
+import java.util.Set;
 import mc.alk.arena.BattleArena;
-import mc.alk.arena.controllers.BattleArenaController;
 import mc.alk.arena.executors.CustomCommandExecutor;
 import mc.alk.arena.executors.MCCommand;
 import mc.alk.arena.objects.arenas.Arena;
-import mc.alk.arena.serializers.ArenaSerializer;
 import mc.alk.arena.util.SerializerUtil;
 import mc.alk.tracker.objects.PlayerStat;
 import mc.alk.tracker.objects.Stat;
 import mc.alk.tracker.objects.StatType;
 import mc.euro.demolition.BombArena;
-import mc.euro.demolition.appljuze.CustomConfig;
 import mc.euro.demolition.debug.DebugOff;
 import mc.euro.demolition.debug.DebugOn;
 import mc.euro.demolition.util.BaseType;
@@ -24,7 +22,6 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -135,7 +132,7 @@ public class BombExecutor extends CustomCommandExecutor {
             cs.sendMessage(ChatColor.YELLOW + "-----------------------");
             int i = 1;
             for (Stat w : planted) {
-            if (w.getName().equalsIgnoreCase(plugin.FakeName)) {
+            if (w.getName().equalsIgnoreCase(plugin.getFakeName())) {
                 continue;
             }
             int total = w.getWins() + w.getLosses();
@@ -150,7 +147,7 @@ public class BombExecutor extends CustomCommandExecutor {
             cs.sendMessage(ChatColor.YELLOW + "-----------------------");
             i = 1;
             for (Stat d : defused) {
-                if (d.getName().equalsIgnoreCase(plugin.FakeName)) continue;
+                if (d.getName().equalsIgnoreCase(plugin.getFakeName())) continue;
                 cs.sendMessage("" + i + " " + d.getName() + " " + d.getTies());
                 i = i + 1;
             }
@@ -158,8 +155,8 @@ public class BombExecutor extends CustomCommandExecutor {
             return true;
     }
     
-    @MCCommand(cmds={"setconfig"}, subCmds={"bombblock"}, perm="bombarena.setconfig.bombblock", 
-            usage="setconfig BombBlock <handItem>")
+    @MCCommand(cmds={"setconfig"}, subCmds={"bombblock"}, 
+            perm="bombarena.setconfig", usage="setconfig BombBlock <handItem>")
     public boolean setBombBlock(Player p) {
         ItemStack hand = p.getInventory().getItemInHand();
         if (hand == null) {
@@ -168,13 +165,12 @@ public class BombExecutor extends CustomCommandExecutor {
         }
         plugin.setBombBlock(hand.getType());
         p.sendMessage("BombBlock has been set to " + hand.getType());
-        p.sendMessage("Now you need to update all the arenas with the new bomb type: ");
-        p.sendMessage("(at your location): /bomb spawnbomb <arena>");
-        
+        p.sendMessage("All of your arenas have been automatically "
+                + "updated with the new BombBlock.");
         return true;
     }
 
-    @MCCommand(cmds={"setconfig"}, subCmds={"baseblock"}, perm="bombarena.setconfig.baseblock",
+    @MCCommand(cmds={"setconfig"}, subCmds={"baseblock"}, perm="bombarena.setconfig",
             usage="setconfig BaseBlock <handItem>")
     public boolean setBaseBlock(Player p) {
         ItemStack hand = p.getInventory().getItemInHand();
@@ -189,33 +185,70 @@ public class BombExecutor extends CustomCommandExecutor {
         p.sendMessage("BaseBlock has been set to " + hand.getType().name());
         plugin.setBaseBlock(hand.getType());
         return true;
-    }    
-    private void updateArenaYml(String x) {
-        // PATH = "arenas.{arenaName}.spawns.{index}.spawn"
-        CustomConfig arenasYml = plugin.getConfig("arenas.yml");
-        ConfigurationSection arenas = arenasYml.getConfigurationSection("arenas");
-        for (String arena : arenas.getKeys(false)) {
-            ConfigurationSection spawns = arenasYml.getConfigurationSection("arenas." + arena);
-            for (String n : spawns.getKeys(false)) {
-                String path = "arenas." + arena + ".spawns." + n + ".spawn";
-                String value = x.toUpperCase() + " 1";
-                arenasYml.set(path, value);
-            }
-        }
-    }
-    
-    @MCCommand(cmds={"setconfig"}, perm="bombarena.setconfig.integer", usage="setconfig <option> <integerValue>")
-    public boolean setconfig(CommandSender sender, String option, Integer value) {
-        plugin.getConfig().set(option, value);
-        plugin.saveConfig();
-        plugin.loadDefaultConfig();
-        return true;
     }
     
     @MCCommand(cmds={"setconfig"}, subCmds={"databasetable"}, 
-            perm="bombarena.setconfig.database", usage="setconfig DatabaseTable <name>")
+            perm="bombarena.setconfig", usage="setconfig DatabaseTable <name>")
     public boolean setDatabaseTable(CommandSender sender, String table) {
         plugin.setDatabaseTable(table);
+        sender.sendMessage("DatabaseTable has been set to " + table);
+        return true;
+    }
+    
+    @MCCommand(cmds={"setconfig"}, subCmds={"fakename"}, 
+            perm="bombarena.setconfig", usage="setconfig FakeName <new name>")
+    public boolean setFakeName(CommandSender sender, String[] name) {
+        // name[] = "setconfig fakename args[2] args[3]"
+        if (name.length <= 3) {
+            sender.sendMessage("FakeName must have at least one space in order "
+                    + "to distinguish it from a real player in the database.");
+            return false;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 2; i < name.length; i++) {
+            sb.append(name[i]).append(" ");
+        }
+        String newName = sb.toString().trim();
+        plugin.setFakeName(newName);
+        sender.sendMessage("FakeName has been set to " + newName);
+        return true;
+    }
+    
+    @MCCommand(cmds={"setconfig"}, subCmds={"changefakename"},
+            perm="bombarena.setconfig", usage="setconfig ChangeFakeName <name>")
+    public boolean setChangeFakeName(CommandSender sender, String name) {
+        sender.sendMessage("This option has not been implemented.");
+        return true;
+    }
+    @MCCommand(cmds={"setconfig"}, perm="bombarena.setconfig", usage="setconfig <option> <integer>")
+    public boolean setconfig(CommandSender sender, String option, Integer value) {
+        Set<String> keys = plugin.getConfig().getKeys(false);
+        for (String key : keys) {
+            if (option.equalsIgnoreCase(key)) {
+                plugin.getConfig().set(key, value);
+                sender.sendMessage("" + key + " has been set to " + value);
+                plugin.saveConfig();
+                plugin.loadDefaultConfig();
+                return true;
+            }
+        }
+        sender.sendMessage("Valid options: " + keys.toString());
+        return false;
+    }
+    
+    @MCCommand(cmds={"listconfig"}, perm="bombarena.setconfig", usage="listconfig")
+    public boolean listconfig(CommandSender sender) {
+        sender.sendMessage("Config options: " + plugin.getConfig().getKeys(false).toString());
+        return true;
+    }
+    
+    @MCCommand(cmds={"setconfig"}, subCmds={"debug"}, 
+            perm="bombarena.setconfig", usage="setconfig debug <true/false>")
+    public boolean setDebug(CommandSender sender, boolean b) {
+        plugin.getConfig().set("Debug", (boolean) b);
+        plugin.saveConfig();
+        sender.sendMessage("config.yml option 'Debug' has been set to " + b);
+        plugin.loadDefaultConfig();
         return true;
     }
 
@@ -224,21 +257,25 @@ public class BombExecutor extends CustomCommandExecutor {
      * Usage: /bomb debug
      */
     @MCCommand(cmds={"debug"}, perm="bombarena.debug", usage="debug")
-    public boolean debug(CommandSender cs) {
+    public boolean toggleDebug(CommandSender sender) {
         if (plugin.debug instanceof DebugOn) {
             plugin.debug = new DebugOff(plugin);
-            cs.sendMessage("Debugging mode for the BombArena has been turned off.");
+            plugin.getConfig().set("Debug", false);
+            plugin.saveConfig();
+            sender.sendMessage("Debugging mode for the BombArena has been turned off.");
             return true;
         } else if (plugin.debug instanceof DebugOff) {
             plugin.debug = new DebugOn(plugin);
-            cs.sendMessage("Debugging mode for the BombArena has been turned on.");
+            plugin.getConfig().set("Debug", true);
+            plugin.saveConfig();
+            sender.sendMessage("Debugging mode for the BombArena has been turned on.");
             return true;
         }
         return false;
     }
     
-    @MCCommand(cmds={"getname"}, perm="bombarena.getname")
-    public boolean setBreakTime(Player p) {
+    @MCCommand(cmds={"getname"}, perm="bombarena.setconfig", usage="getname <handItem>")
+    public boolean getBlockName(Player p) {
         String name = p.getItemInHand().getType().name();
         p.sendMessage("You are holding " + name);
         return true;
