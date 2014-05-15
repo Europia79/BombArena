@@ -33,15 +33,20 @@
 #      # bt_Bomb_overall
 #      # bt_Bomb_tally
 #      # bt_Bomb_versus
+# Debug: true or false
+#   # true = debugging mode ON
+#   # false = debugging mode OFF
+#   # cmd toggle: /bomb debug
 PlantTime: 8
 DetonationTime: 35
 DefuseTime: 8
 BombBlock: TNT
 BaseBlock: BREWING_STAND
-FakeName: 'Bombs Planted Defused'
-ChangeFakeName: 'Not Implemented'
+FakeName: Bombs Planted Defused
+ChangeFakeName: Not Implemented
 MaxDamage: 50
 DeltaDamage: 5
 DamageRadius: 9
 StartupDisplay: 3
-DatabaseTable: 'Demolition'
+DatabaseTable: Demolition
+Debug: false
