@@ -531,12 +531,14 @@ public class BombArena extends Arena {
     
     private void resetBases() {
         int matchID = getMatch().getID();
-        Map bases = plugin.bases.get(matchID);
-        List<ArenaTeam> teams = getMatch().getTeams();
-        for (ArenaTeam t : teams) {
-            if (bases == null || bases.isEmpty()) {
-                break;
-            }
+        Map<Integer, Location> bases = plugin.bases.get(matchID);
+        if (bases == null || bases.isEmpty()) {
+            String msg = "resetBases() for arena: " + getMatch().getArena().getName() + " has failed.";
+            plugin.getLogger().warning(msg);
+            return;
+        }
+        List<ArenaTeam> bothTeams = getMatch().getTeams();
+        for (ArenaTeam t : bothTeams) {
             Location loc = (Location) bases.get(t.getId());
             World world = loc.getWorld();
             Block block = world.getBlockAt(loc);
