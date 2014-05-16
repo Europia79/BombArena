@@ -46,8 +46,24 @@ bomb is located. Easiest option will be via a compass. But I also want to
 add some kind of visual aid.
 
 
-Any other ideas on how this can be implemented into Minecraft, 
-just lemme know! (contact info below)
+Changes:
+---
+
+Unfortunately, when I tested the original concept and implementation for breaking 
+the bomb block in order to defuse it, it was flawed. Breaking one block is fine, 
+but when I tested the breaking of multiple blocks, I found that the time 
+required to break X number of blocks varied from client to client. For example, 
+it took me 8.6 seconds to destroy 35 TNT while it took another player over 
+15 seconds to destroy the same 35 TNT. Probably due to latency. This is 
+unacceptable because it gives players with a good connection an unfair advantage, 
+and it penalizes players with a bad connection (unfair).
+
+This is why bomb defusal mechanics have changed. Bomb Defusal now works exactly like 
+Planting the bomb: simply interact with the Base Block.
+
+Multiple players can attempt to defuse the bomb at the same time, 
+but it does NOT speed up the defusal process. The first player to reach 
+zero on their defusal timer is given credit for defusing the bomb.
 
 
 Arena Setup:
@@ -203,24 +219,27 @@ Listener Methods:
    * give a visual aid so that players know the location of the bomb.
 - onBombDespawn(ItemDespawnEvent e)
    * This event breaks ALL other events.
-   * There are two different ways to handle this:  
-     1. cancel the event OR
-	 2. respawn a new bomb
+   * The despawn time for the bomb is now set to the entire duration of the match.
+   * cmd (/bomb spawnbomb) is the cmd that sets the duration on arena setup.
 - onBombPlace (BlockPlaceEvent e)
    * Going to help new players out by calling onBombPlant if they're close enough.
    * If they're not close enough, then tell the player to follow their compass.
    * client-side bug (invisible bomb) was fixed with deprecated updateInventory().
-- onBombPlant(InventoryOpenEvent e)
-   * start a 7 sec PlantTimer 
-   * if successful, will start a 30 sec DetonateTimer.
-   * if successful, declare the winners.
-- onPlantFailure(InventoryCloseEvent e)
-   * cancel() the PlantTimer. 
-   * Notice that there's two ways for the BombPlant to fail: 
-      1. Carrier prematurely closes the inventory, or 
-	  2. the Carrier dies. If the carrier dies, then we'll let onCarrierDeath handle everything.
-- onBombDefuse(BlockBreakEvent e)
-   * Get the player, get his team, and set the winners.
+- onBombPlantDefuse(InventoryOpenEvent e)
+   * check defuse conditions.
+   * check plant conditions.
+   * start a 8 sec PlantTimer or 8 sec DefuseTimer.
+   * Successful PlantTimer will start a 30 sec DetonateTimer.
+   * Successful DetonationTimer or DefuseTimer will declare the winners.
+- onBombPlantFailure(InventoryCloseEvent e)
+   * cancel() the PlantTimer or DefuseTimer.
+   * Notice that there's two ways for Plant or Defusal to fail: 
+      1. Player prematurely closes the inventory, or 
+	  2. the player dies. If the player dies, then we'll let onCarrierDeath handle everything.
+- onBaseExploit(BlockBreakEvent e)
+   * Prevents players from destroying base blocks.
+- onBaseInteraction(PlayerInteractionEvent e)
+   * Allows players to plant+defuse inside protected regions.
 
 
 Dependencies:
@@ -263,32 +282,37 @@ The dev builds are primarily for testing purposes.
 
 To-Do List
 ---
-- test against the lastest versions of BattleArena and Craftbukkit.
-- update to UUID
-- fix the fake TNT block appearance.
+- test against the lastest versions of BattleTracker.
 - have onBombPlace() trigger onBombPlant() event (if the player is close enough).
-- Take away the HAT+BombBlock after the player plants the bomb (instead of at the end of the match).
-- Implement config options.
+- Finish implementing backwards-compatibility with BattleArena.
 - Add & implement other commands:
-- /bomb setconfig <option> <value>
+- /bomb checkbase
+- /bomb clearbases <arena> (listen for /bomb delete <arena>)
 - write PHP script to access the database & display player stats on a website.
+- ~~Implement config options.~~ done.
+- ~~Update arenas.yml to match any changes in config.yml option BombBlock.~~ done.
+- ~~Update bases at the start of the game to match config option BaseBlock.~~ done.
 - ~~Restore missing (destroyed) brewing stands (bases) at the end of the match.~~ done.
 - ~~Close plant+defuse exploit~~ done.
 - ~~Kill off players that are too close to the bomb when it detonates.~~ done.
-- ~~Add compass+visual aids to let players know the location of a dropped bomb.~~ done.
+- ~~Add compass direction to let players know the location of a dropped bomb.~~ done.
 - ~~Add HAT to the bomb carrier onBombPickup()~~ done.
+- ~~Take away the HAT+BombBlock after the player plants the bomb (instead of at the end of the match).~~ done.
+- ~~update to UUID~~ Not necessary because BattleTracker handles persistent data.
+- ~~/bomb setconfig <option> <value>~~ done.
 
 
 Bugs to fix:
 ---
-- Remove HATs and bombs from the player inventory after the bomb has been planted.
-- fix the fake TNT block appearance in PlantTimer
 - onBombSpawn(ItemSpawnEvent e) breaks ALL other events.
-- onBombDespawn(ItemDespawnEvent e) breaks ALL other events.
+- ~~onBombDespawn(ItemDespawnEvent e)~~ breaks ALL other events.
+- onBombDespawn() is not necessary since the despawn time is now set to the max duration of the match.
   
 
 Known Issues:
 ---
+- Requires BattleArena v3.9.7.3 or newer.
+- Killing a player who is planting or defusing the bomb should stop their progress but this was never tested since it requires a 2nd player to test.
   
 
 Contact:
