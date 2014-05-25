@@ -99,7 +99,7 @@
             <artifactId>maven-antrun-plugin</artifactId>
             <configuration>
                 <tasks>
-                    <copy file="target/BombArena.jar" tofile="server/plugins/BombArena.jar"/>
+                    <copy file="target/BombArena.jar" tofile="../server/plugins/BombArena.jar"/>
                 </tasks>
             </configuration>
             <executions>

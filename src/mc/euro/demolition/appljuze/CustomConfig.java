@@ -11,7 +11,13 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin; 
 import org.bukkit.util.Vector;
- 
+
+/**
+ * https://www.youtube.com/watch?v=pyBM83LbG9U <br/>
+ * https://dl.dropboxusercontent.com/u/48481378/MyConfig.java <br/>
+ * 
+ * @author Appljuze
+ */
 public class CustomConfig 
 {
     private int comments;

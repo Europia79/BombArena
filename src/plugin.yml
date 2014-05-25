@@ -1,7 +1,7 @@
 name: BombArena
 main: mc.euro.demolition.BombPlugin
 version: ${project.version}
-website: http://battleplugin.com/
+website: http://battleplugins.com/
 description: One bomb, two bases.
 authors: [Europia79]
 depend: [BattleArena]

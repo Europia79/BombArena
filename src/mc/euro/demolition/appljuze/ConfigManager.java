@@ -11,9 +11,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-
 import org.bukkit.plugin.java.JavaPlugin;
 
+/**
+ * https://www.youtube.com/watch?v=pyBM83LbG9U <br/>
+ * https://dl.dropboxusercontent.com/u/48481378/MyConfigManager.java <br/>
+ * 
+ * @author Appljuze
+ */
 public class ConfigManager 
 {
 	private JavaPlugin plugin;
