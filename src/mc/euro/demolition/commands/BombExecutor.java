@@ -78,6 +78,7 @@ public class BombExecutor extends CustomCommandExecutor {
             sender.sendMessage("The bomb spawn for " + arena.getName() + " has been set!");
             return true;
         }
+        sender.sendMessage("The spawnbomb command has failed.");
         return false;
     }
     
