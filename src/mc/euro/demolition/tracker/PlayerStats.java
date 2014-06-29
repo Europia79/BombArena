@@ -39,9 +39,9 @@ public class PlayerStats {
         }
     }
 
-    public void addPlayerRecord(String name, String bombs, WLT wlt) {
+    public void addPlayerRecord(String name, String bombs, String wlt) {
         if (this.isEnabled()) {
-            tracker.addPlayerRecord(name, bombs, wlt);
+            tracker.addPlayerRecord(name, bombs, WLT.valueOf(wlt));
         }
     }
 

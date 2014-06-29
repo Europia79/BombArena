@@ -4,6 +4,7 @@ import java.util.Map;
 import mc.euro.demolition.BombPlugin;
 import mc.alk.arena.competition.match.Match;
 import mc.alk.arena.objects.teams.ArenaTeam;
+import mc.alk.tracker.objects.WLT;
 import mc.euro.demolition.tracker.OUTCOME;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -55,8 +56,8 @@ public class DefuseTimer extends BukkitRunnable {
                     + "Congratulations, "
                     + t.getTeamChatColor() + "" + player.getName() + ChatColor.LIGHT_PURPLE
                     + " has successfully defused the bomb. You win!");
-            plugin.ti.addPlayerRecord(player.getName(), plugin.getFakeName(), OUTCOME.getDefuseSuccess());
-            plugin.ti.addPlayerRecord(plugin.carriers.get(matchID), plugin.getFakeName(), OUTCOME.getPlantFailure());
+            plugin.ti.addPlayerRecord(player.getName(), plugin.getFakeName(), "TIE");
+            plugin.ti.addPlayerRecord(plugin.carriers.get(matchID), plugin.getFakeName(), "LOSS");
             match.setVictor(t);
             Map<String, DefuseTimer> temp = plugin.defTimers.get(matchID);
             for (DefuseTimer d : temp.values()) {

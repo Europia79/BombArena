@@ -5,6 +5,7 @@ import java.util.Set;
 import mc.alk.arena.competition.match.Match;
 import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.teams.ArenaTeam;
+import mc.alk.tracker.objects.WLT;
 import mc.euro.demolition.BombPlugin;
 import mc.euro.demolition.tracker.OUTCOME;
 import org.bukkit.Bukkit;
@@ -62,7 +63,7 @@ public class DetonationTimer extends BukkitRunnable {
                     + "Congratulations, "
                     + t.getTeamChatColor() + player.getName() + ChatColor.LIGHT_PURPLE
                     + " has successfully destroyed the other teams base.");
-            plugin.ti.addPlayerRecord(player.getName(), plugin.getFakeName(), OUTCOME.getPlantSuccess());
+            plugin.ti.addPlayerRecord(player.getName(), plugin.getFakeName(), "WIN");
             createExplosion(BOMB_LOCATION);
             match.setVictor(t);
             this.setCancelled(true);
