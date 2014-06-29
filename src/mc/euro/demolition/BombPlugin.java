@@ -90,7 +90,7 @@ public class BombPlugin extends JavaPlugin {
         
         debug.log("BattleArena version = " + VersionFormat.getBAversion());
         // requires 3.9.7.3 or newer
-        if (VersionFormat.getBAversion() <= 397000) {
+        if (VersionFormat.getBAversion() < 397300) {
             getLogger().severe("BombArena requires BattleArena v3.9.7.3 or newer.");
             getLogger().info("Disabling BombArena");
             getLogger().info("Please update BattleArena or recompile BombArena "

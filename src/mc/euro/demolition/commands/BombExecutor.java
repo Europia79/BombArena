@@ -72,13 +72,13 @@ public class BombExecutor extends CustomCommandExecutor {
         
         String selectArena = "aa select " + arena.getName();
         
-        plugin.getServer().dispatchCommand(sender, selectArena);
-        plugin.getServer().dispatchCommand(sender, 
-                Command.addspawn(bomb, matchTime));
-        
-        sender.sendMessage("The bomb spawn for " + arena.getName() + " has been set!");
-        
-        return true;
+        if (plugin.getServer().dispatchCommand(sender, selectArena) 
+                && plugin.getServer().dispatchCommand(sender, 
+                Command.addspawn(bomb.name(), matchTime))) {
+            sender.sendMessage("The bomb spawn for " + arena.getName() + " has been set!");
+            return true;
+        }
+        return false;
     }
     
     @MCCommand(cmds={"stats"}, perm="bomb.stats", usage="stats")

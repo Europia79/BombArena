@@ -1,7 +1,6 @@
 package mc.euro.demolition.commands;
 
 import mc.euro.demolition.util.VersionFormat;
-import org.bukkit.Material;
 
 /**
  * This class handles backwards compatibility for different 
@@ -20,15 +19,15 @@ import org.bukkit.Material;
  */
 public abstract class Command {
 
-    public static String addspawn(Material bomb, int time) {
+    public static String addspawn(String bomb, int time) {
         // /aa addspawn BOMB_BLOCK fs=1 rs=500 ds=500 index=1
         // /aa addspawn BOMB_BLOCK fs=1 rs=500 ds=500 1
-        String cmd1 = "aa addspawn " + bomb.name()
+        String cmd1 = "aa addspawn " + bomb
                 + " fs=1"
                 + " rs=" + time
                 + " ds=" + time
                 + " index=1";
-        String cmd2 = "aa addspawn " + bomb.name()
+        String cmd2 = "aa addspawn " + bomb
                 + " fs=1"
                 + " rs=" + time
                 + " ds=" + time
