@@ -56,6 +56,7 @@ public class BombExecutor extends CustomCommandExecutor {
         String sloc = SerializerUtil.getLocString(base_loc);
         plugin.basesYml.set(path, sloc);
         plugin.basesYml.saveConfig();
+        sender.sendMessage("Base " + i + " is now set for arena: " + arena.getName());
         return true;
 
     }
