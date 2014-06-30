@@ -2,9 +2,10 @@ package mc.euro.demolition.objects;
 
 import java.util.List;
 import java.util.UUID;
+import mc.euro.demolition.BombPlugin;
+import org.bukkit.Bukkit;
 import org.bukkit.EntityEffect;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -22,20 +23,24 @@ import org.bukkit.util.Vector;
  * Bomb.java: Used to trigger a new PlayerDropItemEvent for onBombCarrierDeath().
  */
 public class Bomb implements Item {
+    
+    BombPlugin plugin;
     int pickupDelay;
     ItemStack bomb;
     Location loc;
     
     public Bomb(PlayerDeathEvent e) {
+        this.plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("BombArena");
         pickupDelay = 0;
-        bomb = new ItemStack(Material.HARD_CLAY);
+        bomb = new ItemStack(plugin.getBombBlock());
         loc = e.getEntity().getPlayer().getLocation();
         
     }
     
     public Bomb(PlayerDeathEvent e, int i) {
+        this.plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("BombArena");
         pickupDelay = i;
-        bomb = new ItemStack(Material.HARD_CLAY);
+        bomb = new ItemStack(plugin.getBombBlock());
         loc = e.getEntity().getPlayer().getLocation();
         
     }
@@ -48,7 +53,7 @@ public class Bomb implements Item {
 
     @Override
     public void setItemStack(ItemStack is) {
-        
+        this.bomb = is;
     }
 
     @Override
@@ -93,7 +98,7 @@ public class Bomb implements Item {
 
     @Override
     public boolean teleport(Location lctn) {
-        return true;
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
