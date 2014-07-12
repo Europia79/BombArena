@@ -1,13 +1,11 @@
 package mc.euro.demolition.timers;
 
-import mc.euro.demolition.timers.DefuseTimer;
 import java.util.Set;
+import java.util.logging.Level;
 import mc.alk.arena.competition.match.Match;
 import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.teams.ArenaTeam;
-import mc.alk.tracker.objects.WLT;
 import mc.euro.demolition.BombPlugin;
-import mc.euro.demolition.tracker.OUTCOME;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -58,14 +56,22 @@ public class DetonationTimer extends BukkitRunnable {
         match.sendMessage("" + duration);
         
         if (duration <= 0) {
-            ArenaTeam t = match.getArena().getTeam(player);
-            t.sendMessage(ChatColor.LIGHT_PURPLE 
-                    + "Congratulations, "
-                    + t.getTeamChatColor() + player.getName() + ChatColor.LIGHT_PURPLE
-                    + " has successfully destroyed the other teams base.");
-            plugin.ti.addPlayerRecord(player.getName(), plugin.getFakeName(), "WIN");
             createExplosion(BOMB_LOCATION);
-            match.setVictor(t);
+            plugin.ti.addPlayerRecord(player.getName(), plugin.getFakeName(), "WIN");
+            try {
+                ArenaTeam t = match.getArena().getTeam(player);
+                t.sendMessage(ChatColor.LIGHT_PURPLE
+                        + "Congratulations, "
+                        + t.getTeamChatColor() + player.getName() + ChatColor.LIGHT_PURPLE
+                        + " has successfully destroyed the other teams base.");
+                match.setVictor(t);
+            } catch (NullPointerException ex) {
+                // Should be fixed in v1.1.4
+                plugin.getLogger().severe("NPE caused by using the wrong victoryCondition.");
+                plugin.getLogger().severe("Please change BombArenaConfig.yml victoryCondition node to");
+                plugin.getLogger().severe("victoryCondition: NoTeamsLeft");
+                plugin.getLogger().log(Level.SEVERE, null, ex);
+            }
             this.setCancelled(true);
         }
         
@@ -85,21 +91,15 @@ public class DetonationTimer extends BukkitRunnable {
     public Player getPlayer() {
         return this.player;
     }
-    
+
     private void createExplosion(Location here) {
         here.getBlock().setType(Material.AIR);
-        for (int x = -1; x < 1; x++) {
-            for (int z = -1; z < 1; z++) {
-                for (int y = 0; y < 1; y++) {
-                    double xp = here.getX() + x;
-                    double yp = here.getY() + y;
-                    double zp = here.getZ() + z;
-                    Location t = new Location(here.getWorld(), xp, yp, zp);
-                    here.getWorld().createExplosion(
-                            t.getX(), t.getY(), t.getZ(), 4F, false, false);
-                }
-            }
-        }
+        double xp = here.getX();
+        double yp = here.getY();
+        double zp = here.getZ();
+        Location t = new Location(here.getWorld(), xp, yp, zp);
+        here.getWorld().createExplosion(
+                t.getX(), t.getY(), t.getZ(), 4F, false, false);
         killPlayers(here);
     }
     
