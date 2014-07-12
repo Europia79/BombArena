@@ -1,6 +1,5 @@
 package mc.euro.demolition.timers;
 
-import mc.euro.demolition.timers.DetonationTimer;
 import mc.euro.demolition.BombPlugin;
 import java.util.Set;
 import mc.alk.arena.competition.match.Match;
@@ -58,10 +57,13 @@ public class PlantTimer extends BukkitRunnable {
                 p.getPlayer().sendMessage("The bomb will detonate in " 
                         + plugin.getDetonationTime() + " seconds !!!");
             }
-            if (player.getInventory().getHelmet().getType() == Material.TNT) {
+            if (player.getInventory() != null
+                    && player.getInventory().getHelmet() != null
+                    && player.getInventory().getHelmet().getType() == Material.TNT) {
                 player.getInventory().setHelmet(new ItemStack(Material.AIR));
             }
-            if (player.getInventory().contains(plugin.getBombBlock())) {
+            if (player.getInventory() != null 
+                    && player.getInventory().contains(plugin.getBombBlock())) {
                 player.getInventory().remove(plugin.getBombBlock());
                 player.updateInventory();
             }
