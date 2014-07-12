@@ -4,8 +4,6 @@ import java.util.Map;
 import mc.euro.demolition.BombPlugin;
 import mc.alk.arena.competition.match.Match;
 import mc.alk.arena.objects.teams.ArenaTeam;
-import mc.alk.tracker.objects.WLT;
-import mc.euro.demolition.tracker.OUTCOME;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
