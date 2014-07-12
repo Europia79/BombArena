@@ -14,7 +14,6 @@ import mc.alk.arena.serializers.ArenaSerializer;
 import mc.alk.arena.util.SerializerUtil;
 import mc.euro.demolition.appljuze.ConfigManager;
 import mc.euro.demolition.appljuze.CustomConfig;
-import mc.euro.demolition.util.VersionFormat;
 import mc.euro.demolition.commands.BombExecutor;
 import mc.euro.demolition.debug.*;
 import mc.euro.demolition.util.BaseType;
@@ -22,6 +21,7 @@ import mc.euro.demolition.tracker.PlayerStats;
 import mc.euro.demolition.timers.DefuseTimer;
 import mc.euro.demolition.timers.DetonationTimer;
 import mc.euro.demolition.timers.PlantTimer;
+import mc.euro.demolition.util.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -88,9 +88,12 @@ public class BombPlugin extends JavaPlugin {
 
         debug = new DebugOn(this);
         
-        debug.log("BattleArena version = " + VersionFormat.getBAversion());
+        Version ba = new Version("BattleArena");
+        debug.log("BattleArena version = " + ba.toString());
+        debug.log("BattleTracker version = " + Version.getPlugin("BattleTracker").toString());
+        debug.log("Enjin version = " + Version.getPlugin("EnjinMinecraftPlugin").toString());
         // requires 3.9.7.3 or newer
-        if (VersionFormat.getBAversion() < 397300) {
+        if (!ba.isCompatible("3.9.7.3")) {
             getLogger().severe("BombArena requires BattleArena v3.9.7.3 or newer.");
             getLogger().info("Disabling BombArena");
             getLogger().info("Please update BattleArena or recompile BombArena "
@@ -117,6 +120,7 @@ public class BombPlugin extends JavaPlugin {
         basesYml = manager.getNewConfig("bases.yml");
 
         updateArenasYml(this.BombBlock);
+        updateBombArenaConfigYml();
 
     }
 
@@ -292,6 +296,23 @@ public class BombPlugin extends JavaPlugin {
         this.updateArenasYml(this.BombBlock);           // update arenas.yml
     }
     
+    private void updateBombArenaConfigYml() {
+        this.debug.log("updating BombArenaConfig.yml");
+        /*
+        BattleArenaController bc = BattleArena.getBAController();
+        for (Arena arena : bc.getArenas().values()) {
+            if (arena instanceof BombArena) {
+                arena.getParams().setVictoryCondition(VictoryType.fromString("NoTeamsLeft"));
+                bc.updateArena(arena);
+                getLogger().info("The VictoryCondition for BombArena " + arena.getName() + " has been updated to NoTeamsLeft");
+            }
+        } */
+
+         CustomConfig bombarena = getConfig("BombArenaConfig.yml");
+         bombarena.set("BombArena.victoryCondition", "NoTeamsLeft");
+         bombarena.saveConfig();
+
+    }
     private void updateArenasYml(Material x) {
         // PATH = "arenas.{arenaName}.spawns.{index}.spawn"
         /*
