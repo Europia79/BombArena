@@ -1,6 +1,6 @@
 package mc.euro.demolition.commands;
 
-import mc.euro.demolition.util.VersionFormat;
+import mc.euro.demolition.util.Version;
 
 /**
  * This class handles backwards compatibility for different 
@@ -10,8 +10,8 @@ import mc.euro.demolition.util.VersionFormat;
  * 
  * Version - Syntax
  * 
- * +396200 - /aa addspawn {block} fs=1 rs=500 ds=500 index=1
- * -395850 - /aa addspawn {block} fs=1 rs=500 ds=500 1
+ * +3.9.6.2   - /aa addspawn {block} fs=1 rs=500 ds=500 index=1
+ * -3.9.5.8.5 - /aa addspawn {block} fs=1 rs=500 ds=500 1
  * 
  * </pre>
  * 
@@ -24,21 +24,17 @@ public abstract class Command {
         // /aa addspawn BOMB_BLOCK fs=1 rs=500 ds=500 1
         String cmd1 = "aa addspawn " + bomb
                 + " fs=1"
-                + " rs=" + time
+                + " rs=300"
                 + " ds=" + time
                 + " index=1";
         String cmd2 = "aa addspawn " + bomb
                 + " fs=1"
-                + " rs=" + time
+                + " rs=300"
                 + " ds=" + time
                 + " 1";
-        String cmd = (getVersion() >= 396000) ? cmd1 : cmd2;
+        Version v = Version.getPlugin("BattleArena");
+        String cmd = v.isCompatible("3.9.6.2") ? cmd1 : cmd2;
         return cmd;
     }
-    
-    private static int getVersion() {
-        return VersionFormat.getBAversion();
-    }
-    
 
 }
