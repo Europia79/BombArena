@@ -1,5 +1,6 @@
 package mc.euro.demolition.tracker;
 
+import com.enjin.officialplugin.stats.StatsPlayer;
 import java.util.List;
 import mc.alk.tracker.Tracker;
 import mc.alk.tracker.TrackerInterface;
@@ -7,6 +8,7 @@ import mc.alk.tracker.objects.Stat;
 import mc.alk.tracker.objects.StatType;
 import mc.alk.tracker.objects.WLT;
 import mc.euro.demolition.BombPlugin;
+import mc.euro.demolition.util.Version;
 import org.bukkit.Bukkit;
 
 /**
@@ -16,33 +18,55 @@ import org.bukkit.Bukkit;
 public class PlayerStats {
     BombPlugin plugin;
     public TrackerInterface tracker;
-    boolean enabled;
+    boolean bt_enabled;
+    Version battletracker; // BattleTracker
+    Version enjin;
     
     public PlayerStats(String x) {
         plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
         loadTracker(x);
+        loadEnjin();
     }
     
     public boolean isEnabled() {
-        return enabled;
+        return bt_enabled;
+    }
+    
+    private void loadEnjin() {
+        this.enjin = Version.getPlugin("EnjinMinecraftPlugin");
+        if (enjin.getJavaPlugin() != null && enjin.isCompatible("2.6")) {
+            plugin.getLogger().info("EnjinMinecraftPlugin found & enabled.");
+        } else {
+            plugin.getLogger().info("EnjinMinecraftPlugin was not found.");
+        }
     }
 
     private void loadTracker(String i) {
         Tracker t = (mc.alk.tracker.Tracker) Bukkit.getPluginManager().getPlugin("BattleTracker");
+        this.battletracker = Version.getPlugin("BattleTracker");
         if (t != null){
-            enabled = true;
+            bt_enabled = true;
             tracker = Tracker.getInterface(i);
             tracker.stopTracking(Bukkit.getServer().getOfflinePlayer(plugin.getFakeName()));
         } else {
-            enabled = false;
+            bt_enabled = false;
             plugin.getLogger().warning("BattleTracker turned off or not found.");
         }
     }
 
     public void addPlayerRecord(String name, String bombs, String wlt) {
-        if (this.isEnabled()) {
+        if (battletracker.isEnabled()) {
             tracker.addPlayerRecord(name, bombs, WLT.valueOf(wlt));
         }
+        /*
+        if (enjin.isEnabled() && enjin.isCompatible("2.6.0")) {
+            StatsPlayer enjinStats = new StatsPlayer(Bukkit.getOfflinePlayer(name));
+            String statName = null;
+            if (wlt.equalsIgnoreCase("WIN")) statName = "Bases Destroyed Successfully";
+            if (wlt.equalsIgnoreCase("LOSS")) statName = "Bomb Detonation Failures";
+            if (wlt.equalsIgnoreCase("TIE")) statName = "Bombs Defused";
+            if (statName != null) enjinStats.addCustomStat("BombArena", statName, 1, true);
+        } */
     }
 
     public List<Stat> getTopXWins(int n) {
