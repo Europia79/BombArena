@@ -5,7 +5,7 @@ website: http://battleplugins.com/
 description: One bomb, two bases.
 authors: [Europia79]
 depend: [BattleArena]
-softdepnd: [BattleTracker]
+softdepnd: [BattleTracker,EnjinMinecraftPlugin]
 prefix: BombArena
 commands:
     bomb:

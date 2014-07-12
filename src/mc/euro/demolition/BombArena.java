@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import mc.alk.arena.events.players.ArenaPlayerLeaveEvent;
+import mc.alk.arena.events.teams.TeamDeathEvent;
 import mc.alk.arena.objects.ArenaPlayer;
+import mc.alk.arena.objects.MatchResult;
 import mc.alk.arena.objects.arenas.Arena;
 import mc.alk.arena.objects.events.ArenaEventHandler;
 import mc.alk.arena.objects.events.EventPriority;
@@ -151,6 +153,22 @@ public class BombArena extends Arena {
         
     } // END OF ArenaPlayerLeaveEvent
     
+    @ArenaEventHandler
+    public void onTeamDeathEvent(TeamDeathEvent e) {
+        int matchID = e.getCompetition().getID();
+        if (!plugin.detTimers.containsKey(e.getCompetition().getID())) {
+            MatchResult result = new MatchResult();
+            ArenaTeam losers = e.getTeam();
+            for (ArenaTeam t : getTeams()) {
+                if (!t.isDead() || t != losers) {
+                    result.setVictor(t);
+                }
+            }
+            result.addLoser(losers);
+            getMatch().endMatchWithResult(result);
+        }
+    } // END OF TeamDeathEvent
+    
     /**
      * This method triggers a new bombDropEvent if a player dies with the bomb.
      * 
@@ -166,6 +184,14 @@ public class BombArena extends Arena {
         int matchID = getMatch().getID();
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
         Player p = e.getEntity().getPlayer();
+        cancelTimer(p);
+        ArenaPlayer ap = new ArenaPlayer(p);
+        for (ArenaTeam t : getMatch().getTeams()) {
+            plugin.debug.log("team " + t.getIDString() + " isDead() = " + (t.getLeftPlayers().isEmpty()));
+            if (t.getLeftPlayers().isEmpty() && plugin.detTimers.containsKey(matchID)) {
+                // plugin.detTimers.get(matchID).endMatch();
+            }
+        }
         // drop the bomb on the ground
         if (c == null) {
             return;
@@ -215,7 +241,9 @@ public class BombArena extends Arena {
         if (type == plugin.getBombBlock()) {
             if (c != null 
                     && e.getPlayer().getName().equals(c)) {
-                if (e.getPlayer().getInventory().getHelmet().getType() == Material.TNT) {
+                if (e.getPlayer().getInventory() != null
+                        && e.getPlayer().getInventory().getHelmet() != null 
+                        && e.getPlayer().getInventory().getHelmet().getType() == Material.TNT) {
                     e.getPlayer().getInventory().setHelmet(new ItemStack(Material.AIR));
                 }
                 // sets the carrier to null
@@ -402,7 +430,15 @@ public class BombArena extends Arena {
         plugin.debug.sendMessage(p, "matchID = " + matchID);
         plugin.debug.log("type = " + type);
         plugin.debug.sendMessage(p, "carrier = " + c);
+        
+        cancelTimer(p);
 
+    } // END OF InventoryCloseEvent
+    
+    public void cancelTimer(Player p) {
+        int matchID = getMatch().getID();
+        String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
+        
         Map<String, DefuseTimer> temp = plugin.defTimers.get(matchID);
         for (String defuser : temp.keySet()) {
             if (p.getName().equalsIgnoreCase(defuser)) {
@@ -410,16 +446,13 @@ public class BombArena extends Arena {
             }
         }
 
-        if (p.getName().equalsIgnoreCase(c)) {
+        if (p.getName().equalsIgnoreCase(c) &&
+                plugin.pTimers.containsKey(matchID)) {
             // if this is an actual death or drop then those Events 
             // will handle setting the carrier to null
-            plugin.debug.msgArenaPlayers(getMatch().getPlayers(), 
-                    "onBombPlantFailure has been called " 
-                    + "due to InventoryCloseEvent");
             plugin.pTimers.get(matchID).setCancelled(true);
         }
-
-    } // END OF InventoryCloseEvent
+    }
     
     /**
      * This method handles the exploit where players try to break their BaseBlock
@@ -452,7 +485,7 @@ public class BombArena extends Arena {
     @Override
     public void onBegin() {
         super.onBegin(); 
-        plugin.debug.log("onBegin() has been called by Demolition plugin: BombArenaListener.java");
+        plugin.debug.log("onBegin() has been called.");
     }
     
     /**

@@ -6,7 +6,7 @@ BombArena:
     nTeams: '2'
     teamSize: '1-16'
   nLives: '2'
-  victoryCondition: LastManStanding
+  victoryCondition: NoTeamsLeft
   times:
     matchTime: 500
   tracking:
