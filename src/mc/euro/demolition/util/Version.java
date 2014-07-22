@@ -1,9 +1,7 @@
 package mc.euro.demolition.util;
 
-import java.util.Comparator;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * The Version object: Capable of asking the important question: <br/><br/>
@@ -16,22 +14,19 @@ import org.bukkit.plugin.java.JavaPlugin;
  * 
  * @author Nikolai
  */
-public class Version implements Comparator<String> {
+public class Version implements Comparable<String> {
     
     Plugin plugin;
     String version;
-    boolean enabled;
     
     private Version() {
         this.plugin = null;
         this.version = Bukkit.getServer().getBukkitVersion();
-        this.enabled = true;
     }
     
     public Version(String pluginName) {
         this.plugin = Bukkit.getServer().getPluginManager().getPlugin(pluginName);
         this.version = (plugin == null) ? null : plugin.getDescription().getVersion();
-        this.enabled = (plugin == null) ? false : plugin.isEnabled();
     }
     
     public static Version getPlugin(String pluginName) {
@@ -42,16 +37,13 @@ public class Version implements Comparator<String> {
         return new Version();
     }
     
-    public JavaPlugin getJavaPlugin() {
-        return (this.plugin == null) ? null : (JavaPlugin) this.plugin;
-    }
-    
     public boolean isEnabled() {
-        return this.enabled;
-    }
-    
-    public boolean isNull() {
-        return (this.plugin == null);
+        if (this.plugin != null) {
+            return this.plugin.isEnabled();
+        } else if (this.version != null) { // No plugin, but object is a version checker for the server
+            return true;
+        }
+        return false; // Plugin mis-spelled or not installed on the server.
     }
     
     /**
@@ -59,8 +51,8 @@ public class Version implements Comparator<String> {
      * @return Greater than or equal to will return true. Otherwise, false.
      */
     public boolean isCompatible(String minVersion) {
-        if (this.plugin == null || !plugin.isEnabled()) return false;
-        int x = compare(this.version, minVersion);
+        if (!this.isEnabled()) return false;
+        int x = compareTo(minVersion);
         if (x >= 0) {
             return true;
         } 
@@ -72,8 +64,8 @@ public class Version implements Comparator<String> {
      * @return Less than or equal to will return true. Otherwise, false.
      */
     public boolean isSupported(String maxVersion) {
-        if (this.version == null) return false;
-        int x = compare(this.version, maxVersion);
+        if (!this.isEnabled()) return false;
+        int x = compareTo(maxVersion);
         if (x <= 0) {
             return true;
         }
@@ -81,9 +73,9 @@ public class Version implements Comparator<String> {
     }
 
     @Override
-    public int compare(String version, String minVersion) {
-        int[] current = parseVersion(version);
-        int[] min = parseVersion(minVersion);
+    public int compareTo(String whichVersion) {
+        int[] current = parseVersion(this.version);
+        int[] min = parseVersion(whichVersion);
         int length = (current.length >= min.length) ? current.length : min.length;
         for (int index = 0; index <= (length - 1); index = index + 1) {
             try {
