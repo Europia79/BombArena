@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package mc.euro.demolition.tracker;
 
 import mc.alk.tracker.objects.WLT;
@@ -15,7 +11,7 @@ import mc.alk.tracker.objects.WLT;
  *
  * @author Nikolai
  */
-public class OUTCOME {
+public class Outcome {
     
     public static WLT getPlantSuccess() {
         return WLT.WIN;

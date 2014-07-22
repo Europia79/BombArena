@@ -1,18 +1,18 @@
 package mc.euro.demolition.debug;
 
-import mc.euro.demolition.BombPlugin;
 import java.util.Set;
 import mc.alk.arena.objects.ArenaPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 /**
  * debug = new DebugOn(); will toggle debugging mode ON.
  */
 public class DebugOn implements DebugInterface {
     
-    BombPlugin plugin;
+    Plugin plugin;
     
-    public DebugOn(BombPlugin reference) {
+    public DebugOn(Plugin reference) {
         this.plugin = reference;
     }
 
