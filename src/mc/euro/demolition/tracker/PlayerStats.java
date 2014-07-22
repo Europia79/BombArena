@@ -34,10 +34,10 @@ public class PlayerStats {
     
     private void loadEnjin() {
         this.enjin = Version.getPlugin("EnjinMinecraftPlugin");
-        if (enjin.getJavaPlugin() != null && enjin.isCompatible("2.6")) {
+        if (enjin.isCompatible("2.6")) {
             plugin.getLogger().info("EnjinMinecraftPlugin found & enabled.");
         } else {
-            plugin.getLogger().info("EnjinMinecraftPlugin was not found.");
+            plugin.getLogger().info("EnjinMinecraftPlugin was not found or not compatible.");
         }
     }
 
@@ -59,14 +59,14 @@ public class PlayerStats {
             tracker.addPlayerRecord(name, bombs, WLT.valueOf(wlt));
         }
         /*
-        if (enjin.isEnabled() && enjin.isCompatible("2.6.0")) {
+        if (enjin.isCompatible("2.6.0")) {
             StatsPlayer enjinStats = new StatsPlayer(Bukkit.getOfflinePlayer(name));
             String statName = null;
             if (wlt.equalsIgnoreCase("WIN")) statName = "Bases Destroyed Successfully";
             if (wlt.equalsIgnoreCase("LOSS")) statName = "Bomb Detonation Failures";
             if (wlt.equalsIgnoreCase("TIE")) statName = "Bombs Defused";
             if (statName != null) enjinStats.addCustomStat("BombArena", statName, 1, true);
-        } */
+        }*/
     }
 
     public List<Stat> getTopXWins(int n) {
