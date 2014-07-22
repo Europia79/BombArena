@@ -2,7 +2,7 @@ name: BombArena
 main: mc.euro.demolition.BombPlugin
 version: ${project.version}
 website: http://battleplugins.com/
-description: One bomb, two bases.
+description: Call of Duty Sabotage gamemode & SND rule-set, both with one bomb and two bases.
 authors: [Europia79]
 depend: [BattleArena]
 softdepnd: [BattleTracker,EnjinMinecraftPlugin]
@@ -11,3 +11,31 @@ commands:
     bomb:
         description: All BombArena commands.
         usage: Problem loading plugin, please send errors on startup to Europia79
+    snd:
+        description: All commands for Search N Destroy.
+        usage: Problem loading plugin, please send errors on startup to Europia79
+permissions:
+  bombarena.admin:
+    default: op
+    children:
+      bombarena.setbase: true
+      bombarena.spawnbomb: true
+      bombarena.setconfig: true
+  bomb.stats:
+    default: true
+  bomb.stats.other:
+    default: true
+  bomb.stats.top:
+    default: true
+  arena.leave:
+    default: true
+  arena.join.bombarena:
+    default: true
+  arena.join.sndarena:
+    default: true
+  sndarena.admin:
+    default: op
+    children:
+      sndarena.setbase: true
+      sndarena.spawnbomb: true
+      sndarena.setconfig: true

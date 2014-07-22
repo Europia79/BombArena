@@ -70,6 +70,7 @@ public class BombPlugin extends JavaPlugin {
     private Material BombBlock;
     private Material BaseBlock;
     private InventoryType Baseinv;
+    private int BaseRadius;
     private String FakeName;
     private String ChangeFakeName;
     private int MaxDamage;
@@ -80,6 +81,7 @@ public class BombPlugin extends JavaPlugin {
     
     public ConfigManager manager;
     public CustomConfig basesYml;
+    
     
     @Override  
     public void onEnable() {
@@ -113,6 +115,7 @@ public class BombPlugin extends JavaPlugin {
         // Database Tables: bt_Demolition_*
         setTracker(this.DatabaseTable);
 
+        // BattleArena.registerCompetition(this, "SndArena", "snd", SndArena.class, new SndExecutor());
         BattleArena.registerCompetition(this, "BombArena", "bomb", BombArena.class, new BombExecutor());
         getServer().dispatchCommand(Bukkit.getConsoleSender(), "bomb stats top " + StartupDisplay);
 
@@ -137,7 +140,6 @@ public class BombPlugin extends JavaPlugin {
         DefuseTime = getConfig().getInt("DefuseTime", 1);
         BombBlock = Material.getMaterial(
                 getConfig().getString("BombBlock", "TNT").toUpperCase());
-        // setBombSpawn(BombBlock.name());
         BaseBlock = Material.valueOf(
                 getConfig().getString("BaseBlock", "BREWING_STAND").toUpperCase());
         try {
@@ -162,6 +164,11 @@ public class BombPlugin extends JavaPlugin {
         debug.log("BombBlock = " + BombBlock.toString());
         debug.log("BaseBlock = " + BaseBlock.toString());
         debug.log("Baseinv = " + Baseinv.toString());
+        
+        if (!getConfig().contains("BaseRadius")) {
+            getConfig().addDefault("BaseRadius", 3);
+        }
+        this.BaseRadius = getConfig().getInt("BaseRadius", 3);
         
         boolean b = getConfig().getBoolean("Debug", false);
         if (b) {
@@ -446,5 +453,9 @@ arenas:
     
     public CustomConfig getConfig(String x) {
         return this.manager.getNewConfig(x);
+    }
+
+    double getBaseRadius() {
+        return this.BaseRadius;
     }
 }
