@@ -33,7 +33,7 @@ public class DetonationTimer extends BukkitRunnable {
     int duration;
     Match match;
     InventoryOpenEvent event;
-    Player player;
+    Player planter;
     Location BOMB_LOCATION;
     boolean cancelled;
     
@@ -45,7 +45,7 @@ public class DetonationTimer extends BukkitRunnable {
         this.duration = plugin.getDetonationTime() + 1;
         this.event = e;
         this.match = m;
-        this.player = (Player) e.getPlayer();
+        this.planter = (Player) e.getPlayer();
         this.BOMB_LOCATION = loc;
         
     }
@@ -57,12 +57,12 @@ public class DetonationTimer extends BukkitRunnable {
         
         if (duration <= 0) {
             createExplosion(BOMB_LOCATION);
-            plugin.ti.addPlayerRecord(player.getName(), plugin.getFakeName(), "WIN");
+            plugin.ti.addPlayerRecord(planter.getName(), plugin.getFakeName(), "WIN");
             try {
-                ArenaTeam t = match.getArena().getTeam(player);
+                ArenaTeam t = match.getArena().getTeam(planter);
                 t.sendMessage(ChatColor.LIGHT_PURPLE
                         + "Congratulations, "
-                        + t.getTeamChatColor() + player.getName() + ChatColor.LIGHT_PURPLE
+                        + t.getTeamChatColor() + planter.getName() + ChatColor.LIGHT_PURPLE
                         + " has successfully destroyed the other teams base.");
                 match.setVictor(t);
             } catch (NullPointerException ex) {
@@ -88,8 +88,8 @@ public class DetonationTimer extends BukkitRunnable {
         return this.cancelled;
     }
     
-    public Player getPlayer() {
-        return this.player;
+    public Player getBombPlanter() {
+        return this.planter;
     }
 
     private void createExplosion(Location here) {
