@@ -322,7 +322,7 @@ public class BombArena extends Arena {
         // Get the coordinates to the base
         // calculate the distance to the base
         // if the distance is small, attempt to trigger onBombPlant()
-        if (plugin.bases.get(matchID).get(teamID).distance(eplayer.getLocation()) <= 15) {
+        if (plugin.bases.get(matchID).get(teamID).distance(eplayer.getLocation()) <= plugin.getBaseRadius()) {
             plugin.debug.sendMessage(eplayer, "Now attempting to plant the bomb.");
             InventoryType itype = plugin.getBaseinv();
             // ANVIL, BEACON, & DROPPER are not supported by openIventory()
