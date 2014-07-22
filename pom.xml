@@ -4,7 +4,7 @@
     <groupId>mc.euro</groupId>
     <artifactId>demolition</artifactId>
     <packaging>jar</packaging>
-    <version>1.1.4</version>
+    <version>1.1.5</version>
     <name>Demolition</name>
     <properties>
         <maven.build.timestamp.format>MMdd</maven.build.timestamp.format>
@@ -64,6 +64,12 @@
             <artifactId>officialplugin</artifactId>
             <version>2.6.3</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <!-- How we will compile the plugin -->

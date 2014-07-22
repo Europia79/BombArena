@@ -31,6 +31,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -148,8 +149,15 @@ public class BombArena extends Arena {
      */
     @ArenaEventHandler
     public void onBombCarrierLeave(ArenaPlayerLeaveEvent e) {
-        int id = getMatch().getID();
-        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
+        int matchID = getMatch().getID();
+        String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
+        plugin.debug.log("ArenaPlayerLeaveEvent has been called.");
+        if (e.getPlayer().getName().equalsIgnoreCase(c)) {
+            plugin.debug.log("onBombCarrierLeave() event detected.");
+            plugin.carriers.remove(matchID);
+            e.getPlayer().getInventory().remove(plugin.getBombBlock());
+            getTimedSpawns().get(1L).spawn();
+        }
         
     } // END OF ArenaPlayerLeaveEvent
     
@@ -185,15 +193,11 @@ public class BombArena extends Arena {
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
         Player p = e.getEntity().getPlayer();
         cancelTimer(p);
-        ArenaPlayer ap = new ArenaPlayer(p);
-        for (ArenaTeam t : getMatch().getTeams()) {
-            plugin.debug.log("team " + t.getIDString() + " isDead() = " + (t.getLeftPlayers().isEmpty()));
-            if (t.getLeftPlayers().isEmpty() && plugin.detTimers.containsKey(matchID)) {
-                // plugin.detTimers.get(matchID).endMatch();
-            }
-        }
-        // drop the bomb on the ground
-        if (c == null) {
+
+        // Don't drop the bomb if the DetonationTimer is running...
+        // Since the player won't even have it in their inventory.
+        // And since we don't want PlayerDropItemEvent to clear plugin.carriers
+        if (c == null || plugin.detTimers.containsKey(matchID)) {
             return;
         }
         if (p.getName().equals(c)) {
@@ -247,11 +251,13 @@ public class BombArena extends Arena {
                     e.getPlayer().getInventory().setHelmet(new ItemStack(Material.AIR));
                 }
                 // sets the carrier to null
-                plugin.carriers.remove(matchID);
-                // get all arena players inside this Match. 
-                // set their compass direction.
-                setCompass(loc);
-                msgAll(getMatch().getPlayers(), "The bomb has been dropped! Follow your compass.");
+                // as long as the DetonationTimer isn't running
+                if (!plugin.detTimers.containsKey(matchID)) {
+                    plugin.carriers.remove(matchID);
+                    setCompass(loc);
+                    msgAll(getMatch().getPlayers(), "The bomb has been dropped! Follow your compass.");
+                }
+
             } else {
                 plugin.getLogger().warning(""
                         + e.getPlayer().getName()
@@ -307,21 +313,35 @@ public class BombArena extends Arena {
      */
     @ArenaEventHandler
     public void onBombPlace(BlockPlaceEvent e) {
+        if (e.getBlockPlaced().getType() != plugin.getBombBlock()) return;
+        e.setCancelled(true);
+        e.getPlayer().updateInventory();
+        int matchID = getMatch().getID();
+        Player eplayer = e.getPlayer();
+        int teamID = getOtherTeam(eplayer).getId();
         // Get the coordinates to the base
         // calculate the distance to the base
         // if the distance is small, attempt to trigger onBombPlant()
+        if (plugin.bases.get(matchID).get(teamID).distance(eplayer.getLocation()) <= 15) {
+            plugin.debug.sendMessage(eplayer, "Now attempting to plant the bomb.");
+            InventoryType itype = plugin.getBaseinv();
+            // ANVIL, BEACON, & DROPPER are not supported by openIventory()
+            if (itype == InventoryType.ANVIL) itype = InventoryType.BREWING;
+            if (itype == InventoryType.BEACON) itype = InventoryType.BREWING;
+            if (itype == InventoryType.DROPPER) itype = InventoryType.HOPPER;
+            // triggers onBombPlantDefuse()
+            eplayer.openInventory(Bukkit.createInventory(eplayer, itype));
+        } else {
+            eplayer.sendMessage("Improper bomb activation! Follow your compass to find the other Team's base.");
+        }
+
         if (e.getBlockPlaced().getType() == plugin.getBombBlock()) {
             e.getPlayer().sendMessage("Improper bomb activation!");
-            
-            // get the other team's base location
-            // set the player compass
-            // and msg him to follow the compass
-            // e.getPlayer().getInventory().addItem(new ItemStack(plugin.BombBlock));
             e.setCancelled(true);
             // updateInventory() is deprecated
             // Must eventually find another solution.
             e.getPlayer().updateInventory();
-        }
+        } 
     } // END OF BlockPlaceEvent
     
     /**
@@ -554,9 +574,11 @@ public class BombArena extends Arena {
         plugin.bases.remove(matchID);
         
         if (plugin.pTimers.containsKey(matchID)) {
+            plugin.pTimers.get(matchID).cancel();
             plugin.pTimers.remove(matchID);
         }
         if (plugin.detTimers.containsKey(matchID)) {
+            plugin.detTimers.get(matchID).cancel();
             plugin.detTimers.remove(matchID);
         }
         plugin.defTimers.remove(matchID);
