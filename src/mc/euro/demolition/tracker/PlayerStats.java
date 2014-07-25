@@ -33,7 +33,7 @@ public class PlayerStats {
     }
     
     private void loadEnjin() {
-        this.enjin = Version.getPlugin("EnjinMinecraftPlugin");
+        this.enjin = Version.getVersion("EnjinMinecraftPlugin");
         if (enjin.isCompatible("2.6")) {
             plugin.getLogger().info("EnjinMinecraftPlugin found & enabled.");
         } else {
@@ -43,7 +43,7 @@ public class PlayerStats {
 
     private void loadTracker(String i) {
         Tracker t = (mc.alk.tracker.Tracker) Bukkit.getPluginManager().getPlugin("BattleTracker");
-        this.battletracker = Version.getPlugin("BattleTracker");
+        this.battletracker = Version.getVersion("BattleTracker");
         if (t != null){
             bt_enabled = true;
             tracker = Tracker.getInterface(i);

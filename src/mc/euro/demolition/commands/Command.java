@@ -32,7 +32,7 @@ public abstract class Command {
                 + " rs=300"
                 + " ds=" + time
                 + " 1";
-        Version v = Version.getPlugin("BattleArena");
+        Version v = Version.getVersion("BattleArena");
         String cmd = v.isCompatible("3.9.6.2") ? cmd1 : cmd2;
         return cmd;
     }

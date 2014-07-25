@@ -92,8 +92,8 @@ public class BombPlugin extends JavaPlugin {
         
         Version ba = new Version("BattleArena");
         debug.log("BattleArena version = " + ba.toString());
-        debug.log("BattleTracker version = " + Version.getPlugin("BattleTracker").toString());
-        debug.log("Enjin version = " + Version.getPlugin("EnjinMinecraftPlugin").toString());
+        debug.log("BattleTracker version = " + Version.getVersion("BattleTracker").toString());
+        debug.log("Enjin version = " + Version.getVersion("EnjinMinecraftPlugin").toString());
         // requires 3.9.7.3 or newer
         if (!ba.isCompatible("3.9.7.3")) {
             getLogger().severe("BombArena requires BattleArena v3.9.7.3 or newer.");
