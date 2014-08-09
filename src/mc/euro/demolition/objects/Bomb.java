@@ -28,13 +28,14 @@ public class Bomb implements Item {
     int pickupDelay;
     ItemStack bomb;
     Location loc;
+    UUID uuid;
     
     public Bomb(PlayerDeathEvent e) {
         this.plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("BombArena");
         pickupDelay = 0;
         bomb = new ItemStack(plugin.getBombBlock());
         loc = e.getEntity().getPlayer().getLocation();
-        
+        uuid = UUID.randomUUID();
     }
     
     public Bomb(PlayerDeathEvent e, int i) {
@@ -42,7 +43,7 @@ public class Bomb implements Item {
         pickupDelay = i;
         bomb = new ItemStack(plugin.getBombBlock());
         loc = e.getEntity().getPlayer().getLocation();
-        
+        uuid = UUID.randomUUID();
     }
     
 
@@ -203,7 +204,7 @@ public class Bomb implements Item {
 
     @Override
     public UUID getUniqueId() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return this.uuid;
     }
 
     @Override
