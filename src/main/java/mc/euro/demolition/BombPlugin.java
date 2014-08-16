@@ -15,7 +15,11 @@ import mc.alk.arena.util.SerializerUtil;
 import mc.euro.demolition.appljuze.ConfigManager;
 import mc.euro.demolition.appljuze.CustomConfig;
 import mc.euro.demolition.commands.BombExecutor;
+import mc.euro.demolition.commands.SndExecutor;
 import mc.euro.demolition.debug.*;
+import mc.euro.demolition.holograms.HologramInterface;
+import mc.euro.demolition.holograms.HologramsOff;
+import mc.euro.demolition.holograms.HologramsOn;
 import mc.euro.demolition.util.BaseType;
 import mc.euro.demolition.tracker.PlayerStats;
 import mc.euro.demolition.timers.DefuseTimer;
@@ -48,6 +52,7 @@ public class BombPlugin extends JavaPlugin {
      * 
      */
     public DebugInterface debug;
+    private HologramInterface hd; // HolographicDisplays
     public Map<Integer, String> carriers; // <matchID, playerName>
     public Map<Integer, Map<Integer, Location>> bases; // <matchID, <teamID, BaseLocation>>
     public Map<Integer, PlantTimer> pTimers; // <matchID, new PlantTimer(event, getMatch())>
@@ -90,10 +95,10 @@ public class BombPlugin extends JavaPlugin {
 
         debug = new DebugOn(this);
         
-        Version ba = new Version("BattleArena");
+        Version ba = Version.getPluginVersion("BattleArena");
         debug.log("BattleArena version = " + ba.toString());
-        debug.log("BattleTracker version = " + Version.getVersion("BattleTracker").toString());
-        debug.log("Enjin version = " + Version.getVersion("EnjinMinecraftPlugin").toString());
+        debug.log("BattleTracker version = " + Version.getPluginVersion("BattleTracker").toString());
+        debug.log("Enjin version = " + Version.getPluginVersion("EnjinMinecraftPlugin").toString());
         // requires 3.9.7.3 or newer
         if (!ba.isCompatible("3.9.7.3")) {
             getLogger().severe("BombArena requires BattleArena v3.9.7.3 or newer.");
@@ -115,7 +120,7 @@ public class BombPlugin extends JavaPlugin {
         // Database Tables: bt_Demolition_*
         setTracker(this.DatabaseTable);
 
-        // BattleArena.registerCompetition(this, "SndArena", "snd", SndArena.class, new SndExecutor());
+        BattleArena.registerCompetition(this, "SndArena", "snd", SndArena.class, new SndExecutor());
         BattleArena.registerCompetition(this, "BombArena", "bomb", BombArena.class, new BombExecutor());
         getServer().dispatchCommand(Bukkit.getConsoleSender(), "bomb stats top " + StartupDisplay);
 
@@ -169,6 +174,20 @@ public class BombPlugin extends JavaPlugin {
             getConfig().addDefault("BaseRadius", 3);
         }
         this.BaseRadius = getConfig().getInt("BaseRadius", 3);
+        
+        if (!getConfig().contains("ShowHolograms")) {
+            getConfig().addDefault("ShowHolograms", true);
+        }
+        boolean ShowHolograms = getConfig().getBoolean("ShowHolograms", true);
+        Version HD = Version.getPluginVersion("HolographicDisplays");
+        debug.log("HolographicDisplays version = " + HD.toString());
+        if (ShowHolograms && HD.isCompatible("1.8.4")) {
+            this.hd = new HologramsOn(this);
+            debug.log("Hologram support is enabled.");
+        } else {
+            this.hd = new HologramsOff();
+            debug.log("Hologram support is disabled.");
+        }
         
         boolean b = getConfig().getBoolean("Debug", false);
         if (b) {
@@ -457,5 +476,9 @@ arenas:
 
     double getBaseRadius() {
         return this.BaseRadius;
+    }
+    
+    public HologramInterface hd() {
+        return this.hd;
     }
 }

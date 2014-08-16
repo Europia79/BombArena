@@ -11,7 +11,7 @@ import mc.alk.arena.util.SerializerUtil;
 import mc.alk.tracker.objects.PlayerStat;
 import mc.alk.tracker.objects.Stat;
 import mc.alk.tracker.objects.StatType;
-import mc.euro.demolition.BombArena;
+import mc.euro.demolition.SndArena;
 import mc.euro.demolition.debug.DebugOff;
 import mc.euro.demolition.debug.DebugOn;
 import mc.euro.demolition.util.BaseType;
@@ -29,15 +29,15 @@ import org.bukkit.inventory.ItemStack;
  * All the /bomb commands and subcommands.
  * @author Nikolai
  */
-public class BombExecutor extends CustomCommandExecutor {
+public class SndExecutor extends CustomCommandExecutor {
     
     BombPlugin plugin;
     
-    public BombExecutor() {
+    public SndExecutor() {
         plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
     }
     
-    @MCCommand(cmds={"setbase"}, perm="bombarena.setbase", usage="setbase <arena> <teamID>")
+    @MCCommand(cmds={"setbase"}, perm="sndarena.setbase", usage="setbase <arena> <teamID>")
     public boolean setbase(Player sender, Arena arena, Integer i) {
         if (i < 1 || i > 2) {
             sender.sendMessage("Bomb arenas can only have 2 teams: 1 or 2");
@@ -61,10 +61,10 @@ public class BombExecutor extends CustomCommandExecutor {
 
     }
     
-    @MCCommand(cmds={"spawnbomb"}, perm="bombarena.spawnbomb", usage="spawnbomb <arena>")
+    @MCCommand(cmds={"spawnbomb"}, perm="sndarena.spawnbomb", usage="spawnbomb <arena>")
     public boolean spawnbomb(Player sender, String a) {
         plugin.debug.log("arena = " + a);
-        Arena arena =(BombArena) BattleArena.getArena(a);
+        Arena arena =(SndArena) BattleArena.getArena(a);
         if (arena == null) return false;
         Material bomb = plugin.getBombBlock();
         int matchTime = arena.getParams().getMatchTime();
@@ -83,7 +83,7 @@ public class BombExecutor extends CustomCommandExecutor {
         return false;
     }
     
-    @MCCommand(cmds={"stats"}, perm="bomb.stats", usage="stats")
+    @MCCommand(cmds={"stats"}, perm="snd.stats", usage="stats")
     public boolean stats(CommandSender sender) {
         if (sender instanceof ConsoleCommandSender) {
             sender.sendMessage("Invalid command syntax: Please specify a player name");
@@ -95,7 +95,7 @@ public class BombExecutor extends CustomCommandExecutor {
         return true;
     }
     
-    @MCCommand(cmds={"stats"}, perm="bomb.stats.other", usage="stats <player>")
+    @MCCommand(cmds={"stats"}, perm="snd.stats.other", usage="stats <player>")
     public boolean stats(CommandSender sender, OfflinePlayer p) {
         if (!plugin.ti.isEnabled()) {
             plugin.getLogger().warning("BattleTracker not found or turned off.");
@@ -121,7 +121,7 @@ public class BombExecutor extends CustomCommandExecutor {
      * Shows bomb arena stats for the command sender.
      * Example Usage: /bomb stats top 5
      */
-    @MCCommand(cmds={"stats"}, subCmds={"top"}, perm="bomb.stats.top", usage="stats top X")
+    @MCCommand(cmds={"stats"}, subCmds={"top"}, perm="snd.stats.top", usage="stats top X")
     public boolean stats(CommandSender cs, Integer n) {
             if (!plugin.ti.isEnabled()) {
                 plugin.getLogger().warning(ChatColor.AQUA + "BattleTracker not found or turned off.");
@@ -158,7 +158,7 @@ public class BombExecutor extends CustomCommandExecutor {
     }
     
     @MCCommand(cmds={"setconfig"}, subCmds={"bombblock"}, 
-            perm="bombarena.setconfig", usage="setconfig BombBlock <handItem>")
+            perm="sndarena.setconfig", usage="setconfig BombBlock <handItem>")
     public boolean setBombBlock(Player p) {
         ItemStack hand = p.getInventory().getItemInHand();
         if (hand == null) {
@@ -172,7 +172,7 @@ public class BombExecutor extends CustomCommandExecutor {
         return true;
     }
 
-    @MCCommand(cmds={"setconfig"}, subCmds={"baseblock"}, perm="bombarena.setconfig",
+    @MCCommand(cmds={"setconfig"}, subCmds={"baseblock"}, perm="sndarena.setconfig",
             usage="setconfig BaseBlock <handItem>")
     public boolean setBaseBlock(Player p) {
         ItemStack hand = p.getInventory().getItemInHand();
@@ -190,7 +190,7 @@ public class BombExecutor extends CustomCommandExecutor {
     }
     
     @MCCommand(cmds={"setconfig"}, subCmds={"databasetable"}, 
-            perm="bombarena.setconfig", usage="setconfig DatabaseTable <name>")
+            perm="sndarena.setconfig", usage="setconfig DatabaseTable <name>")
     public boolean setDatabaseTable(CommandSender sender, String table) {
         plugin.setDatabaseTable(table);
         sender.sendMessage("DatabaseTable has been set to " + table);
@@ -198,7 +198,7 @@ public class BombExecutor extends CustomCommandExecutor {
     }
     
     @MCCommand(cmds={"setconfig"}, subCmds={"fakename"}, 
-            perm="bombarena.setconfig", usage="setconfig FakeName <new name>")
+            perm="sndarena.setconfig", usage="setconfig FakeName <new name>")
     public boolean setFakeName(CommandSender sender, String[] name) {
         // name[] = "setconfig fakename args[2] args[3]"
         if (name.length <= 3) {
@@ -217,12 +217,12 @@ public class BombExecutor extends CustomCommandExecutor {
     }
     
     @MCCommand(cmds={"setconfig"}, subCmds={"changefakename"},
-            perm="bombarena.setconfig", usage="setconfig ChangeFakeName <name>")
+            perm="sndarena.setconfig", usage="setconfig ChangeFakeName <name>")
     public boolean setChangeFakeName(CommandSender sender, String name) {
         sender.sendMessage("This option has not been implemented.");
         return true;
     }
-    @MCCommand(cmds={"setconfig"}, perm="bombarena.setconfig", usage="setconfig <option> <integer>")
+    @MCCommand(cmds={"setconfig"}, perm="sndarena.setconfig", usage="setconfig <option> <integer>")
     public boolean setconfig(CommandSender sender, String option, Integer value) {
         Set<String> keys = plugin.getConfig().getKeys(false);
         for (String key : keys) {
@@ -238,14 +238,14 @@ public class BombExecutor extends CustomCommandExecutor {
         return false;
     }
     
-    @MCCommand(cmds={"listconfig"}, perm="bombarena.setconfig", usage="listconfig")
+    @MCCommand(cmds={"listconfig"}, perm="sndarena.setconfig", usage="listconfig")
     public boolean listconfig(CommandSender sender) {
         sender.sendMessage("Config options: " + plugin.getConfig().getKeys(false).toString());
         return true;
     }
     
     @MCCommand(cmds={"setconfig"}, subCmds={"debug"}, 
-            perm="bombarena.setconfig", usage="setconfig debug <true/false>")
+            perm="sndarena.setconfig", usage="setconfig debug <true/false>")
     public boolean setDebug(CommandSender sender, boolean b) {
         plugin.getConfig().set("Debug", (boolean) b);
         plugin.saveConfig();
@@ -258,7 +258,7 @@ public class BombExecutor extends CustomCommandExecutor {
      * Toggles debug mode ON / OFF.
      * Usage: /bomb debug
      */
-    @MCCommand(cmds={"debug"}, perm="bombarena.debug", usage="debug")
+    @MCCommand(cmds={"debug"}, perm="sndarena.debug", usage="debug")
     public boolean toggleDebug(CommandSender sender) {
         if (plugin.debug instanceof DebugOn) {
             plugin.debug = new DebugOff(plugin);
@@ -276,7 +276,7 @@ public class BombExecutor extends CustomCommandExecutor {
         return false;
     }
     
-    @MCCommand(cmds={"getname"}, perm="bombarena.setconfig", usage="getname <handItem>")
+    @MCCommand(cmds={"getname"}, perm="sndarena.setconfig", usage="getname <handItem>")
     public boolean getBlockName(Player p) {
         String name = p.getItemInHand().getType().name();
         p.sendMessage("You are holding " + name);

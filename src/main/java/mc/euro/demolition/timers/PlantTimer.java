@@ -7,6 +7,7 @@ import mc.alk.arena.objects.ArenaPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.ItemStack;
@@ -72,7 +73,7 @@ public class PlantTimer extends BukkitRunnable {
             
             player.closeInventory();
         }
-
+        player.playSound(player.getLocation(), Sound.ARROW_HIT, 1F, 1F);
     }
     
     public void setCancelled(boolean x) {

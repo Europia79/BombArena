@@ -42,6 +42,7 @@ DetonationTime: 35
 DefuseTime: 8
 BombBlock: TNT
 BaseBlock: BREWING_STAND
+BaseRadius: 3
 FakeName: Bombs Planted Defused
 ChangeFakeName: Not Implemented
 MaxDamage: 50
@@ -49,4 +50,5 @@ DeltaDamage: 5
 DamageRadius: 9
 StartupDisplay: 3
 DatabaseTable: Demolition
+ShowHolograms: true
 Debug: false
