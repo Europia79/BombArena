@@ -98,7 +98,7 @@
             <resource>
                 <targetPath>.</targetPath>
                 <filtering>true</filtering>
-                <directory>${basedir}/src</directory>
+                <directory>${basedir}/src/main/java</directory>
                 <includes>
                     <include>*.yml</include>
                 </includes>
