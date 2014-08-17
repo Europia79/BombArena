@@ -86,6 +86,12 @@ public class VersionTest extends TestCase
         expected = false;
         result = instance.isCompatible(minVersion);
         assertEquals(expected, result);
+        
+        minVersion = "1_7_R4";
+        instance = new Version("1_7_R5");
+        expected = true;
+        result = instance.isCompatible(minVersion);
+        assertEquals(expected, result);
     }
 
     public void testIsSupported() {

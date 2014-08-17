@@ -21,7 +21,7 @@ public class Version implements Comparable<String> {
     
     Plugin plugin;
     final String version;
-    String separator = "[.-]";
+    String separator = "[_.-]";
 
     public Version(String version) {
         this.version = version;
