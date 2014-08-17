@@ -318,7 +318,7 @@ public class BombArena extends Arena {
                         @Override
                         public void run() {
                             ticks = ticks + 1;
-                            if (ticks >= 25) {
+                            if (ticks >= 30) {
                                 cancel();
                                 return;
                             }
@@ -345,18 +345,18 @@ public class BombArena extends Arena {
         Location exact_loc = e.getLocation();
         List<Entity> entities = e.getNearbyEntities(15.0, 50.0, 15.0);
         for (Entity entity : entities) {
-            System.out.println("" + entity.getType().toString() + " : " + entity.toString());
+            plugin.debug.log("" + entity.getType().toString() + " : " + entity.toString());
             if (entity.getType() == EntityType.DROPPED_ITEM) {
-                System.out.println("Dropped Item found!");
+                plugin.debug.log("Dropped Item found!");
                 Item item = null;
                 try {
                     item = (Item) entity;
                 } catch (ClassCastException ex) {
-                    System.out.println("ClassCastException");
+                    plugin.debug.log("ClassCastException");
                     continue;
                 }
                 if (item.getItemStack().getType() == plugin.getBombBlock()) {
-                    System.out.println("Exact Bomb Location found!");
+                    plugin.debug.log("Exact Bomb Location found!");
                     exact_loc = item.getLocation();
                 }
             }
