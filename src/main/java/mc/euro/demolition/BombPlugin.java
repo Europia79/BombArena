@@ -181,7 +181,7 @@ public class BombPlugin extends JavaPlugin {
         boolean ShowHolograms = getConfig().getBoolean("ShowHolograms", true);
         Version HD = Version.getPluginVersion("HolographicDisplays");
         debug.log("HolographicDisplays version = " + HD.toString());
-        if (ShowHolograms && HD.isCompatible("1.8.4")) {
+        if (ShowHolograms && HD.isCompatible("1.8.5")) {
             this.hd = new HologramsOn(this);
             debug.log("Hologram support is enabled.");
         } else {
