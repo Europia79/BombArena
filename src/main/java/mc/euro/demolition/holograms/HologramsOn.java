@@ -20,7 +20,7 @@ public class HologramsOn extends HoloManager implements HologramInterface {
     
     @Override
     public int createBaseHologram(Location loc) {
-        Location center = loc.add(0.5, 1.2, 0.5);
+        Location center = loc.clone().add(0.5, 1.2, 0.5);
         Hologram hologram = HolographicDisplaysAPI.createHologram(plugin, center, "Target");
         int hologramID = addHologram(hologram);
         return hologramID;
@@ -28,14 +28,15 @@ public class HologramsOn extends HoloManager implements HologramInterface {
 
     @Override
     public int createBombHologram(Location loc) {
-        Hologram hologram = HolographicDisplaysAPI.createHologram(plugin, loc.add(0.0, 0.4, 0.0), "Bomb");
+        Location center = loc.clone().add(0.0, 0.4, 0.0);
+        Hologram hologram = HolographicDisplaysAPI.createHologram(plugin, center, "Bomb");
         int hologramID = addHologram(hologram);
         return hologramID;
     }
     
     @Override
     public void teleport(int id, Location loc) {
-        getHologram(id).teleport(loc.add(0.0, 0.4, 0.0));
+        getHologram(id).teleport(loc.clone().add(0.0, 0.4, 0.0));
     }
     
     @Override
