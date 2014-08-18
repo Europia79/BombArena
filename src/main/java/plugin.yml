@@ -5,7 +5,7 @@ website: http://battleplugins.com/
 description: Call of Duty Sabotage gamemode & SND rule-set, both with one bomb and two bases.
 authors: [Europia79]
 depend: [BattleArena]
-softdepend: [HolographicDisplays,BattleTracker,EnjinMinecraftPlugin]
+softdepend: [HolographicDisplays,HoloAPI,BattleTracker,EnjinMinecraftPlugin]
 prefix: BombArena
 commands:
     bomb:

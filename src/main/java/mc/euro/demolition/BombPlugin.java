@@ -19,12 +19,13 @@ import mc.euro.demolition.commands.SndExecutor;
 import mc.euro.demolition.debug.*;
 import mc.euro.demolition.holograms.HologramInterface;
 import mc.euro.demolition.holograms.HologramsOff;
-import mc.euro.demolition.holograms.HologramsOn;
-import mc.euro.demolition.util.BaseType;
-import mc.euro.demolition.tracker.PlayerStats;
+import mc.euro.demolition.holograms.HolographicAPI;
+import mc.euro.demolition.holograms.HolographicDisplay;
 import mc.euro.demolition.timers.DefuseTimer;
 import mc.euro.demolition.timers.DetonationTimer;
 import mc.euro.demolition.timers.PlantTimer;
+import mc.euro.demolition.tracker.PlayerStats;
+import mc.euro.demolition.util.BaseType;
 import mc.euro.demolition.util.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -180,10 +181,13 @@ public class BombPlugin extends JavaPlugin {
         }
         boolean ShowHolograms = getConfig().getBoolean("ShowHolograms", true);
         Version HD = Version.getPluginVersion("HolographicDisplays");
+        Version Holoapi = Version.getPluginVersion("HoloAPI");
         debug.log("HolographicDisplays version = " + HD.toString());
         if (ShowHolograms && HD.isCompatible("1.8.5")) {
-            this.hd = new HologramsOn(this);
+            this.hd = new HolographicDisplay(this);
             debug.log("Hologram support is enabled.");
+        } else if (ShowHolograms && Holoapi.isEnabled()) {
+            this.hd = new HolographicAPI(this);
         } else {
             this.hd = new HologramsOff();
             debug.log("Hologram support is disabled.");

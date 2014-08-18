@@ -38,6 +38,10 @@
             <id>kitteh-repo</id>
             <url>http://repo.kitteh.org/content/repositories/public/</url>
         </repository>
+        <repository>
+            <id>hawk-repo</id>
+            <url>http://ci.hawkfalcon.com/plugin/repository/everything/</url>
+        </repository>
     </repositories>
     <!-- Dependencies -->
     <dependencies>
@@ -65,6 +69,11 @@
             <artifactId>holograms</artifactId>
             <version>1.8.5</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dsh105</groupId>
+            <artifactId>HoloAPI</artifactId>
+            <version>1.2.3</version>
         </dependency>
         <dependency>
             <groupId>unknown.plugins</groupId>
