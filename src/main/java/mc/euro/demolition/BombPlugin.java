@@ -183,11 +183,13 @@ public class BombPlugin extends JavaPlugin {
         Version HD = Version.getPluginVersion("HolographicDisplays");
         Version Holoapi = Version.getPluginVersion("HoloAPI");
         debug.log("HolographicDisplays version = " + HD.toString());
+        debug.log("HoloAPI version = " + Holoapi.toString());
         if (ShowHolograms && HD.isCompatible("1.8.5")) {
             this.hd = new HolographicDisplay(this);
-            debug.log("Hologram support is enabled.");
+            debug.log("HolographicDisplays support is enabled.");
         } else if (ShowHolograms && Holoapi.isEnabled()) {
             this.hd = new HolographicAPI(this);
+            debug.log("HoloAPI support is enabled.");
         } else {
             this.hd = new HologramsOff();
             debug.log("Hologram support is disabled.");
