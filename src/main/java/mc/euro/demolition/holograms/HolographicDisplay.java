@@ -9,11 +9,11 @@ import org.bukkit.plugin.Plugin;
  *
  * @author Nikolai
  */
-public class HologramsOn extends HoloManager implements HologramInterface {
+public class HolographicDisplay extends HoloManager implements HologramInterface {
     
     Plugin plugin;
     
-    public HologramsOn(Plugin plugin) {
+    public HolographicDisplay(Plugin plugin) {
         super();
         this.plugin = plugin;
     }
