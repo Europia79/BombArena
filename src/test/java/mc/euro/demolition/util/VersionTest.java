@@ -1,7 +1,10 @@
 package mc.euro.demolition.util;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static junit.framework.Assert.assertEquals;
@@ -9,7 +12,7 @@ import static junit.framework.Assert.fail;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bukkit.plugin.Plugin;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Unit test for simple App.
@@ -111,23 +114,40 @@ public class VersionTest extends TestCase
     
     public void testCompareTo() {
         System.out.println("compareTo");
-        String whichVersion = "1.3.6-b122";
+        Version whichVersion = new Version("1.3.6-b122");
         Version instance = new Version("1.3.6-b122");
         int expected = 0;
         int result = instance.compareTo(whichVersion);
         assertEquals(expected, result);
         
-        System.out.println("compareTo");
-        whichVersion = "1.3.6-b121-SNAPSHOT";
+        whichVersion = new Version("1.3.6-b121-SNAPSHOT");
         instance = new Version("1.3.6-b122");
         expected = 1;
         result = instance.compareTo(whichVersion);
         assertEquals(expected, result);
         
-        whichVersion = "1.3.6-b123";
+        whichVersion = new Version("1.3.6-b123");
         instance = new Version("1.3.6-b122");
         expected = -1;
         result = instance.compareTo(whichVersion);
+        assertEquals(expected, result);
+        
+        whichVersion = new Version("1.9");
+        instance = new Version("1.5");
+        expected = -4;
+        result = instance.compareTo(whichVersion);
+        assertEquals(expected, result);
+        
+        whichVersion = new Version("1.5");
+        instance = new Version("1.9");
+        expected = 4;
+        result = instance.compareTo(whichVersion);
+        assertEquals(expected, result);
+        
+        whichVersion = new Version("1.2.0");
+        instance = new Version("1.2");
+        result = instance.compareTo(whichVersion);
+        expected = 0;
         assertEquals(expected, result);
     }
     
@@ -179,5 +199,44 @@ public class VersionTest extends TestCase
         String expected = version;
         String result = instance.toString();
         assertEquals(expected, result);
+    }
+    
+    public void testSort() {
+        System.out.println("Random Versions:");
+        List<Version> versions = new ArrayList<Version>();
+        for (int j = 0; j < 25; j++) {
+            Version temp = newRandomVersion();
+            versions.add(temp);
+            System.out.println("" + j + " " + temp.toString());
+        }
+        Collections.sort(versions);
+        System.out.println("Sorted Versions: (ascending)");
+        for (int k = 0; k < 24; k++) {
+            Version ver = versions.get(k);
+            Version next = versions.get(k + 1);
+            System.out.println("" + k + " " + ver.toString());
+            assertTrue(ver.compareTo(next) <= 0);
+        }
+        Collections.reverse(versions);
+        System.out.println("Sorted Versions: (descending)");
+        for (int k = 0; k < 24; k++) {
+            Version ver = versions.get(k);
+            Version next = versions.get(k + 1);
+            System.out.println("" + k + " " + ver.toString());
+            assertTrue(ver.compareTo(next) >= 0);
+        }
+        
+    }
+    
+    private Version newRandomVersion() {
+        Random random = new Random();
+        int length = random.nextInt(5) + 1;
+        String[] versionArray = new String[length];
+        for (int index = 0; index < length; index = index + 1) {
+            int temp = random.nextInt(9);
+            versionArray[index] = String.valueOf(temp);
+        }
+        String version = StringUtils.join(versionArray, '.');
+        return new Version(version);
     }
 }
