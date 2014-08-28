@@ -7,24 +7,28 @@ import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 
 /**
- * The Version object: Capable of asking the important question: <br/><br/>
+ * The Version object: Capable of asking the important questions:. <br/><br/>
  * 
- * Is the version that's currently installed & running on the server compatible with a specified version ? <br/><br/>
+ * Is the version that's currently installed on the server compatible/supported with a specified version ? <br/><br/>
  * 
  * isCompatible(): Is the installed version greater than or equal to the minimum required version ? <br/><br/>
  * 
  * isSupported(): Is the installed version less than or equal to the maximum required version ? <br/><br/>
  * 
- * @author Europia79, BigTeddy98, Tux2
+ * @author Europia79, BigTeddy98, Tux2, DSH105
  */
-public class Version implements Comparable<String> {
+public class Version implements Comparable<Version> {
     
-    Plugin plugin;
+    final Plugin plugin;
     final String version;
     String separator = "[_.-]";
 
+    /**
+     * Factory methods getPluginVersion(), getServerVersion(), getNmsVersion() available for convenience. <br/>
+     */
     public Version(String version) {
         this.version = version;
+        this.plugin = null;
     }
     
     public Version(Server server) {
@@ -37,18 +41,30 @@ public class Version implements Comparable<String> {
         this.version = (plugin == null) ? null : plugin.getDescription().getVersion();
     }
     
+    /**
+     * Factory method used when you want to construct a Version object via a Plugin object. <br/>
+     */
     public static Version getPluginVersion(Plugin plugin) {
         return new Version(plugin);
     }
     
+    /**
+     * Factory method used when you want to construct a Version object via pluginName. <br/>
+     */
     public static Version getPluginVersion(String pluginName) {
         return new Version(Bukkit.getPluginManager().getPlugin(pluginName));
     }
     
+    /**
+     * Factory method to conveniently construct a Version object of the server. <br/>
+     */
     public static Version getServerVersion() {
         return new Version(Bukkit.getServer());
     }
     
+    /**
+     * Factory method to conveniently construct a Version object of net.minecraft.server.v1_X_RY package. <br/>
+     */
     public static Version getNmsVersion() {
         String NMS = null;
             try {
@@ -74,11 +90,11 @@ public class Version implements Comparable<String> {
     
     /**
      * @param minVersion - The absolute minimum version that's required to achieve compatibility.
-     * @return Greater than or equal to will return true. Otherwise, false.
+     * @return Return true, if the currently running/installed version is greater than or equal to minVersion.
      */
     public boolean isCompatible(String minVersion) {
         if (!this.isEnabled()) return false;
-        int x = compareTo(minVersion);
+        int x = compareTo(new Version(minVersion));
         if (x >= 0) {
             return true;
         } 
@@ -87,11 +103,11 @@ public class Version implements Comparable<String> {
     
     /**
      * @param maxVersion - The absolute maximum version that's supported.
-     * @return Less than or equal to will return true. Otherwise, false.
+     * @return Return true, if the currently running/installed version is less than or equal to maxVersion.
      */
     public boolean isSupported(String maxVersion) {
         if (!this.isEnabled()) return false;
-        int x = compareTo(maxVersion);
+        int x = compareTo(new Version(maxVersion));
         if (x <= 0) {
             return true;
         }
@@ -99,24 +115,20 @@ public class Version implements Comparable<String> {
     }
 
     @Override
-    public int compareTo(String whichVersion) {
+    public int compareTo(Version whichVersion) {
         int[] currentVersion = parseVersion(this.version);
-        int[] otherVersion = parseVersion(whichVersion);
+        int[] otherVersion = parseVersion(whichVersion.toString());
         int length = (currentVersion.length >= otherVersion.length) ? currentVersion.length : otherVersion.length;
         for (int index = 0; index <= (length - 1); index = index + 1) {
             try {
                 if (currentVersion[index] != otherVersion[index]) {
-                    if (currentVersion[index] > otherVersion[index]) {
-                        return 1;
-                    } else {
-                        return -1;
-                    }
+                    return currentVersion[index] - otherVersion[index];
                 }
             } catch (IndexOutOfBoundsException ex) {
                 if (currentVersion.length > otherVersion.length) {
-                    return 1;
+                    return currentVersion[index] - 0;
                 } else if (currentVersion.length < otherVersion.length) {
-                    return -1;
+                    return 0 - otherVersion[index];
                 }
             }
         }
