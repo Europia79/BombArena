@@ -86,7 +86,7 @@ public class BombArena extends Arena {
             plugin.debug.log("MatchStartEvent spawn key : " + key.toString());
             if (key == 1L) {
                 Location loc = matchSpawns.get(key).getSpawn().getLocation();
-                int hologramID = plugin.hd().createBombHologram(loc);
+                int hologramID = plugin.holograms().createBombHologram(loc);
                 holograms.put(matchID, hologramID);
 
                 setCompass(loc);
@@ -165,8 +165,8 @@ public class BombArena extends Arena {
                 Location base_loc = plugin.bases.get(matchID).get(teamID);
                 setCompass(base_loc);
                 int hologramID = holograms.get(matchID);
-                plugin.hd().removeHologram(hologramID);
-                hologramID = plugin.hd().createBaseHologram(base_loc);
+                plugin.holograms().removeHologram(hologramID);
+                hologramID = plugin.holograms().createBaseHologram(base_loc);
                 holograms.put(matchID, hologramID);
                 msgAll(team2.getPlayers(), "Hurry back to defend your base from being destroyed!");
                 msgAll(getMatch().getArena().getTeam(e.getPlayer()).getPlayers(), 
@@ -307,9 +307,10 @@ public class BombArena extends Arena {
                     plugin.carriers.remove(matchID);
                     msgAll(getMatch().getPlayers(), "The bomb has been dropped! Follow your compass.");
                     
+                    final Item ibomb = e.getItemDrop();
                     Location loc = exact(player);
-                    plugin.hd().removeHologram(holograms.get(matchID));
-                    final int hologramID = plugin.hd().createBombHologram(loc);
+                    plugin.holograms().removeHologram(holograms.get(matchID));
+                    final int hologramID = plugin.holograms().createBombHologram(loc);
                     holograms.put(matchID, hologramID);
                     
                     BukkitTask task = new BukkitRunnable() {
@@ -318,20 +319,24 @@ public class BombArena extends Arena {
                         @Override
                         public void run() {
                             ticks = ticks + 1;
-                            if (ticks >= 30) {
+                            if (ticks >= 100) {
                                 cancel();
                                 return;
                             }
                             Location exact = exact(player);
-                            plugin.hd().teleport(hologramID, exact);
+                            System.out.println("" + ticks + " y=" + ibomb.getLocation().getY());
+                            plugin.holograms().teleport(hologramID, ibomb.getLocation());
                             setCompass(exact);
+                            if (ibomb.isOnGround()) {
+                                ticks = ticks + 10;
+                            }
                         }
                     }.runTaskTimer(plugin, 1L, 1L);
                 }
             } else {
                 plugin.getLogger().warning(""
                         + e.getPlayer().getName()
-                        + "has tried to drop the bomb without ever picking it up. "
+                        + " has tried to drop the bomb without ever picking it up. "
                         + "Are they cheating / exploiting ? Or is this a bug ? "
                         + "Please investigate this incident and if it's a bug, then "
                         + "notify Europia79 via hotmail, Bukkit, or github.");
@@ -343,7 +348,7 @@ public class BombArena extends Arena {
     
     public Location exact(Entity e) {
         Location exact_loc = e.getLocation();
-        List<Entity> entities = e.getNearbyEntities(15.0, 50.0, 15.0);
+        List<Entity> entities = e.getNearbyEntities(20.0, 50.0, 20.0);
         for (Entity entity : entities) {
             plugin.debug.log("" + entity.getType().toString() + " : " + entity.toString());
             if (entity.getType() == EntityType.DROPPED_ITEM) {
@@ -564,6 +569,7 @@ public class BombArena extends Arena {
             // if this is an actual death or drop then those Events 
             // will handle setting the carrier to null
             plugin.pTimers.get(matchID).setCancelled(true);
+            plugin.pTimers.remove(matchID);
         }
     }
     
@@ -663,7 +669,7 @@ public class BombArena extends Arena {
         int matchID = e.getMatch().getID();
         if (holograms.containsKey(matchID)) {
             int hologramID = holograms.get(matchID);
-            plugin.hd().removeHologram(hologramID);
+            plugin.holograms().removeHologram(hologramID);
         }
     }
     
