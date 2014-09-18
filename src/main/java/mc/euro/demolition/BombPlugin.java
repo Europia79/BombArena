@@ -30,6 +30,7 @@ import mc.euro.demolition.util.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
@@ -53,7 +54,7 @@ public class BombPlugin extends JavaPlugin {
      * 
      */
     public DebugInterface debug;
-    private HologramInterface hd; // HolographicDisplays
+    private HologramInterface holograms; // HolographicDisplays + HoloAPI
     public Map<Integer, String> carriers; // <matchID, playerName>
     public Map<Integer, Map<Integer, Location>> bases; // <matchID, <teamID, BaseLocation>>
     public Map<Integer, PlantTimer> pTimers; // <matchID, new PlantTimer(event, getMatch())>
@@ -73,6 +74,7 @@ public class BombPlugin extends JavaPlugin {
     private int PlantTime;
     private int DetonationTime;
     private int DefuseTime;
+    private Sound TimerSound;
     private Material BombBlock;
     private Material BaseBlock;
     private InventoryType Baseinv;
@@ -95,6 +97,7 @@ public class BombPlugin extends JavaPlugin {
         saveDefaultConfig();
 
         debug = new DebugOn(this);
+        loadDefaultConfig();
         
         Version ba = Version.getPluginVersion("BattleArena");
         debug.log("BattleArena version = " + ba.toString());
@@ -116,8 +119,6 @@ public class BombPlugin extends JavaPlugin {
         detTimers = new HashMap<Integer, DetonationTimer>();
         defTimers = new HashMap<Integer, Map<String, DefuseTimer>>();
 
-        loadDefaultConfig();
-
         // Database Tables: bt_Demolition_*
         setTracker(this.DatabaseTable);
 
@@ -136,14 +137,30 @@ public class BombPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         saveConfig();
+        cancelAndClearTimers();
     }
 
     public void loadDefaultConfig() {
+        
+        boolean b = getConfig().getBoolean("Debug", false);
+        if (b) {
+            debug = new DebugOn(this);
+            getLogger().info("Debugging mode is ON");
+        } else {
+            debug = new DebugOff(this);
+            getLogger().info("Debugging mode is OFF.");
+        }
 
         getLogger().info("Loading config.yml");
         PlantTime = getConfig().getInt("PlantTime", 8);
         DetonationTime = getConfig().getInt("DetonationTime", 35);
         DefuseTime = getConfig().getInt("DefuseTime", 1);
+        String s = getConfig().getString("TimerSound", "LEVEL_UP");
+        try {
+            TimerSound = Sound.valueOf(s.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            this.TimerSound = Sound.ORB_PICKUP;
+        }
         BombBlock = Material.getMaterial(
                 getConfig().getString("BombBlock", "TNT").toUpperCase());
         BaseBlock = Material.valueOf(
@@ -185,32 +202,26 @@ public class BombPlugin extends JavaPlugin {
         debug.log("HolographicDisplays version = " + HD.toString());
         debug.log("HoloAPI version = " + Holoapi.toString());
         if (ShowHolograms && HD.isCompatible("1.8.5")) {
-            this.hd = new HolographicDisplay(this);
+            this.holograms = new HolographicDisplay(this);
             debug.log("HolographicDisplays support is enabled.");
         } else if (ShowHolograms && Holoapi.isEnabled()) {
-            this.hd = new HolographicAPI(this);
+            this.holograms = new HolographicAPI(this);
             debug.log("HoloAPI support is enabled.");
         } else {
-            this.hd = new HologramsOff();
+            this.holograms = new HologramsOff();
             debug.log("Hologram support is disabled.");
-        }
-        
-        boolean b = getConfig().getBoolean("Debug", false);
-        if (b) {
-            debug = new DebugOn(this);
-        } else {
-            debug = new DebugOff(this);
+            debug.log("Please download HoloAPI or HolographicDisplays to enable Hologram support.");
         }
     }
 
     /**
      * Requires BattleArena versions 3.9.7.3 or newer. <br/><br/>
-     * <pre>
+     * <pre> {@literal
      * version - behavior 
      * 
-     * +397300 - Map<Integer, List<SpawnLocation>> locs = SerializerUtil.parseLocations(cs);
-     * -397000 - Map<Integer, Location> locs = SerializerUtil.parseLocations(cs);
-     * </pre>
+     * +3.9.7.3 - Map<Integer, List<SpawnLocation>> locs = SerializerUtil.parseLocations(cs);
+     * -3.9.7   - Map<Integer, Location> locs = SerializerUtil.parseLocations(cs);
+     * }</pre>
      */
     public List<Location> getBases(String arenaName) {
         // bases.yml
@@ -231,15 +242,18 @@ public class BombPlugin extends JavaPlugin {
             debug.log("getBases() cs = " + cs.toString());
             debug.log("getBases() map = " + locs.toString());
             List<Location> temp = new ArrayList<Location>();
-            for (List<SpawnLocation> spawn : locs.values()) {
-                debug.log("getBases(String arenaName) location = " + spawn.get(0).getLocation().toString());
-                temp.add(spawn.get(0).getLocation());
+            for (List<SpawnLocation> spawnlist : locs.values()) {
+                for (SpawnLocation spawn : spawnlist) {
+                    debug.log("getBases(String arenaName) location = " + spawn.getLocation().toString());
+                    temp.add(spawn.getLocation());
+                }
+                // temp.add(spawnlist.get(0).getLocation());
             }
             debug.log("getBases(String arenaName) size of returning List = " + temp.size());
             return temp;
         }
         getLogger().severe("BombPlugin:getBases(String ArenaName) has failed to return a List of Locations.");
-        return null;
+        return new ArrayList();
     }
     
     public Location getBaseLocation(int matchID, int teamID) {
@@ -254,7 +268,7 @@ public class BombPlugin extends JavaPlugin {
      * @param loc This is the location of their own base. (NOT the enemy base).
      */
     public Location getExactLocation(Location loc) {
-        int length = 10;
+        int length = 4;
         Location base_loc = null;
         this.debug.log("Location loc = " + loc.toString());
 
@@ -363,7 +377,8 @@ arenas:
         if (amap.isEmpty()) return;
         for (Arena arena : amap.values()) {
             if (arena.getTimedSpawns() == null) continue;
-            if (arena.getArenaType().getName().equalsIgnoreCase("BombArena")
+            if ((arena.getArenaType().getName().equalsIgnoreCase("BombArena") 
+                    || arena.getArenaType().getName().equalsIgnoreCase("SndArena")) 
                     && arena.getTimedSpawns().containsKey(1L)) {
                 Map<Long, TimedSpawn> tmap = arena.getTimedSpawns();
                 Location loc = tmap.get(1L).getSpawn().getLocation();
@@ -484,7 +499,33 @@ arenas:
         return this.BaseRadius;
     }
     
-    public HologramInterface hd() {
-        return this.hd;
+    public HologramInterface holograms() {
+        return this.holograms;
+    }
+
+    private void cancelAndClearTimers() {
+        for (PlantTimer timer : pTimers.values()) {
+            timer.cancel();
+        }
+        pTimers.clear();
+        pTimers = null;
+        for (DetonationTimer timer : detTimers.values()) {
+            timer.cancel();
+        }
+        detTimers.clear();
+        detTimers = null;
+        // Map <Integer matchID, Map<String playerName, DefuseTimer>>
+        for (Integer matchID : defTimers.keySet()) {
+            for (DefuseTimer timer : defTimers.get(matchID).values()) {
+                timer.cancel();
+            }
+            defTimers.get(matchID).clear();
+        }
+        defTimers.clear();
+        defTimers = null;
+    }
+    
+    public Sound getSound() {
+        return TimerSound;
     }
 }
