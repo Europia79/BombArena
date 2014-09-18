@@ -1,73 +1,88 @@
 BattleArena Demolition
 ======
-Bukkit plugin that adds the Demolition game type to
-Minecraft servers running BattleArena (dependency).
+Bukkit plugin that adds the Call of Duty game modes (Sabotage & SND) 
+to Minecraft servers.
 
 
-Demolition - There is one bomb in the middle of the map.
-There are two teams each with their own base. 
-There are three ways to win: 1. Eliminate the other team. 
-2. Pickup the bomb and destroy the other teams base. 
-3. Protect your own base by defusing the bomb before it 
-detonates.
-
-
-Concept to Implementation
----
-So the initial question is 
-"How do we implement this in Minecraft ?" and 
-What mechanics & system will we use ?
-
-
-First, I observed that breaking a block naturally 
-takes a few seconds to perform... So this is a very good 
-mechanism to use for defusing the bomb because we don't 
-have to use system resources for a timer here. Notable blocks 
-that are good to use: Brick + Nether Brick which both take 10 seconds 
-to destroy, Hardened Clay at 7 seconds, and Logs at about 4 to 5 seconds. 
-Altho, I might change this in the future (so the timing is less restrictive 
-and more customizable).
-
-
-However, placing a block is instaneous... and most Shooter games 
-that I've played require about 5 to 8 seconds in order to plant 
-the bomb. So what I'll probably do... is have two brewing stands... 
-Each brewing stand will symbolize the position of a base... and 
-it'll be the exact spot where you plant the bomb. When a player attempts 
-to plant the bomb, the brew inventory will stay open until the bomb 
-is planted (5 to 8 sec) then close. At which point, it'll turn into a bomb block that opposing 
-players can break to defuse. (Please let me know if you have other ideas 
-for how this can work).
-
-
-Like most shooter games, if the bomb carrier dies... or throws the bomb on 
-the ground, then we want some kind of way to let all the players know where the 
-bomb is located. Easiest option will be via a compass. But I also want to 
-add some kind of visual aid.
-
-
-Changes:
+- **Demolition**
+  * this word describes a group of construction workers that demolish a building.
+  * SOCOM game mode similar to Sabotage in Call of Duty.
+  * This plugin was inspired by SOCOM: US Navy Seals.
+- **Sabotage**
+  * There is one bomb in the middle of the map.
+  * There are two teams each wtih their own base.
+  * There are three ways to win:
+    - Eliminate the other team.
+    - Pickup the bomb and destroy the other teams base.
+    - Protect your own base by defusing the bomb before it detonates.
+  * use the `/bomb` command to join/create arenas.
+- **Search N Destroy (SND)**
+  * There are two teams: attackers & defenders.
+  * The team closest the bomb is designated as the attacking team.
+  * The defenders cannot pickup the bomb.
+  * There are one of more objectives (bases) to destroy/defend.
+  * There are four ways to win:
+    - Eliminate the other team.
+    - Attackers can win by picking up the bomb and destroying an objective.
+    - Defenders can win by defusing the bomb.
+    - Defenders can win by letting time expire.
+  * use the `/snd` command to join/create arenas.
+  
+  
+Downloads:
 ---
 
-Unfortunately, when I tested the original concept and implementation for breaking 
-the bomb block in order to defuse it, it was flawed. Breaking one block is fine, 
-but when I tested the breaking of multiple blocks, I found that the time 
-required to break X number of blocks varied from client to client. For example, 
-it took me 8.6 seconds to destroy 35 TNT while it took another player over 
-15 seconds to destroy the same 35 TNT. Probably due to latency. This is 
-unacceptable because it gives players with a good connection an unfair advantage, 
-and it penalizes players with a bad connection (unfair).
+**Official builds**
 
-This is why bomb defusal mechanics have changed. Bomb Defusal now works exactly like 
-Planting the bomb: simply interact with the Base Block.
+You can find the official builds at dev.bukkit.org .The source code for these builds 
+have been checked to make sure that they do NOT contain any malicious code. 
 
-Multiple players can attempt to defuse the bomb at the same time, 
-but it does NOT speed up the defusal process. The first player to reach 
-zero on their defusal timer is given credit for defusing the bomb.
+[http://dev.bukkit.org/bukkit-plugins/bombarena/] (http://dev.bukkit.org/bukkit-plugins/bombarena/ "Official builds")
+
+
+**Development builds**
+
+```python
+"Development builds of this project can be acquired at the provided continuous integration server."
+"These builds have not been approved by the BukkitDev staff. Use them at your own risk."
+```
+
+[http://ci.battleplugins.com/job/BombArena/](http://ci.battleplugins.com/job/BombArena/ "dev builds")
+
+The dev builds are primarily for testing purposes.
+
+Dependencies:
+---
+
+- **Bukkit API**
+  * https://github.com/Bukkit/Bukkit
+  * Requires Spigot, Craftbukkit, or any other server software that implements the Bukkit API.
+- **BattleArena**
+  * http://dev.bukkit.org/bukkit-plugins/battlearena/
+  * Demolition plugin is just a game-type addition to BattleArena.
+- **BattleTracker**
+  * http://dev.bukkit.org/bukkit-plugins/battletracker/
+  * Used to track player stats like "Bombs planted" and "Bombs defused"
+  * Optional dependency
+- **Holographic Displays**
+  * http://dev.bukkit.org/bukkit-plugins/holographic-displays/
+  * Adds icons on target bases and bombs that are dropped on the ground.
+  * Optional dependency
+- **HoloAPI**
+  * http://dev.bukkit.org/bukkit-plugins/holoapi/
+  * Adds icons on target bases and bombs that are dropped on the ground.
+  * Optional dependency
+- **EnjinMinecraftPlugin**
+  * http://dev.bukkit.org/bukkit-plugins/emp/
+  * Used to track player stats like "Bombs planted" and "Bombs defused"
+  * Future optional dependency
 
 
 Arena Setup:
 ---
+
+These commands will create a Sabotage arena.
+If you want to create an SND arena, just use the `/snd` command instead.
 
 `/bomb create ArenaName`
 
@@ -110,13 +125,21 @@ and assign players to a base that they must defend...
 and to make sure players cannot arbitrarily destroy ANY base they find 
 (like their own), but rather, force them to find and destroy the other teams base.
 
-This is how you make bases:
+This is how you make bases for Sabotage:
 
 - place two BaseBlocks (1 at each base. The default BaseBlock is BREWING_STAND, but this can be changed in the config.yml)
 - do `/bomb setbase <arena> <teamID>` (value for team can be 1 or 2)
 
-You can now join a BombArena (or even get a VirtualPlayer 
-to test it out).
+This is how you make bases for Search N Destroy:
+
+- place a BaseBlock
+- do `/snd addbase <arenaName>`
+
+You can now join a BombArena or SndArena (or even get a VirtualPlayer 
+to test it out). Note however, that having 1 base for SND gives a 
+slight advantage to the defenders (since they only have to let time expire to win). 
+Putting a 2nd (or more) base makes it more challenging for defenders and 
+evens the playing field.
 
 (Optional) You can add a Worldguard region to BattleArena 
 so that block changes reset after each match. (Be careful 
@@ -242,53 +265,16 @@ Listener Methods:
    * Allows players to plant+defuse inside protected regions.
 
 
-Dependencies:
----
-
-- **BattleArena**
-  * http://dev.bukkit.org/bukkit-plugins/battlearena/
-  * Demolition plugin is just a game-type addition to BattleArena.
-- **BattleTracker**
-  * http://dev.bukkit.org/bukkit-plugins/battletracker/
-  * Used to track player stats like "Bombs planted" and "Bombs defused"
-  * Optional dependency
-- **Holographic Displays**
-  * http://dev.bukkit.org/bukkit-plugins/holographic-displays/
-  * Adds visual aid for when the bomb is dropped on the ground.
-  * Future dependency (not currently implemented).
-  
-Downloads:
----
-
-**Official builds**
-
-You can find the official builds at dev.bukkit.org .The source code for these builds 
-have been checked to make sure that they do NOT contain any malicious code. 
-
-[http://dev.bukkit.org/bukkit-plugins/bombarena/] (http://dev.bukkit.org/bukkit-plugins/bombarena/ "Official builds")
-
-
-**Development builds**
-
-```python
-"Development builds of this project can be acquired at the provided continuous integration server."
-"These builds have not been approved by the BukkitDev staff. Use them at your own risk."
-```
-
-[http://ci.battleplugins.com/job/BombArena/](http://ci.battleplugins.com/job/BombArena/ "dev builds")
-
-The dev builds are primarily for testing purposes.
-
-
 To-Do List
 ---
 - test against the lastest versions of BattleTracker.
-- have onBombPlace() trigger onBombPlant() event (if the player is close enough).
 - Finish implementing backwards-compatibility with BattleArena.
 - Add & implement other commands:
 - /bomb checkbase
 - /bomb clearbases <arena> (listen for /bomb delete <arena>)
 - write PHP script to access the database & display player stats on a website.
+- Fix Timer Sounds to broadcast per player.
+- ~~Finish Search N Destroy.~~ done.
 - ~~Implement config options.~~ done.
 - ~~Update arenas.yml to match any changes in config.yml option BombBlock.~~ done.
 - ~~Update bases at the start of the game to match config option BaseBlock.~~ done.
@@ -300,6 +286,7 @@ To-Do List
 - ~~Take away the HAT+BombBlock after the player plants the bomb (instead of at the end of the match).~~ done.
 - ~~update to UUID~~ Not necessary because BattleTracker handles persistent data.
 - ~~/bomb setconfig <option> <value>~~ done.
+- ~~have onBombPlace() trigger onBombPlant() event (if the player is close enough).~~ done.
 
 
 Bugs to fix:
@@ -330,5 +317,3 @@ Javadocs & Wiki
 ---
 
 [http://ci.battleplugins.com/job/BombArena/javadoc/](http://ci.battleplugins.com/job/BombArena/javadoc/ "javadocs")
-
-[http://wiki.battleplugins.com/w/index.php/BombArena](http://wiki.battleplugins.com/w/index.php/BombArena "wiki")
