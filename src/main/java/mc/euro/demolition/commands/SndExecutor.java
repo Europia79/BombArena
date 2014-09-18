@@ -1,6 +1,6 @@
 package mc.euro.demolition.commands;
 
-import mc.euro.demolition.BombPlugin;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import mc.alk.arena.BattleArena;
@@ -11,6 +11,7 @@ import mc.alk.arena.util.SerializerUtil;
 import mc.alk.tracker.objects.PlayerStat;
 import mc.alk.tracker.objects.Stat;
 import mc.alk.tracker.objects.StatType;
+import mc.euro.demolition.BombPlugin;
 import mc.euro.demolition.SndArena;
 import mc.euro.demolition.debug.DebugOff;
 import mc.euro.demolition.debug.DebugOn;
@@ -26,7 +27,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * All the /bomb commands and subcommands.
+ * All the /snd commands and subcommands.
  * @author Nikolai
  */
 public class SndExecutor extends CustomCommandExecutor {
@@ -37,26 +38,29 @@ public class SndExecutor extends CustomCommandExecutor {
         plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
     }
     
-    @MCCommand(cmds={"setbase"}, perm="sndarena.setbase", usage="setbase <arena> <teamID>")
-    public boolean setbase(Player sender, Arena arena, Integer i) {
-        if (i < 1 || i > 2) {
-            sender.sendMessage("Bomb arenas can only have 2 teams: 1 or 2");
-            return true;
-        }
-        // path {arenaName}.{index}
-        String path = arena.getName() + "." + i.toString();
+    @MCCommand(cmds={"addbase"}, perm="sndarena.addbase", usage="addbase <arena>")
+    public boolean addbase(Player sender, Arena arena) {
+        // path = {arenaName}
+        String path = arena.getName();
         Location loc = sender.getLocation();
         Location base_loc = plugin.getExactLocation(loc);
         if (base_loc == null) {
-            sender.sendMessage("setbase command failed to find a BaseBlock near your location.");
+            sender.sendMessage("addbase command failed to find a BaseBlock near your location.");
             sender.sendMessage("Please set 2 BaseBlocks in the arena (1 for each team).");
             sender.sendMessage("If you have already set BaseBlocks, then stand closer and re-run the command.");
             return true;
         }
+
         String sloc = SerializerUtil.getLocString(base_loc);
-        plugin.basesYml.set(path, sloc);
-        plugin.basesYml.saveConfig();
-        sender.sendMessage("Base " + i + " is now set for arena: " + arena.getName());
+        List locations = plugin.basesYml.getList(path, new ArrayList());
+        if (!locations.contains(sloc)) {
+            locations.add(sloc);
+            sender.sendMessage("Added base for arena: " + arena.getName());
+            plugin.basesYml.set(path, locations);
+            plugin.basesYml.saveConfig();
+            return true;
+        }
+        sender.sendMessage("That base already exists.");
         return true;
 
     }
