@@ -91,6 +91,10 @@ public class DetonationTimer extends BukkitRunnable {
     public Player getBombPlanter() {
         return this.planter;
     }
+    
+    public Location getLocation() {
+        return this.BOMB_LOCATION;
+    }
 
     private void createExplosion(Location here) {
         here.getBlock().setType(Material.AIR);
