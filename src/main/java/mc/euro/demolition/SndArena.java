@@ -1,12 +1,13 @@
 package mc.euro.demolition;
 
-import mc.euro.demolition.objects.Bomb;
-import mc.euro.demolition.timers.PlantTimer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import mc.alk.arena.events.matches.MatchCompletedEvent;
+import mc.alk.arena.events.matches.MatchStartEvent;
 import mc.alk.arena.events.players.ArenaPlayerLeaveEvent;
 import mc.alk.arena.events.teams.TeamDeathEvent;
 import mc.alk.arena.objects.ArenaPlayer;
@@ -14,16 +15,25 @@ import mc.alk.arena.objects.MatchResult;
 import mc.alk.arena.objects.arenas.Arena;
 import mc.alk.arena.objects.events.ArenaEventHandler;
 import mc.alk.arena.objects.events.EventPriority;
+import mc.alk.arena.objects.spawns.SpawnLocation;
+import mc.alk.arena.objects.spawns.TimedSpawn;
 import mc.alk.arena.objects.teams.ArenaTeam;
+import mc.alk.arena.util.SerializerUtil;
 import mc.euro.demolition.debug.DebugOff;
 import mc.euro.demolition.debug.DebugOn;
+import mc.euro.demolition.objects.Bomb;
 import mc.euro.demolition.timers.DefuseTimer;
+import mc.euro.demolition.timers.DetonationTimer;
+import mc.euro.demolition.timers.PlantTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
@@ -37,6 +47,8 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 /**
  * This class listens for all the bomb events and acts accordingly.
@@ -61,8 +73,16 @@ import org.bukkit.inventory.ItemStack;
 public class SndArena extends Arena {
 
     BombPlugin plugin;
+    /**
+     * {@literal <matchID, teamID> }
+     */
     Map<Integer, Integer> attackers;
+    /**
+     * <matchID, teamID>
+     */
     Map<Integer, Integer> defenders;
+    Map<Integer, List<Location>> bases;
+    Map<Integer, Integer> holograms;
 
     /**
      * Constructor: gets a reference to Main.java and stores it in the plugin
@@ -72,6 +92,24 @@ public class SndArena extends Arena {
         plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("BombArena");
         attackers = new ConcurrentHashMap<Integer, Integer>();
         defenders = new ConcurrentHashMap<Integer, Integer>();
+        bases = new ConcurrentHashMap<Integer, List<Location>>();
+        holograms = new HashMap<Integer, Integer>();
+    }
+    
+    @ArenaEventHandler
+    public void onMatchStartEvent(MatchStartEvent e) {
+        int matchID = e.getMatch().getID();
+        Map<Long, TimedSpawn> matchSpawns = e.getMatch().getArena().getTimedSpawns();
+        for (Long key : matchSpawns.keySet()) {
+            plugin.debug.log("MatchStartEvent spawn key : " + key.toString());
+            if (key == 1L) {
+                Location loc = matchSpawns.get(key).getSpawn().getLocation();
+                int hologramID = plugin.holograms().createBombHologram(loc);
+                holograms.put(matchID, hologramID);
+
+                setCompass(loc);
+            }
+        }
     }
 
     /**
@@ -139,8 +177,13 @@ public class SndArena extends Arena {
             }
             teamID = team2.getId();
             // getMatch().getArena().getTeam(e.getPlayer()).getCurrentParams().
-            Location base_loc = plugin.bases.get(matchID).get(teamID);
-            setCompass(base_loc);
+            List<Location> base_locs = this.bases.get(matchID);
+            Location min = getMinLocation(base_locs);
+            setCompass(min);
+            int hologramID = holograms.get(matchID);
+            plugin.holograms().removeHologram(hologramID);
+            hologramID = plugin.holograms().createBaseHologram(min);
+            holograms.put(matchID, hologramID);
             msgAll(team2.getPlayers(), "Hurry back to defend your base from being destroyed!");
             msgAll(getMatch().getArena().getTeam(e.getPlayer()).getPlayers(),
                     "Your team has the bomb! Follow your compass to find the other teams base.");
@@ -253,11 +296,11 @@ public class SndArena extends Arena {
      */
     @ArenaEventHandler
     public void onBombDrop(PlayerDropItemEvent e) {
-        int matchID = getMatch().getID();
+        final int matchID = getMatch().getID();
+        final Player player = e.getPlayer();
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
         Material type = e.getItemDrop().getItemStack().getType();
         // To-do: make sure the bomb didn't get thrown outside the map
-        Location loc = e.getItemDrop().getLocation();
         if (type == plugin.getBombBlock()) {
             if (c != null
                     && e.getPlayer().getName().equals(c)) {
@@ -270,8 +313,34 @@ public class SndArena extends Arena {
                 // as long as the DetonationTimer isn't running
                 if (!plugin.detTimers.containsKey(matchID)) {
                     plugin.carriers.remove(matchID);
-                    setCompass(loc);
+                    // setCompass(loc);
                     msgAll(getMatch().getPlayers(), "The bomb has been dropped! Follow your compass.");
+                    
+                    final Item ibomb = e.getItemDrop();
+                    Location loc = exact(player);
+                    plugin.holograms().removeHologram(holograms.get(matchID));
+                    final int hologramID = plugin.holograms().createBombHologram(loc);
+                    holograms.put(matchID, hologramID);
+                    
+                    BukkitTask task = new BukkitRunnable() {
+                        
+                        int ticks;
+                        @Override
+                        public void run() {
+                            ticks = ticks + 1;
+                            if (ticks >= 100) {
+                                cancel();
+                                return;
+                            }
+                            Location exact = exact(player);
+                            System.out.println("" + ticks + " y=" + ibomb.getLocation().getY());
+                            plugin.holograms().teleport(hologramID, ibomb.getLocation());
+                            setCompass(exact);
+                            if (ibomb.isOnGround()) {
+                                ticks = ticks + 10;
+                            }
+                        }
+                    }.runTaskTimer(plugin, 1L, 1L);
                 }
 
             } else {
@@ -286,6 +355,29 @@ public class SndArena extends Arena {
 
         }
     } // END OF PlayerDropItemEvent
+    
+    public Location exact(Entity e) {
+        Location exact_loc = e.getLocation();
+        List<Entity> entities = e.getNearbyEntities(20.0, 50.0, 20.0);
+        for (Entity entity : entities) {
+            plugin.debug.log("" + entity.getType().toString() + " : " + entity.toString());
+            if (entity.getType() == EntityType.DROPPED_ITEM) {
+                plugin.debug.log("Dropped Item found!");
+                Item item = null;
+                try {
+                    item = (Item) entity;
+                } catch (ClassCastException ex) {
+                    plugin.debug.log("ClassCastException");
+                    continue;
+                }
+                if (item.getItemStack().getType() == plugin.getBombBlock()) {
+                    plugin.debug.log("Exact Bomb Location found!");
+                    exact_loc = item.getLocation();
+                }
+            }
+        }
+        return exact_loc;
+    }
 
     /**
      * This event breaks ALL other events.
@@ -343,7 +435,7 @@ public class SndArena extends Arena {
         // Get the coordinates to the base
         // calculate the distance to the base
         // if the distance is small, attempt to trigger onBombPlant()
-        if (plugin.bases.get(matchID).get(teamID).distance(eplayer.getLocation()) <= plugin.getBaseRadius()) {
+        if (bases.get(matchID).get(teamID).distance(eplayer.getLocation()) <= plugin.getBaseRadius()) {
             plugin.debug.sendMessage(eplayer, "Now attempting to plant the bomb.");
             InventoryType itype = plugin.getBaseinv();
             // ANVIL, BEACON, & DROPPER are not supported by openIventory()
@@ -390,20 +482,27 @@ public class SndArena extends Arena {
     } // END OF onBaseInteraction()
 
     /**
-     * This event handles players who access Brewing Stands. <br/>
+     * This event handles players who attempt to plant or defuse the bomb. <br/><br/>
      *
-     * Main if-statement checks: <br/>
-     * - Did they open a Brewing Stand Inventory ? <br/>
-     * - Does the player have the bomb ? <br/>
-     * - Are they at the enemy base ? <br/><br/>
-     *
-     * If so, start the Plant Timer: It takes about 5 to 10 seconds to plant the
-     * bomb. <br/><br/>
-     *
-     * If not, cancel the InventoryOpenEvent. <br/>
-     *
-     * @param e InventoryOpenEvent - Is it a Brewing Stand Inventory ? (Each
-     * base must have a brewing stand).
+     * <pre>
+     * Exit Conditions:
+     * - Did they open a Base Inventory ?
+     * - Did anyone pickup the bomb ? if not, exit.
+     * 
+     * Defuse Conditions:
+     * - Is a DetonationTimer running ?
+     * - Is the player that's attempting to defuse on the defending team ?
+     * - Are they at the correct base location ? (where the bomb was originally planted)
+     * 
+     * Plant Conditions:
+     * - Does the player have the bomb ? (i.e. Are they the bomb carrier ?)
+     * - Make sure a DetonationTimer isn't already running.
+     * - No need to check if they're on the attacking team 
+     *   because this was done in the PlayerPickupItemEvent.
+     * 
+     * </pre>
+     * 
+     * @param e InventoryOpenEvent
      */
     @ArenaEventHandler(priority = EventPriority.HIGHEST)
     public void onBombPlantDefuse(InventoryOpenEvent e) {
@@ -423,50 +522,52 @@ public class SndArena extends Arena {
         }
 
         Player eplayer = (Player) e.getPlayer();
-        int teamID = getTeam(eplayer).getId();
+        int eTeamID = getTeam(eplayer).getId();
         int cTeamID = getTeam(Bukkit.getPlayer(c)).getId();
 
         plugin.debug.log("onBombPlant() has been called.");
         plugin.debug.log("matchID = " + matchID);
         plugin.debug.log("plugin.carriers.get(matchID) = " + plugin.carriers.get(matchID));
         plugin.debug.log("planter/defuser = " + eplayer.getName());
-        plugin.debug.log("teamID = " + teamID);
+        plugin.debug.log("teamID = " + eTeamID);
         plugin.debug.sendMessage(eplayer, "onBombPlantDefuse() has been called");
         plugin.debug.log("e.getInventory().getType() = " + e.getInventory().getType());
         plugin.debug.log("carrier, c = " + c);
         plugin.debug.log("e.getPlayer().getName() = " + e.getPlayer().getName());
         plugin.debug.log("planter.getLocation = " + eplayer.getLocation());
-        plugin.debug.log("plugin.bases.get(matchID) = " + plugin.bases.get(matchID).toString());
-        plugin.debug.log("plugin.bases.get(matchID).get(teamID) = " + plugin.bases.get(matchID).get(teamID).toString());
+        plugin.debug.log("bases.get(matchID) = " + bases.get(matchID).toString());
         plugin.debug.log("e.getPlayer().getInventory().getHelmet = " + e.getPlayer().getInventory().getHelmet());
 
         // DEFUSE CONDITIONS:
         if (plugin.detTimers.containsKey(matchID)
-                && teamID != cTeamID
-                && plugin.bases.get(matchID).get(teamID).distance(eplayer.getLocation()) < 6) {
-            plugin.defTimers.get(matchID).put(eplayer.getName(), new DefuseTimer(e, getMatch()));
-            plugin.defTimers.get(matchID).get(eplayer.getName()).runTaskTimer(plugin, 0L, 20L);
+                && eTeamID != cTeamID) {
+            Location bomb_location = plugin.detTimers.get(matchID).getLocation();
+            if (eplayer.getLocation().distance(bomb_location) < 5) {
+                plugin.defTimers.get(matchID).put(eplayer.getName(), new DefuseTimer(e, getMatch()));
+                plugin.defTimers.get(matchID).get(eplayer.getName()).runTaskTimer(plugin, 0L, 20L);
+            } else {
+                eplayer.sendMessage("Wrong base: Please follow your compass!");
+                e.setCancelled(true);
+            }
             // PLANT CONDITIONS:
         } else if (eplayer.getName().equalsIgnoreCase(c)
-                && plugin.bases.get(matchID).get(teamID).distance(eplayer.getLocation()) > 30
                 && !plugin.detTimers.containsKey(matchID)) {
             plugin.pTimers.put(matchID, new PlantTimer(e, getMatch()));
             plugin.pTimers.get(matchID).runTaskTimer(plugin, 0L, 20L);
-        } else if (e.getInventory().getType() == plugin.getBaseinv()) {
+        } else {
             // NOT A PLANT OR DEFUSAL ATTEMPT ?
-            plugin.debug.sendMessage(eplayer, "event.setCancelled(true);");
             e.setCancelled(true);
         }
     } // END OF InventoryOpenEvent
 
     /**
-     * Handles the event where the Bomb Carrier does NOT complete the time
-     * required to plant the bomb. <br/>
+     * Handles the event where the Bomb planter or defuser 
+     * does NOT complete the time required to plant the bomb. <br/>
      *
      * Notice that are multiple ways to trigger this event: <br/>
-     * - The bomb carrier prematurely closes the Brewing Stand thereby canceling
-     * the plant process. <br/>
-     * - The bomb carrier dies. <br/>
+     * - The player prematurely closes the Base Inventory thereby canceling
+     * the plant/defuse process. <br/>
+     * - The player dies while attempting to plant or defuse. <br/>
      * - Also, when the PlantTimer is finished, it will close the player
      * inventory. So we need to be careful that it doesn't also cancel the 30
      * seconds that it takes to destroy the base. <br/><br/>
@@ -497,6 +598,12 @@ public class SndArena extends Arena {
 
     } // END OF InventoryCloseEvent
 
+    /**
+     * This will only cancel PlantTimer & DefuseTimer. <br/><br/>
+     * 
+     * Only the DefuseTimer has the ability to cancel the DetonationTimer. <br/><br/>
+     * 
+     */
     public void cancelTimer(Player p) {
         int matchID = getMatch().getID();
         String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
@@ -505,6 +612,7 @@ public class SndArena extends Arena {
         for (String defuser : temp.keySet()) {
             if (p.getName().equalsIgnoreCase(defuser)) {
                 temp.get(defuser).setCancelled(true);
+                return;
             }
         }
 
@@ -513,6 +621,7 @@ public class SndArena extends Arena {
             // if this is an actual death or drop then those Events 
             // will handle setting the carrier to null
             plugin.pTimers.get(matchID).setCancelled(true);
+            plugin.pTimers.remove(matchID);
         }
     }
 
@@ -575,8 +684,9 @@ public class SndArena extends Arena {
     public void onStart() {
         super.onStart();
         int matchID = getMatch().getID();
+        loadLocations();
         plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onStart matchID = " + matchID);
-        setBases(getMatch().getArena().getName());
+        setBases(getName());
         Set<ArenaPlayer> allplayers = getMatch().getPlayers();
         for (ArenaPlayer p : allplayers) {
             if (!p.getInventory().contains(Material.COMPASS)) {
@@ -586,9 +696,34 @@ public class SndArena extends Arena {
         assignTeams(getMatch().getTeams());
         plugin.defTimers.put(matchID, new HashMap<String, DefuseTimer>());
     }
+    
+    private void loadLocations() {
+        int matchID = getMatch().getID();
+        String arenaName = getName();
+        this.bases.put(matchID, getBases(arenaName));
+    }
+    
+    public List<Location> getBases(String arenaName) {
+        // bases.yml
+        // PATH = "{arenaName}"
+        String path = arenaName;
+        List<Location> temp = new ArrayList<Location>();
+        System.out.println("size = " + plugin.basesYml.getStringList(path).size());
+        if (plugin.basesYml.getStringList(path) != null) {
+            List<String> stringList = plugin.basesYml.getStringList(path);
+            for (String s : stringList) {
+                Location loc = SerializerUtil.getLocation(s);
+                temp.add(loc);
+            }
+            plugin.debug.log("SndArena:getBases(String arenaName) size of returning List = " + temp.size());
+            return temp;
+        }
+        plugin.getLogger().severe("SndArena:getBases(String ArenaName) has failed to return a List of Locations.");
+        return new ArrayList();
+    }
 
-    public void setBases(String arena) {
-        List<Location> locations = plugin.getBases(getMatch().getArena().getName());
+    public void setBases(String arenaName) {
+        List<Location> locations = getBases(arenaName);
         for (Location loc : locations) {
             World w = loc.getWorld();
             Block block = w.getBlockAt(loc);
@@ -616,6 +751,15 @@ public class SndArena extends Arena {
             }
         }
     }
+    
+    @ArenaEventHandler
+    public void onMatchCompletedEvent(MatchCompletedEvent e) {
+        int matchID = e.getMatch().getID();
+        if (holograms.containsKey(matchID)) {
+            int hologramID = holograms.get(matchID);
+            plugin.holograms().removeHologram(hologramID);
+        }
+    }
 
     /**
      * onFinish() is called after money is given.
@@ -629,7 +773,7 @@ public class SndArena extends Arena {
         resetBases();
         plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onFinish matchID = " + matchID);
         plugin.carriers.remove(matchID);
-        plugin.bases.remove(matchID);
+        bases.remove(matchID);
 
         if (plugin.pTimers.containsKey(matchID)) {
             plugin.pTimers.get(matchID).cancel();
@@ -644,15 +788,13 @@ public class SndArena extends Arena {
 
     private void resetBases() {
         int matchID = getMatch().getID();
-        Map<Integer, Location> bases = plugin.bases.get(matchID);
-        if (bases == null || bases.isEmpty()) {
+        List<Location> locations = bases.get(matchID);
+        if (locations == null || locations.isEmpty()) {
             String msg = "resetBases() for arena: " + getMatch().getArena().getName() + " has failed.";
             plugin.getLogger().warning(msg);
             return;
         }
-        List<ArenaTeam> bothTeams = getMatch().getTeams();
-        for (ArenaTeam t : bothTeams) {
-            Location loc = (Location) bases.get(t.getId());
+        for (Location loc : locations) {
             World world = loc.getWorld();
             Block block = world.getBlockAt(loc);
             block.setType(plugin.getBaseBlock());
@@ -671,6 +813,10 @@ public class SndArena extends Arena {
      * @param bothTeams - Assign bases for what teams ?
      */
     public void assignTeams(List<ArenaTeam> bothTeams) {
+        
+        Map<Long, TimedSpawn> spawns = getTimedSpawns();
+        Location bombSpawnLoc = spawns.get(1L).getSpawn().getLocation();
+        
         int matchID = getMatch().getID();
         ArenaTeam team1 = null;
         ArenaTeam team2;
@@ -679,89 +825,42 @@ public class SndArena extends Arena {
             break;
         }
         team2 = getOtherTeam(team1);
-        this.attackers.put(matchID, team1.getId());
-        this.defenders.put(matchID, team2.getId());
         
-        team1.sendMessage("You are the attacking team! " + team1.getId());
-        team2.sendMessage("You are the defending team! " + team2.getId());
-        
-        if (true) {
-            return;
+        double distance1 = getMatch().getTeamSpawn(team1, false).getLocation().distance(bombSpawnLoc);
+        double distance2 = getMatch().getTeamSpawn(team2, false).getLocation().distance(bombSpawnLoc);
+
+        if (distance1 < distance2) {
+            this.attackers.put(matchID, team1.getId());
+            this.defenders.put(matchID, team2.getId());
+            team1.sendMessage("You are the attacking team! " + team1.getId());
+            team2.sendMessage("You are the defending team! " + team2.getId());
+        } else {
+            this.attackers.put(matchID, team2.getId());
+            this.defenders.put(matchID, team1.getId());
+            team2.sendMessage("You are the attacking team! " + team1.getId());
+            team1.sendMessage("You are the defending team! " + team2.getId());
         }
 
+        List<Location> locations = getBases(getMatch().getArena().getName());
+        // this.bases.put(matchID, locations);
 
-        Map<Integer, Location> temp = new HashMap<Integer, Location>();
-        plugin.debug.log("BombArena.java:assignBases()");
+        plugin.debug.log("SndArena.java:assignBases()");
         plugin.debug.log("arena name = " + getMatch().getArena().getName());
-        // ArrayList<Location> locations = plugin.getBases(getMatch().getArena().getName());
-        List<Location> locations = plugin.getBases(getMatch().getArena().getName());
+        
         if (locations == null) {
-            msgAll(getMatch().getPlayers(), "[BombArena]" + getName()
+            msgAll(getMatch().getPlayers(), "[SndArena]" + getName()
                     + " has stopped because no bases were found"
-                    + " inside arenas.yml");
-            msgAll(getMatch().getPlayers(), "[BombArena] "
-                    + "please use the command (/bomb setbase ArenaName Index)"
+                    + " inside bases.yml");
+            msgAll(getMatch().getPlayers(), "[SndArena] "
+                    + "please use the command (/bomb addbase ArenaName)"
                     + " to properly setup arenas.");
-            plugin.getLogger().warning("[BombArena] No bases found inside arena.yml: "
+            plugin.getLogger().warning("[SndArena] No bases found inside bases.yml: "
                     + "Please use the cmd (/bomb setbase ArenaName Index)"
                     + "to properly setup arenas.");
             getMatch().cancelMatch();
-            return;
         }
-        Location ONE = locations.get(0);
-        Location TWO = locations.get(1);
 
-        for (ArenaTeam t : bothTeams) {
-            plugin.debug.log("teamOne = " + t.getName());
-            Set<Player> playerzSet = t.getBukkitPlayers();
-            Player playerOne = null;
-            // Use the 1st player on the Team to assign the base
-            // for the whole team.
-            for (Player first : playerzSet) {
-                playerOne = first;
-                break;
-            }
-
-
-            // COMPARE THESE TWO POINTS WITH THE PLAYER TO DETERMINE
-            //        WHICH BASE IS CLOSER.
-            double onedistance;
-            double twodistance;
-            // try & catch VirtualPlayers 
-            // which are used to make testing arenas easier.
-            try {
-                onedistance = playerOne.getLocation().distance(ONE);
-                twodistance = playerOne.getLocation().distance(TWO);
-            } catch (Exception ex) {
-                plugin.getLogger().warning("Possible VirtualPlayer found inside BombArena.");
-                continue;
-            }
-
-            int teamID = t.getId();
-            if (onedistance < twodistance) {
-                temp.put(teamID, plugin.getExactLocation(ONE));
-                teamID = getOtherTeam(playerOne).getId();
-                temp.put(teamID, plugin.getExactLocation(TWO));
-                break;
-            } else if (onedistance > twodistance) {
-                temp.put(teamID, plugin.getExactLocation(TWO));
-                teamID = getOtherTeam(playerOne).getId();
-                temp.put(teamID, plugin.getExactLocation(ONE));
-                break;
-            } else if (onedistance == twodistance) {
-                plugin.getLogger().warning("Could NOT assign bases because "
-                        + "the player's spawn is equi-distance to both.");
-                plugin.getLogger().info("Please change the spawn locations "
-                        + "for the teams in the bomb arena.");
-            }
-        }
-        plugin.bases.put(matchID, temp);
-        plugin.debug.log("Number of Team bases: temp.size() = " + temp.size());
-        plugin.debug.log("Number of Team bases: plugin.bases.get(matchID).size() = " + plugin.bases.get(matchID).size());
-        if (temp.size() != 2) {
-            plugin.getLogger().warning("The bomb game type must have 2 teams !!!");
-        }
-    }  // END OF assignBases()
+    }  // END OF assignTeams()
 
     /**
      * This method uses a Player input parameter to get the other team.
@@ -804,15 +903,25 @@ public class SndArena extends Arena {
             if (!p.getInventory().contains(Material.COMPASS)) {
                 p.getInventory().addItem(new ItemStack(Material.COMPASS));
             }
-            if (p.getInventory().contains(Material.COMPASS)) {
-                p.getPlayer().setCompassTarget(loc);
-                // p.sendMessage(ChatColor.GREEN + "Compass set.");
-            } else {
-                plugin.getLogger().warning(
-                        "Players in the bomb Arena type should have a compass so they know "
-                        + "where bombs and bases are located.");
+            p.getPlayer().setCompassTarget(loc);
+        }
+    }
+    
+    private Location getMinLocation(List<Location> locations) {
+        int matchID = getMatch().getID();
+        String c = plugin.carriers.get(matchID);
+        Player carrier = Bukkit.getPlayer(c);
+        
+        Location minloc = locations.get(0);
+        double min = Double.MAX_VALUE;
+        for (Location location : locations) {
+            double d = location.distanceSquared(carrier.getLocation());
+            if (d < min) {
+                min = d;
+                minloc = location;
             }
         }
+        return minloc;
     }
 
     private void msgAll(Set<ArenaPlayer> players, String msg, ChatColor... color) {
