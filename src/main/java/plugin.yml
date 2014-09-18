@@ -1,8 +1,8 @@
 name: BombArena
 main: mc.euro.demolition.BombPlugin
 version: ${project.version}
-website: http://battleplugins.com/
-description: Call of Duty Sabotage gamemode & SND rule-set, both with one bomb and two bases.
+website: https://github.com/Europia79/Demolition
+description: Call of Duty gamemodes Sabotage & Search N Destroy.
 authors: [Europia79]
 depend: [BattleArena]
 softdepend: [HolographicDisplays,HoloAPI,BattleTracker,EnjinMinecraftPlugin]
@@ -21,6 +21,9 @@ permissions:
       bombarena.setbase: true
       bombarena.spawnbomb: true
       bombarena.setconfig: true
+      sndarena.addbase: true
+      sndarena.spawnbomb: true
+      sndarena.setconfig: true
   bomb.stats:
     default: true
   bomb.stats.other:
@@ -33,9 +36,3 @@ permissions:
     default: true
   arena.join.sndarena:
     default: true
-  sndarena.admin:
-    default: op
-    children:
-      sndarena.setbase: true
-      sndarena.spawnbomb: true
-      sndarena.setconfig: true
