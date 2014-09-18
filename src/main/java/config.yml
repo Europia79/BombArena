@@ -3,6 +3,7 @@
 # DetonationTime: 25 to 45 seconds
 # DefuseTime: 5 to 10 seconds
 #   # For fairness, it's recommended that PlantTime = DefuseTime
+# TimerSound: http://jd.bukkit.org/dev/apidocs/org/bukkit/Sound.html
 # BombBlock: SPONGE or TNT
 # BaseBlock: (Any Block with an Inventory):
 #          : ANVIL, BEACON, BREWING_STAND
@@ -40,6 +41,7 @@
 PlantTime: 8
 DetonationTime: 35
 DefuseTime: 8
+TimerSound: LEVEL_UP
 BombBlock: TNT
 BaseBlock: BREWING_STAND
 BaseRadius: 3
