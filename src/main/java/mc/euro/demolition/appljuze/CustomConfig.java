@@ -67,6 +67,8 @@ public class CustomConfig
     public List<?> getList(String path) {return this.config.getList(path);}
  
     public List<?> getList(String path, List<?> def) {return this.config.getList(path, def);}
+    
+    public List<String> getStringList(String path) {return this.config.getStringList(path);}
  
     public boolean contains(String path) {return this.config.contains(path);}
  
