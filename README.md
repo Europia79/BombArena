@@ -10,7 +10,7 @@ to Minecraft servers.
   * This plugin was inspired by SOCOM: US Navy Seals.
 - **Sabotage**
   * There is one bomb in the middle of the map.
-  * There are two teams each wtih their own base.
+  * There are two teams each with their own base.
   * There are three ways to win:
     - Eliminate the other team.
     - Pickup the bomb and destroy the other teams base.
@@ -59,7 +59,8 @@ Dependencies:
   * Requires Spigot, Craftbukkit, or any other server software that implements the Bukkit API.
 - **BattleArena**
   * http://dev.bukkit.org/bukkit-plugins/battlearena/
-  * Demolition plugin is just a game-type addition to BattleArena.
+  * The Demolition plugin is an addon for BattleArena.
+  * Required dependency
 - **BattleTracker**
   * http://dev.bukkit.org/bukkit-plugins/battletracker/
   * Used to track player stats like "Bombs planted" and "Bombs defused"
@@ -81,7 +82,7 @@ Dependencies:
 Arena Setup:
 ---
 
-These commands will create a Sabotage arena.
+These commands will create a Sabotage arena.  
 If you want to create an SND arena, just use the `/snd` command instead.
 
 `/bomb create ArenaName`
