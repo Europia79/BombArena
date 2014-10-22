@@ -1,6 +1,7 @@
 package mc.euro.demolition.commands;
 
-import mc.euro.demolition.util.Version;
+import mc.euro.version.Version;
+import mc.euro.version.VersionFactory;
 
 /**
  * This class handles backwards compatibility for different 
@@ -32,7 +33,7 @@ public abstract class Command {
                 + " rs=300"
                 + " ds=" + time
                 + " 1";
-        Version v = Version.getPluginVersion("BattleArena");
+        Version v = VersionFactory.getPluginVersion("BattleArena");
         String cmd = v.isCompatible("3.9.6.2") ? cmd1 : cmd2;
         return cmd;
     }
