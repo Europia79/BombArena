@@ -39,6 +39,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.ItemDespawnEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -111,25 +113,60 @@ public class SndArena extends Arena {
             }
         }
     }
-
+    
     /**
      * This method sets the compass direction when the bomb spawns. <br/><br/>
-     *
-     * ItemSpawnEvent breaks all other events.
+     * 
+     * Without (needsPlayer=false), ItemSpawnEvent would break all other events.
+     */ 
+    @ArenaEventHandler (needsPlayer=false)
+    public void onBombSpawn(ItemSpawnEvent e) {
+        plugin.debug.log("ItemSpawnEvent called");
+        if (e.getEntity().getItemStack().getType() != plugin.getBombBlock()) return;
+        int matchID = getMatch().getID();
+        if (plugin.carriers.containsKey(matchID) 
+                && plugin.carriers.get(matchID) != null) {
+            e.setCancelled(true);
+            return;
+        }
+        if (e.getEntity().getItemStack().getType() == plugin.getBombBlock()) {
+            setCompass(e.getLocation());
+            // int hologramID = plugin.holograms().createBombHologram(e.getLocation());
+            // holograms.put(matchID, hologramID);
+            msgAll(getMatch().getPlayers(), "The bomb has spawned");
+        }
+    } // END of ItemSpawnEvent
+    
+    /**
+     * This method makes sure that the bomb doesn't despawn during a match. <br/><br/>
+     * 
+     * <pre>
+     * - is the item a bomb ?
+     * - ok, does someone already have the bomb in their inventory ?
+     * - if not, cancel the ItemDespawnEvent.
+     * </pre>
+     * @param e ItemDespawnEvent - Was it the bomb ? Or another item ?
      */
-    /*@ArenaEventHandler
-     public void onBombSpawn(ItemSpawnEvent e) {
-     msgAll(getMatch().getPlayers(), "ItemSpawnEven called");
-     int matchID = getMatch().getID();
-     if (plugin.carriers.containsKey(matchID) 
-     && plugin.carriers.get(matchID) != null) {
-     return;
-     }
-     if (e.getEntity().getItemStack().getType() == plugin.BombBlock) {
-     setCompass(e.getLocation());
-     msgAll(getMatch().getPlayers(), "The bomb has spawned");
-     }
-     } */
+    @ArenaEventHandler(needsPlayer = false)
+    public void onBombDespawn(ItemDespawnEvent e) {
+        Material mat = e.getEntity().getItemStack().getType();
+        if (mat != plugin.getBombBlock()) {
+            return;
+        }
+        int matchID = getMatch().getID();
+        String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
+
+        if (c == null) {
+            Set<ArenaPlayer> allplayers = getMatch().getPlayers();
+            plugin.debug.msgArenaPlayers(allplayers, "Bomb despawn cancelled.");
+            e.setCancelled(true);
+        } else {
+            plugin.debug.msgArenaPlayers(getMatch().getPlayers(),
+                    "Bomb despawn allowed because " + c + " has the bomb.");
+        }
+
+    } // END OF ItemDespawnEvent
+    
     /**
      * This method sets plugin.carriers, compass direction, and gives a hat
      *
