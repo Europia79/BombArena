@@ -1,6 +1,5 @@
 package mc.euro.demolition;
 
-import mc.euro.demolition.timers.PlantTimer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +18,7 @@ import mc.alk.arena.objects.teams.ArenaTeam;
 import mc.euro.demolition.debug.DebugOff;
 import mc.euro.demolition.debug.DebugOn;
 import mc.euro.demolition.timers.DefuseTimer;
+import mc.euro.demolition.timers.PlantTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -29,10 +29,10 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -104,9 +104,9 @@ public class BombArena extends Arena {
     /**
      * This method sets the compass direction when the bomb spawns. <br/><br/>
      * 
-     * ItemSpawnEvent breaks all other events.
-     */ /*
-    @EventHandler
+     * Without (needsPlayer=false), ItemSpawnEvent would break all other events.
+     */ 
+    @ArenaEventHandler (needsPlayer=false)
     public void onBombSpawn(ItemSpawnEvent e) {
         plugin.debug.log("ItemSpawnEvent called");
         if (e.getEntity().getItemStack().getType() != plugin.getBombBlock()) return;
@@ -118,14 +118,44 @@ public class BombArena extends Arena {
         }
         if (e.getEntity().getItemStack().getType() == plugin.getBombBlock()) {
             setCompass(e.getLocation());
-            int hologramID = plugin.hd().createBombHologram(e.getLocation());
-            holograms.put(matchID, hologramID);
+            // int hologramID = plugin.holograms().createBombHologram(e.getLocation());
+            // holograms.put(matchID, hologramID);
             msgAll(getMatch().getPlayers(), "The bomb has spawned");
         }
-    } */
+    } // END of ItemSpawnEvent
+    
+    /**
+     * This method makes sure that the bomb doesn't despawn during a match. <br/><br/>
+     * 
+     * <pre>
+     * - is the item a bomb ?
+     * - ok, does someone already have the bomb in their inventory ?
+     * - if not, cancel the ItemDespawnEvent.
+     * </pre>
+     * @param e ItemDespawnEvent - Was it the bomb ? Or another item ?
+     */
+    @ArenaEventHandler(needsPlayer = false)
+    public void onBombDespawn(ItemDespawnEvent e) {
+        Material mat = e.getEntity().getItemStack().getType();
+        if (mat != plugin.getBombBlock()) {
+            return;
+        }
+        int matchID = getMatch().getID();
+        String c = (plugin.carriers.get(matchID) == null) ? null : plugin.carriers.get(matchID);
+
+        if (c == null) {
+            Set<ArenaPlayer> allplayers = getMatch().getPlayers();
+            plugin.debug.msgArenaPlayers(allplayers, "Bomb despawn cancelled.");
+            e.setCancelled(true);
+        } else {
+            plugin.debug.msgArenaPlayers(getMatch().getPlayers(),
+                    "Bomb despawn allowed because " + c + " has the bomb.");
+        }
+
+    } // END OF ItemDespawnEvent
 
     /**
-     * This method sets plugin.carriers, compass direction, and gives a hat
+     * This method sets plugin.carriers, compass direction, and gives a hat. <br/><br/>
      * 
      * <pre>
      * 1. Give the bomb carrier a hat so that other players know WHO has the bomb.
@@ -368,35 +398,6 @@ public class BombArena extends Arena {
         }
         return exact_loc;
     }
-
-    /**
-     * This event breaks ALL other events.
-     * 
-     * <pre>
-     * respawn a new bomb OR cancel the despawn event.
-     * </pre>
-     * @param e ItemDespawnEvent - Was it the bomb ? Or another item ?
-     */
-    /*@ArenaEventHandler
-    public void onBombDespawn(ItemDespawnEvent e) {
-        int id = getMatch().getID();
-        String c = (plugin.carriers.get(id) == null) ? null : plugin.carriers.get(id);
-        // temporary place holder
-        // until I get time to implement this method.
-        // respawn a new bomb OR cancel the event
-        if (e.getEntity().getItemStack().getType() == plugin.BombBlock 
-                && c != null) {
-            Set<ArenaPlayer> allplayers = getMatch().getPlayers();
-            for (ArenaPlayer p : allplayers) {
-                plugin.debug.messagePlayer(p.getPlayer(), "Bomb despawned cancelled. ");
-            }
-            e.setCancelled(true);
-        } else {
-            plugin.debug.msgArenaPlayers(getMatch().getPlayers(), 
-                    "Bomb despawn allowed because " + c + " has the bomb.");
-        }
-
-    }*/
     
     /**
      * Handles the scenario when players attempt to place the bomb on the ground like it's a block. <br/><br/>
