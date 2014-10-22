@@ -15,8 +15,8 @@
     <!-- Locations for jar repositories -->
     <repositories>
         <repository>
-            <id>battleplugins-repo</id>
-            <url>http://server.battleplugins.com/maven/repository/</url>
+            <id>rainbowcraft-repo</id>
+            <url>http://23.29.127.102/maven/repository/</url>
         </repository>
         <repository>
             <id>bukkit-repo</id>
@@ -55,7 +55,7 @@
         <dependency>
             <groupId>mc.alk</groupId>
             <artifactId>BattleArena</artifactId>
-            <version>3.9.7.3</version>
+            <version>3.9.7.10</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -80,6 +80,12 @@
             <artifactId>EnjinMinecraftPlugin</artifactId>
             <version>2.6.8</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>mc.euro</groupId>
+            <artifactId>Version</artifactId>
+            <version>1.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -123,6 +129,36 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <!-- Shade (includes these in the final jar) -->
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>mc.euro.version</pattern>
+                                    <shadedPattern>${project.groupId}.${project.artifactId}.version</shadedPattern>
+                                </relocation>
+                            </relocations>
+
+                            <artifactSet>
+                                <includes>
+                                    <include>mc.euro:Version</include>
+                                </includes>
+                            </artifactSet>
+                            <!-- Specify to remove all unneeded classes -->
+                            <minimizeJar>true</minimizeJar>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- Specify how we build the plugin.jar -->
             <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
@@ -142,4 +178,10 @@
         </plugin>
         </plugins>
     </build>
+    <distributionManagement>
+      <repository>
+        <id>rainbowcraft-repo</id>
+        <url>scp://23.29.127.102/var/www/maven/repository</url>
+      </repository>
+    </distributionManagement>
 </project>
