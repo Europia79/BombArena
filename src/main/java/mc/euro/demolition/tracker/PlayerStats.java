@@ -8,7 +8,8 @@ import mc.alk.tracker.objects.Stat;
 import mc.alk.tracker.objects.StatType;
 import mc.alk.tracker.objects.WLT;
 import mc.euro.demolition.BombPlugin;
-import mc.euro.demolition.util.Version;
+import mc.euro.version.Version;
+import mc.euro.version.VersionFactory;
 import org.bukkit.Bukkit;
 
 /**
@@ -33,7 +34,7 @@ public class PlayerStats {
     }
     
     private void loadEnjin() {
-        this.enjin = Version.getPluginVersion("EnjinMinecraftPlugin");
+        this.enjin = VersionFactory.getPluginVersion("EnjinMinecraftPlugin");
         if (enjin.isCompatible("2.6")) {
             plugin.getLogger().info("EnjinMinecraftPlugin found & enabled.");
         } else {
@@ -43,7 +44,7 @@ public class PlayerStats {
 
     private void loadTracker(String i) {
         Tracker t = (mc.alk.tracker.Tracker) Bukkit.getPluginManager().getPlugin("BattleTracker");
-        this.battletracker = Version.getPluginVersion("BattleTracker");
+        this.battletracker = VersionFactory.getPluginVersion("BattleTracker");
         if (t != null){
             bt_enabled = true;
             tracker = Tracker.getInterface(i);

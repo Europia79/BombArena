@@ -26,7 +26,8 @@ import mc.euro.demolition.timers.DetonationTimer;
 import mc.euro.demolition.timers.PlantTimer;
 import mc.euro.demolition.tracker.PlayerStats;
 import mc.euro.demolition.util.BaseType;
-import mc.euro.demolition.util.Version;
+import mc.euro.version.Version;
+import mc.euro.version.VersionFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -99,10 +100,10 @@ public class BombPlugin extends JavaPlugin {
         debug = new DebugOn(this);
         loadDefaultConfig();
         
-        Version ba = Version.getPluginVersion("BattleArena");
+        Version ba = VersionFactory.getPluginVersion("BattleArena");
         debug.log("BattleArena version = " + ba.toString());
-        debug.log("BattleTracker version = " + Version.getPluginVersion("BattleTracker").toString());
-        debug.log("Enjin version = " + Version.getPluginVersion("EnjinMinecraftPlugin").toString());
+        debug.log("BattleTracker version = " + VersionFactory.getPluginVersion("BattleTracker").toString());
+        debug.log("Enjin version = " + VersionFactory.getPluginVersion("EnjinMinecraftPlugin").toString());
         // requires 3.9.7.3 or newer
         if (!ba.isCompatible("3.9.7.3")) {
             getLogger().severe("BombArena requires BattleArena v3.9.7.3 or newer.");
@@ -197,8 +198,8 @@ public class BombPlugin extends JavaPlugin {
             getConfig().addDefault("ShowHolograms", true);
         }
         boolean ShowHolograms = getConfig().getBoolean("ShowHolograms", true);
-        Version HD = Version.getPluginVersion("HolographicDisplays");
-        Version Holoapi = Version.getPluginVersion("HoloAPI");
+        Version HD = VersionFactory.getPluginVersion("HolographicDisplays");
+        Version Holoapi = VersionFactory.getPluginVersion("HoloAPI");
         debug.log("HolographicDisplays version = " + HD.toString());
         debug.log("HoloAPI version = " + Holoapi.toString());
         if (ShowHolograms && HD.isCompatible("1.8.5")) {
