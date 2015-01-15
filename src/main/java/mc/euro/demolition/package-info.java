@@ -1,4 +1,4 @@
 /**
- * BombPlugin.java: Entry point; BombArena.java: All bomb events.
+ * BombPlugin::onEnabe() : The main entry point for the plugin.
  */
 package mc.euro.demolition;

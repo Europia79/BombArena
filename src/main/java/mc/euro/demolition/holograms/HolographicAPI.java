@@ -48,7 +48,10 @@ public class HolographicAPI implements HologramInterface {
     
     @Override
     public void teleport(int id, Location loc) {
-        getHologram(id).move(loc.clone().add(0.0, 0.4, 0.0));
+        Hologram temp = getHologram(id);
+        if (temp != null) {
+            temp.move(loc.clone().add(0.0, 0.4, 0.0));
+        }
     }
     
     @Override
@@ -67,8 +70,11 @@ public class HolographicAPI implements HologramInterface {
     }
     
     protected void deleteHologram(int id) {
-        Hologram hologram = hmap.get(id);
-        HoloAPI.getManager().stopTracking(hologram);
+        if (hmap.containsKey(id)) {
+            Hologram hologram = hmap.get(id);
+            HoloAPI.getManager().stopTracking(hologram);
+            hmap.remove(id);
+        }
     }
     
 }

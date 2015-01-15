@@ -1,4 +1,4 @@
 /**
- * Bomb.java: Used to trigger a new bombDropEvent for onBombCarrierDeath().
+ * A package for general objects.
  */
 package mc.euro.demolition.objects;

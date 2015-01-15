@@ -39,7 +39,10 @@ public class HolographicDisplay implements HologramInterface {
     
     @Override
     public void teleport(int id, Location loc) {
-        getHologram(id).teleport(loc.clone().add(0.0, 0.4, 0.0));
+        Hologram temp = getHologram(id);
+        if (temp != null) {
+            temp.teleport(loc.clone().add(0.0, 0.4, 0.0));
+        }         
     }
     
     @Override
@@ -56,10 +59,13 @@ public class HolographicDisplay implements HologramInterface {
     protected Hologram getHologram(int id) {
         return hmap.get(id);
     }
-    
+
     protected void deleteHologram(int id) {
-        Hologram hologram = hmap.get(id);
-        hologram.delete();
+        if (hmap.containsKey(id)) {
+            Hologram hologram = hmap.get(id);
+            hologram.delete();
+            hmap.remove(id);
+        }
     }
-    
+
 }

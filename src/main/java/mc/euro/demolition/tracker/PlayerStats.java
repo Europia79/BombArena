@@ -13,7 +13,8 @@ import mc.euro.version.VersionFactory;
 import org.bukkit.Bukkit;
 
 /**
- *
+ * Wrapper to handle any calls to BattleTracker::TrackerInterface.
+ * 
  * @author Nikolai
  */
 public class PlayerStats {

@@ -22,7 +22,7 @@ import org.bukkit.util.Vector;
 /**
  * Bomb.java: Used to trigger a new PlayerDropItemEvent for onBombCarrierDeath().
  */
-public class Bomb implements Item {
+@Deprecated public class Bomb implements Item {
     
     BombPlugin plugin;
     int pickupDelay;

@@ -1,29 +1,28 @@
 package mc.euro.demolition;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.io.File;
+import java.util.Collection;
 import java.util.Map;
 import mc.alk.arena.BattleArena;
 import mc.alk.arena.controllers.BattleArenaController;
 import mc.alk.arena.objects.arenas.Arena;
 import mc.alk.arena.objects.spawns.ItemSpawn;
-import mc.alk.arena.objects.spawns.SpawnLocation;
 import mc.alk.arena.objects.spawns.TimedSpawn;
+import mc.alk.arena.objects.victoryconditions.NoTeamsLeft;
+import mc.alk.arena.objects.victoryconditions.VictoryType;
 import mc.alk.arena.serializers.ArenaSerializer;
-import mc.alk.arena.util.SerializerUtil;
 import mc.euro.demolition.appljuze.ConfigManager;
 import mc.euro.demolition.appljuze.CustomConfig;
-import mc.euro.demolition.commands.BombExecutor;
-import mc.euro.demolition.commands.SndExecutor;
+import mc.euro.demolition.arenas.BombArena;
+import mc.euro.demolition.arenas.SndArena;
+import mc.euro.demolition.commands.EodExecutor;
 import mc.euro.demolition.debug.*;
+import mc.euro.demolition.arenas.factories.BombArenaFactory;
+import mc.euro.demolition.arenas.factories.SndArenaFactory;
 import mc.euro.demolition.holograms.HologramInterface;
 import mc.euro.demolition.holograms.HologramsOff;
 import mc.euro.demolition.holograms.HolographicAPI;
 import mc.euro.demolition.holograms.HolographicDisplay;
-import mc.euro.demolition.timers.DefuseTimer;
-import mc.euro.demolition.timers.DetonationTimer;
-import mc.euro.demolition.timers.PlantTimer;
 import mc.euro.demolition.tracker.PlayerStats;
 import mc.euro.demolition.util.BaseType;
 import mc.euro.version.Version;
@@ -34,18 +33,31 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * Bukkit plugin that adds the Demolition game type to Minecraft servers running BattleArena.
+ * Bukkit plugin that adds the Demolition game types: Sabotage & Search N Destroy. <br/><br/>
  * 
  * @author Nikolai
  */
 public class BombPlugin extends JavaPlugin {
     
+    /**
+     * Adds Bombs Planted and Bombs Defused to the database. <br/>
+     * WLT.WIN = Bomb Planted Successfully (opponents base was destroyed). <br/>
+     * WLT.LOSS = Plant Failure caused by enemy defusal of the bomb. <br/>
+     * WLT.TIE = Bomb Defused by the player. <br/>
+     * Notice that in the database, Ties = Losses.
+     */
+    public PlayerStats ti;
+    public ConfigManager manager;
+    public CustomConfig basesYml;
+    
+    BombArenaFactory bombArenaFactory;
+    SndArenaFactory sndArenaFactory;
     /**
      * debug = new DebugOn(); <br/>
      * debug = new DebugOff(); <br/>
@@ -56,21 +68,8 @@ public class BombPlugin extends JavaPlugin {
      */
     public DebugInterface debug;
     private HologramInterface holograms; // HolographicDisplays + HoloAPI
-    public Map<Integer, String> carriers; // <matchID, playerName>
-    public Map<Integer, Map<Integer, Location>> bases; // <matchID, <teamID, BaseLocation>>
-    public Map<Integer, PlantTimer> pTimers; // <matchID, new PlantTimer(event, getMatch())>
-    public Map<Integer, DetonationTimer> detTimers; // <matchID, new DetonationTimer(event, getMatch())>
-    public Map<Integer, Map<String, DefuseTimer>> defTimers; // <matchID, <PlayerName, new DefuseTimer()>>
     /**
-     * Adds Bombs Planted and Bombs Defused to the database. <br/>
-     * WLT.WIN = Bomb Planted Successfully (opponents base was destroyed). <br/>
-     * WLT.LOSS = Plant Failure caused by enemy defusal of the bomb. <br/>
-     * WLT.TIE = Bomb Defused by the player. <br/>
-     * Notice that in the database, Ties = Losses.
-     */
-    public PlayerStats ti;
-    /**
-     * Configuration variables
+     * Configuration variables:.
      */
     private int PlantTime;
     private int DetonationTime;
@@ -88,59 +87,50 @@ public class BombPlugin extends JavaPlugin {
     private int StartupDisplay;
     private String DatabaseTable;
     
-    public ConfigManager manager;
-    public CustomConfig basesYml;
-    
-    
     @Override  
     public void onEnable() {
         
         saveDefaultConfig();
-
+        
         debug = new DebugOn(this);
         loadDefaultConfig();
         
-        Version ba = VersionFactory.getPluginVersion("BattleArena");
+        Version<Plugin> ba = VersionFactory.getPluginVersion("BattleArena");
         debug.log("BattleArena version = " + ba.toString());
         debug.log("BattleTracker version = " + VersionFactory.getPluginVersion("BattleTracker").toString());
         debug.log("Enjin version = " + VersionFactory.getPluginVersion("EnjinMinecraftPlugin").toString());
         // requires 3.9.7.3 or newer
-        if (!ba.isCompatible("3.9.7.3")) {
-            getLogger().severe("BombArena requires BattleArena v3.9.7.3 or newer.");
+        if (!ba.isCompatible("3.9.9.12")) {
+            getLogger().severe("BombArena requires BattleArena v3.9.9.12 or newer.");
             getLogger().info("Disabling BombArena");
-            getLogger().info("Please update BattleArena or recompile BombArena "
-                    + "to use the old version of SerializerUtil.");
+            getLogger().info("Please install BattleArena.");
+            getLogger().info("http://dev.bukkit.org/bukkit-plugins/battlearena2/");
             Bukkit.getPluginManager().disablePlugin(this); 
             return;
         }
-
-        carriers = new HashMap<Integer, String>();
-        bases = new HashMap<Integer, Map<Integer, Location>>();
-        pTimers = new HashMap<Integer, PlantTimer>();
-        detTimers = new HashMap<Integer, DetonationTimer>();
-        defTimers = new HashMap<Integer, Map<String, DefuseTimer>>();
-
+        
         // Database Tables: bt_Demolition_*
         setTracker(this.DatabaseTable);
-
-        BattleArena.registerCompetition(this, "SndArena", "snd", SndArena.class, new SndExecutor());
-        BattleArena.registerCompetition(this, "BombArena", "bomb", BombArena.class, new BombExecutor());
-        getServer().dispatchCommand(Bukkit.getConsoleSender(), "bomb stats top " + StartupDisplay);
+        
+        bombArenaFactory = new BombArenaFactory(this);
+        sndArenaFactory = new SndArenaFactory(this);
+        BattleArena.registerCompetition(this, "SndArena", "snd", sndArenaFactory, new EodExecutor(this));
+        BattleArena.registerCompetition(this, "BombArena", "bomb", bombArenaFactory, new EodExecutor(this));
+        
+        if (StartupDisplay > 0) {
+            getServer().dispatchCommand(Bukkit.getConsoleSender(), "bomb stats top " + StartupDisplay);
+        }
 
         manager = new ConfigManager(this);
         basesYml = manager.getNewConfig("bases.yml");
-
+        
         updateArenasYml(this.BombBlock);
         updateBombArenaConfigYml();
-
+        updateBasesYml();
+        // BattleArena.saveArenas(this); // Silent
+        ArenaSerializer.saveAllArenas(true); // Verbose
     }
-
-    @Override
-    public void onDisable() {
-        saveConfig();
-        cancelAndClearTimers();
-    }
-
+    
     public void loadDefaultConfig() {
         
         boolean b = getConfig().getBoolean("Debug", false);
@@ -214,52 +204,6 @@ public class BombPlugin extends JavaPlugin {
             debug.log("Please download HoloAPI or HolographicDisplays to enable Hologram support.");
         }
     }
-
-    /**
-     * Requires BattleArena versions 3.9.7.3 or newer. <br/><br/>
-     * <pre> {@literal
-     * version - behavior 
-     * 
-     * +3.9.7.3 - Map<Integer, List<SpawnLocation>> locs = SerializerUtil.parseLocations(cs);
-     * -3.9.7   - Map<Integer, Location> locs = SerializerUtil.parseLocations(cs);
-     * }</pre>
-     */
-    public List<Location> getBases(String arenaName) {
-        // bases.yml
-        // PATH = "{arenaName}.{index}"
-        String path = arenaName;
-        if (basesYml.getConfigurationSection(path) != null
-                && basesYml.getConfigurationSection(path).getKeys(false) != null
-                && basesYml.getConfigurationSection(path).getKeys(false).size() >= 2) {
-            ConfigurationSection cs = basesYml.getConfigurationSection(path);
-            /* Requires BattleArena version 3.9.7 or older
-            Map<Integer, Location> locs = SerializerUtil.parseLocations(cs);
-            List<Location> temp = new ArrayList<Location>();
-            for (Location location : locs.values()) {
-                debug.log("getBases(String arenaName) location = " + location.toString());
-                temp.add(location);
-            } */
-            Map<Integer, List<SpawnLocation>> locs = SerializerUtil.parseLocations(cs);
-            debug.log("getBases() cs = " + cs.toString());
-            debug.log("getBases() map = " + locs.toString());
-            List<Location> temp = new ArrayList<Location>();
-            for (List<SpawnLocation> spawnlist : locs.values()) {
-                for (SpawnLocation spawn : spawnlist) {
-                    debug.log("getBases(String arenaName) location = " + spawn.getLocation().toString());
-                    temp.add(spawn.getLocation());
-                }
-                // temp.add(spawnlist.get(0).getLocation());
-            }
-            debug.log("getBases(String arenaName) size of returning List = " + temp.size());
-            return temp;
-        }
-        getLogger().severe("BombPlugin:getBases(String ArenaName) has failed to return a List of Locations.");
-        return new ArrayList();
-    }
-    
-    public Location getBaseLocation(int matchID, int teamID) {
-        return this.bases.get(matchID).get(teamID);
-    }
     
     /**
      * Used by assignBases() and setbase command. <br/><br/>
@@ -269,7 +213,7 @@ public class BombPlugin extends JavaPlugin {
      * @param loc This is the location of their own base. (NOT the enemy base).
      */
     public Location getExactLocation(Location loc) {
-        int length = 4;
+        int length = 5;
         Location base_loc = null;
         this.debug.log("Location loc = " + loc.toString());
 
@@ -304,8 +248,8 @@ public class BombPlugin extends JavaPlugin {
         return loc;
     } // END OF getExactLocation()
     
-    public DefuseTimer getDefuseTimer(int matchID, String p) {
-        return this.defTimers.get(matchID).get(p);
+    public HologramInterface holograms() {
+        return this.holograms;
     }
 
     public int getPlantTime() {
@@ -337,41 +281,158 @@ public class BombPlugin extends JavaPlugin {
     }
 
     public void setBombBlock(Material type) {
-        this.BombBlock = type;                          // IN MEMORY
-        this.getConfig().set("BombBlock", type.name()); // update config.yml
-        this.saveConfig();                              // save to disk (config.yml)
-        this.updateArenasYml(this.BombBlock);           // update arenas.yml
+        this.BombBlock = type;
+    }
+
+    public Material getBaseBlock() {
+        return BaseBlock;
+    }
+
+    public void setBaseBlock(Material type) {
+        this.BaseBlock = type;
+    }
+
+    public InventoryType getBaseinv() {
+        return Baseinv;
+    }
+
+    public void setBaseinv(InventoryType type) {
+        this.Baseinv = type;
+    }
+
+    public String getFakeName() {
+        return FakeName;
+    }
+
+    public void setFakeName(String fakeName) {
+        this.FakeName = fakeName;
+    }
+
+    public String getChangeFakeName() {
+        return ChangeFakeName;
+    }
+
+    public void setChangeFakeName(String fakeName) {
+        this.ChangeFakeName = fakeName;
+    }
+
+    public int getMaxDamage() {
+        return MaxDamage;
+    }
+
+    public void setMaxDamage(int max) {
+        this.MaxDamage = max;
+    }
+
+    public int getDeltaDamage() {
+        return DeltaDamage;
+    }
+
+    public void setDeltaDamage(int delta) {
+        this.DeltaDamage = delta;
+    }
+
+    public int getDamageRadius() {
+        return DamageRadius;
+    }
+
+    public void setDamageRadius(int radius) {
+        this.DamageRadius = radius;
+    }
+
+    public int getStartupDisplay() {
+        return StartupDisplay;
+    }
+
+    public void setStartupDisplay(int num) {
+        this.StartupDisplay = num;
+    }
+
+    public String getDatabaseTable() {
+        return DatabaseTable;
+    }
+
+    public void setDatabaseTable(String table) {
+        this.DatabaseTable = table;
     }
     
-    private void updateBombArenaConfigYml() {
-        this.debug.log("updating BombArenaConfig.yml");
-        /*
-        BattleArenaController bc = BattleArena.getBAController();
-        for (Arena arena : bc.getArenas().values()) {
-            if (arena instanceof BombArena) {
-                arena.getParams().setVictoryCondition(VictoryType.fromString("NoTeamsLeft"));
-                bc.updateArena(arena);
-                getLogger().info("The VictoryCondition for BombArena " + arena.getName() + " has been updated to NoTeamsLeft");
-            }
-        } */
-
-         CustomConfig bombarena = getConfig("BombArenaConfig.yml");
-         bombarena.set("BombArena.victoryCondition", "NoTeamsLeft");
-         bombarena.saveConfig();
-
+    public void setTracker(String x) {
+        ti = new PlayerStats(x);
     }
+    
+    public PlayerStats getTracker() {
+        return ti;
+    }
+    
+    public CustomConfig getConfig(String x) {
+        return this.manager.getNewConfig(x);
+    }
+
+    public double getBaseRadius() {
+        return this.BaseRadius;
+    }
+    
+    public Sound getSound() {
+        return TimerSound;
+    }
+    
+    /**
+     * ****************************************************************************
+     * onDisable(): cancelTimers(), updateConfig().saveConfig(), updateArenasYml().
+     * ****************************************************************************
+     */
+    @Override
+    public void onDisable() {
+        cancelAndClearTimers();
+        updateConfig().saveConfig();
+        updateArenasYml(this.BombBlock);
+        BattleArena.saveArenas(this);
+    }
+    
+    private void cancelAndClearTimers() {
+        for (BombArena arena : bombArenaFactory.getArenas()) {
+            arena.cancelAndClearTimers();
+        }
+        for (SndArena arena : sndArenaFactory.getArenas()) {
+            arena.cancelAndClearTimers();
+        }
+    }
+    
+    /**
+     * Only updates non-Integer fields.
+     * All Integer fields are updated by EodExecutor.
+     * @return an instance of BombPlugin: this.
+     */
+    private BombPlugin updateConfig() {
+        getConfig().set("BaseBlock", this.BaseBlock.name());
+        getConfig().set("BombBlock", this.BombBlock.name());
+        getConfig().set("DatabaseTable", this.DatabaseTable);
+        getConfig().set("FakeName", this.FakeName);
+        return this;
+    }
+    
+    /**
+     * Use-case scenario:. <br/><br/>
+     * 
+     * Admin creates arenas: They get created with the current bomb block. <br/>
+     * Admin then changes the bomb block inside config.yml. <br/>
+     * Then all the previously created arenas in arenas.yml will need to be updated. <br/>
+     * 
+     * <b>arenas.yml:</b> PATH = "arenas.{arenaName}.spawns.{index}.spawn" <br/><br/>
+     * <pre>
+     * arenas:
+     *   arenaName:
+     *     type: BombArena
+     *     spawns:
+     *       '1':
+     *         time: 1 500 500
+     *         spawn: BOMB_BLOCK 1
+     *         loc: world,-429.0,4.0,-1220.0,1.3,3.8
+     * </pre>
+     * 
+     * @param x The new bomb block material type.
+     */
     private void updateArenasYml(Material x) {
-        // PATH = "arenas.{arenaName}.spawns.{index}.spawn"
-        /*
-arenas:
-  arenaName:
-    type: BombArena
-    spawns:
-      '1':
-        time: 1 500 500
-        spawn: BOMB_BLOCK 1
-        loc: world,-429.0,4.0,-1220.0,1.3,3.8
-        */
         this.debug.log("updating arenas.yml with " + x.name());
         BattleArenaController bc = BattleArena.getBAController();
         Map<String, Arena> amap = bc.getArenas();
@@ -394,139 +455,90 @@ arenas:
                 bc.updateArena(arena);
             }
         }
-        ArenaSerializer.saveAllArenas(true);
-    }
-
-    public Material getBaseBlock() {
-        return BaseBlock;
-    }
-
-    public void setBaseBlock(Material type) {
-        this.BaseBlock = type;
-        this.getConfig().set("BaseBlock", type.name());
-        this.saveConfig();
-    }
-
-    public InventoryType getBaseinv() {
-        return Baseinv;
-    }
-
-    public void setBaseinv(InventoryType type) {
-        this.Baseinv = type;
-    }
-
-    public String getFakeName() {
-        return FakeName;
-    }
-
-    public void setFakeName(String fakeName) {
-        this.FakeName = fakeName;
-        this.getConfig().set("FakeName", fakeName);
-        this.saveConfig();
-    }
-
-    public String getChangeFakeName() {
-        return ChangeFakeName;
-    }
-
-    public void setChangeFakeName(String fakeName) {
-        this.ChangeFakeName = fakeName;
-    }
-
-    public int getMaxDamage() {
-        return MaxDamage;
-    }
-
-    public void setMaxDamage(int max) {
-        this.MaxDamage = max;
-        this.getConfig().set("MaxDamage", max);
-        this.saveConfig();
-    }
-
-    public int getDeltaDamage() {
-        return DeltaDamage;
-    }
-
-    public void setDeltaDamage(int delta) {
-        this.DeltaDamage = delta;
-        this.getConfig().set("DeltaDamage", delta);
-        this.saveConfig();
-    }
-
-    public int getDamageRadius() {
-        return DamageRadius;
-    }
-
-    public void setDamageRadius(int radius) {
-        this.DamageRadius = radius;
-        this.getConfig().set("DamageRadius", radius);
-        this.saveConfig();
-    }
-
-    public int getStartupDisplay() {
-        return StartupDisplay;
-    }
-
-    public void setStartupDisplay(int num) {
-        this.StartupDisplay = num;
-        this.getConfig().set("StartupDisplay", num);
-        this.saveConfig();
-    }
-
-    public String getDatabaseTable() {
-        return DatabaseTable;
-    }
-
-    public void setDatabaseTable(String table) {
-        this.DatabaseTable = table;
-        this.getConfig().set("DatabaseTable", table);
-        this.saveConfig();
-        this.setTracker(table);
+        // ArenaSerializer.saveAllArenas(true); // moved to onEnabe()
     }
     
-    public void setTracker(String x) {
-        ti = new PlayerStats(x);
-    }
-    
-    public PlayerStats getTracker() {
-        return ti;
-    }
-    
-    public CustomConfig getConfig(String x) {
-        return this.manager.getNewConfig(x);
-    }
-
-    double getBaseRadius() {
-        return this.BaseRadius;
-    }
-    
-    public HologramInterface holograms() {
-        return this.holograms;
-    }
-
-    private void cancelAndClearTimers() {
-        for (PlantTimer timer : pTimers.values()) {
-            timer.cancel();
-        }
-        pTimers.clear();
-        pTimers = null;
-        for (DetonationTimer timer : detTimers.values()) {
-            timer.cancel();
-        }
-        detTimers.clear();
-        detTimers = null;
-        // Map <Integer matchID, Map<String playerName, DefuseTimer>>
-        for (Integer matchID : defTimers.keySet()) {
-            for (DefuseTimer timer : defTimers.get(matchID).values()) {
-                timer.cancel();
+    private void updateBombArenaConfigYml() {
+        this.debug.log("updating BombArenaConfig.yml");
+        // This needs to be tested.
+        BattleArenaController bc = BattleArena.getBAController();
+        Map<String, Arena> amap = bc.getArenas();
+        for (Arena arena : amap.values()) {
+            if ((arena.getArenaType().getName().equalsIgnoreCase("BombArena")
+                    || arena.getArenaType().getName().equalsIgnoreCase("SndArena"))) {
+                String name = arena.getParams().getVictoryType().getName();
+                if (!name.equals("NoTeamsLeft")) {
+                    VictoryType type = VictoryType.getType(NoTeamsLeft.class);
+                    arena.getParams().setVictoryCondition(type);
+                    bc.updateArena(arena);
+                    debug.log("The VictoryCondition for BombArena " + arena.getName() + " has been updated to NoTeamsLeft");
+                }
             }
-            defTimers.get(matchID).clear();
         }
-        defTimers.clear();
-        defTimers = null;
+        // ArenaSerializer.saveAllArenas(true); // moved to onEnable()
+        getConfig("bases.yml");
+        /*
+         CustomConfig bombarena = getConfig("BombArenaConfig.yml");
+         bombarena.set("BombArena.victoryCondition", "NoTeamsLeft");
+         bombarena.saveConfig();
+         */
     }
     
-    public Sound getSound() {
-        return TimerSound;
+    /**
+     * Move information from bases.yml to arenas.yml then delete? bases.yml.
+     */
+    private boolean updateBasesYml() {
+        debug.log("Transferring bases.yml to arenas.yml");
+        File file = new File(getDataFolder(), "bases.yml");
+        if (!file.exists()) {
+            debug.log("Transfer aborted: bases.yml does NOT exist.");
+            debug.log("File = " + file.toString());
+            return false;
+        }
+        BattleArenaController bc = BattleArena.getBAController();
+        Map<String, Arena> amap = bc.getArenas();
+        if (amap.isEmpty()) {
+            debug.log("Transfer aborted: No arenas found.");
+            return false;
+        }
+        for (Arena arena : amap.values()) {
+            String name = arena.getName();
+            if (!basesYml.contains(name)) {
+                debug.log("basesYml does NOT contain: " + name);
+                continue;
+            }
+            String type = arena.getArenaType().getName();
+            String msg = "" + type + " " + name;
+            boolean isBombArena = type.equalsIgnoreCase("BombArena") && (arena instanceof BombArena);
+            boolean isSndArena = type.equalsIgnoreCase("SndArena") && (arena instanceof SndArena);
+            if (isBombArena) {
+                debug.log(msg + " is of type BombArena");
+                BombArena bomb = (BombArena) arena;
+                if (!bomb.getCopyOfSavedBases().isEmpty()) {
+                    debug.log("skipping " + name + " because it already has persistable data for savedBases.");
+                    continue;
+                }
+                Map<Integer, Location> locations = bomb.getOldBases(name);
+                for (Integer index : locations.keySet()) {
+                    Location loc = locations.get(index);
+                    bomb.addSavedBase(loc);
+                }
+            } else if (isSndArena) {
+                debug.log(msg + " is of type SndArena");
+                SndArena snd = (SndArena) arena;
+                if (!snd.getCopyOfSavedBases().isEmpty()) {
+                    debug.log("skipping " + name + " because it already has persistable data for savedBases.");
+                    continue;
+                }
+                Collection<Location> locations = snd.getOldBases(name);
+                for (Location loc : locations) {
+                    snd.addSavedBase(loc);
+                }
+            }
+            // BattleArena.saveArenas(this); // moved to onEnable()
+        }
+        // Should we keep the file ? Or delete it ?
+        // file.delete();
+        return true;
     }
 }

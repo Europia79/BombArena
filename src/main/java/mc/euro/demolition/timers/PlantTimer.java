@@ -1,9 +1,10 @@
 package mc.euro.demolition.timers;
 
-import mc.euro.demolition.BombPlugin;
 import java.util.Set;
 import mc.alk.arena.competition.match.Match;
 import mc.alk.arena.objects.ArenaPlayer;
+import mc.euro.demolition.BombPlugin;
+import mc.euro.demolition.arenas.EodArena;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,31 +30,30 @@ public class PlantTimer extends BukkitRunnable {
 
     BombPlugin plugin;
     int duration;
-    Match match;
-    DetonationTimer dtimer;
-    InventoryOpenEvent event;
+    EodArena arena;
     Player player;
-    Location BOMB_LOCATION;
-    Long startTime;
-    private boolean cancelled;
-
-    public PlantTimer(InventoryOpenEvent e, Match m) {
-        cancelled = false;
-        this.plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
+    final Location BOMB_LOCATION;
+    DetonationTimer detTimer;
+    boolean cancelled = true;
+    
+    public PlantTimer(EodArena arena) {
+        this.plugin = (BombPlugin) Bukkit.getPluginManager().getPlugin("BombArena");
         this.duration = this.plugin.getPlantTime() + 1;
-        this.event = e;
-        this.match = m;
-        this.player = (Player) e.getPlayer();
-        this.BOMB_LOCATION = plugin.getExactLocation(e.getPlayer().getLocation());
+        this.arena = arena;
+        this.player = Bukkit.getPlayer(arena.getBombCarrier());
+        this.BOMB_LOCATION = plugin.getExactLocation(player.getLocation());
     }
 
     @Override
     public void run() {
+        plugin.debug.log("PlantTimer (" + getTaskId() + ") is running: " + duration);
+        if (cancelled) return;
         duration = duration - 1;
-        match.sendMessage("" + duration);
+        player.playSound(player.getLocation(), Sound.ARROW_HIT, 1F, 1F);
+        player.sendMessage("" + duration);
         
         if (duration == 0) {
-            Set<ArenaPlayer> allplayers = match.getPlayers();
+            Set<ArenaPlayer> allplayers = arena.getMatch().getPlayers();
             for (ArenaPlayer p : allplayers) {
                 p.getPlayer().sendMessage("The bomb will detonate in " 
                         + plugin.getDetonationTime() + " seconds !!!");
@@ -68,26 +68,37 @@ public class PlantTimer extends BukkitRunnable {
                 player.getInventory().remove(plugin.getBombBlock());
                 player.updateInventory();
             }
-            plugin.detTimers.put(match.getID(), new DetonationTimer(event, match, BOMB_LOCATION));
-            plugin.detTimers.get(match.getID()).runTaskTimer(plugin, 0L, 20L);
+            this.detTimer = new DetonationTimer(arena, BOMB_LOCATION).start();
             
             player.closeInventory();
+            // watch out for the use of getPlayer();
+            // when player is null;
         }
-        player.playSound(player.getLocation(), Sound.ARROW_HIT, 1F, 1F);
+        
     }
     
-    public void setCancelled(boolean x) {
-        this.cancelled = x;
-        if (x) {
-            this.cancel();
-        } 
+    public PlantTimer start() {
+        this.cancelled = false;
+        runTaskTimer(plugin, 0L, 20L);
+        return this;
     }
     
-    public boolean isCancelled() {
-        return this.cancelled;
+    public void setCancelled(boolean stop) {
+        plugin.debug.log("PlantTimer->setCancelled(" + stop + ")");
+        this.cancelled = stop;
+        cancel();
     }
     
-    public Player getPlayer() {
-        return this.player;
+    public boolean isDetonationTimerRunning() {
+        return duration <= 0 && detTimer != null;
+    }
+    
+    public DetonationTimer getDetonationTimer() {
+        return this.detTimer;
+    }
+
+    public void cancelDetonationTimer() {
+        this.detTimer.cancel();
+        this.detTimer = null;
     }
 }

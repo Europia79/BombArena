@@ -30,8 +30,6 @@ permissions:
     default: true
   bomb.stats.top:
     default: true
-  arena.leave:
-    default: true
   arena.join.bombarena:
     default: true
   arena.join.sndarena:

@@ -8,7 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryType;
 
 /**
- * Handles the conversion from Material.X to InventoryType.X
+ * Handles the conversion from Material.X to InventoryType.X.
  */
 public class BaseType {
     

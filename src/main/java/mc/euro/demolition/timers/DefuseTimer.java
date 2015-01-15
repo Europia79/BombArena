@@ -1,9 +1,11 @@
 package mc.euro.demolition.timers;
 
 import java.util.Map;
-import mc.euro.demolition.BombPlugin;
 import mc.alk.arena.competition.match.Match;
+import mc.alk.arena.objects.arenas.Arena;
 import mc.alk.arena.objects.teams.ArenaTeam;
+import mc.euro.demolition.BombPlugin;
+import mc.euro.demolition.arenas.EodArena;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -24,58 +26,44 @@ public class DefuseTimer extends BukkitRunnable {
     
     BombPlugin plugin;
     int duration;
-    Match match;
+    EodArena arena;
     InventoryOpenEvent event;
     Player player;
     Location BOMB_LOCATION;
-    Long startTime;
-    private boolean cancelled;
 
-    public DefuseTimer(InventoryOpenEvent e, Match m) {
-        cancelled = false;
+    public DefuseTimer(Player defuser, EodArena arena) {
         this.plugin = (BombPlugin) Bukkit.getServer().getPluginManager().getPlugin("BombArena");
         this.duration = this.plugin.getDefuseTime() + 1;
-        this.event = e;
-        this.match = m;
-        this.player = (Player) e.getPlayer();
-        this.BOMB_LOCATION = plugin.getExactLocation(e.getPlayer().getLocation());
-        match.sendMessage("" + player.getName() + " has started to defuse the bomb!");
+        this.arena = arena;
+        this.player = defuser;
+        this.BOMB_LOCATION = plugin.getExactLocation(player.getLocation());
     }
-
+    
     @Override
     public void run() {
         duration = duration - 1;
         player.sendMessage("" + ChatColor.RED + "" + duration);
         
         if (duration <= 0) {
-            int matchID = match.getID();
-            ArenaTeam t = match.getArena().getTeam(player);
+            ArenaTeam t = arena.getTeam(player);
             t.sendMessage(ChatColor.LIGHT_PURPLE 
                     + "Congratulations, "
                     + t.getTeamChatColor() + "" + player.getName() + ChatColor.LIGHT_PURPLE
                     + " has successfully defused the bomb. You win!");
             plugin.ti.addPlayerRecord(player.getName(), plugin.getFakeName(), "TIE");
-            plugin.ti.addPlayerRecord(plugin.carriers.get(matchID), plugin.getFakeName(), "LOSS");
-            match.setVictor(t);
-            Map<String, DefuseTimer> temp = plugin.defTimers.get(matchID);
-            for (DefuseTimer d : temp.values()) {
-                d.setCancelled(true);
-            }
+            plugin.ti.addPlayerRecord(arena.getBombCarrier(), plugin.getFakeName(), "LOSS");
+            
+            arena.getMatch().setVictor(t);
+            
             this.player.closeInventory();
-            plugin.detTimers.get(matchID).setCancelled(true);
-            plugin.defTimers.get(matchID).clear();
         }
     }
     
-    public void setCancelled(boolean x) {
-        this.cancelled = x;
-        if (x) {
-            this.cancel();
-        } 
-    }
-    
-    public boolean isCancelled() {
-        return this.cancelled;
+    public DefuseTimer start() {
+        String msg = "" + player.getName() + " has started to defuse the bomb!";
+        plugin.debug.msgArenaPlayers(arena.getMatch().getPlayers(), msg);
+        runTaskTimer(plugin, 0L, 20L);
+        return this;
     }
     
     public Player getPlayer() {
