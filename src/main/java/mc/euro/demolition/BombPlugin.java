@@ -99,7 +99,7 @@ public class BombPlugin extends JavaPlugin {
         debug.log("BattleArena version = " + ba.toString());
         debug.log("BattleTracker version = " + VersionFactory.getPluginVersion("BattleTracker").toString());
         debug.log("Enjin version = " + VersionFactory.getPluginVersion("EnjinMinecraftPlugin").toString());
-        // requires 3.9.7.3 or newer
+        // requires 3.9.9.12 or newer
         if (!ba.isCompatible("3.9.9.12")) {
             getLogger().severe("BombArena requires BattleArena v3.9.9.12 or newer.");
             getLogger().info("Disabling BombArena");
@@ -127,8 +127,11 @@ public class BombPlugin extends JavaPlugin {
         updateArenasYml(this.BombBlock);
         updateBombArenaConfigYml();
         updateBasesYml();
-        // BattleArena.saveArenas(this); // Silent
-        ArenaSerializer.saveAllArenas(true); // Verbose
+        if (debug instanceof DebugOn) {
+            ArenaSerializer.saveAllArenas(true); // Verbose
+        } else {
+            ArenaSerializer.saveAllArenas(false); // Silent
+        }
     }
     
     public void loadDefaultConfig() {
