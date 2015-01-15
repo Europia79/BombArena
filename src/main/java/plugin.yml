@@ -18,12 +18,9 @@ permissions:
   bombarena.admin:
     default: op
     children:
-      bombarena.setbase: true
+      bombarena.addbase: true
       bombarena.spawnbomb: true
       bombarena.setconfig: true
-      sndarena.addbase: true
-      sndarena.spawnbomb: true
-      sndarena.setconfig: true
   bomb.stats:
     default: true
   bomb.stats.other:
