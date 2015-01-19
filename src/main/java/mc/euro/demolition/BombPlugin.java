@@ -14,11 +14,12 @@ import mc.alk.arena.serializers.ArenaSerializer;
 import mc.euro.demolition.appljuze.ConfigManager;
 import mc.euro.demolition.appljuze.CustomConfig;
 import mc.euro.demolition.arenas.BombArena;
+import mc.euro.demolition.arenas.EodArena;
 import mc.euro.demolition.arenas.SndArena;
-import mc.euro.demolition.commands.EodExecutor;
-import mc.euro.demolition.debug.*;
 import mc.euro.demolition.arenas.factories.BombArenaFactory;
 import mc.euro.demolition.arenas.factories.SndArenaFactory;
+import mc.euro.demolition.commands.EodExecutor;
+import mc.euro.demolition.debug.*;
 import mc.euro.demolition.holograms.HologramInterface;
 import mc.euro.demolition.holograms.HologramsOff;
 import mc.euro.demolition.holograms.HolographicAPI;
@@ -56,8 +57,6 @@ public class BombPlugin extends JavaPlugin {
     public ConfigManager manager;
     public CustomConfig basesYml;
     
-    BombArenaFactory bombArenaFactory;
-    SndArenaFactory sndArenaFactory;
     /**
      * debug = new DebugOn(); <br/>
      * debug = new DebugOff(); <br/>
@@ -87,6 +86,18 @@ public class BombPlugin extends JavaPlugin {
     private int StartupDisplay;
     private String DatabaseTable;
     
+    /**
+     * Hinderances to backwards compatibility:. <br/><br/>
+     * 
+     * <b>BA.Version - Class.method() - return type </b>
+     * 3.9.6+    Spawnable.spawn() returns void
+     * 3.9.5.8-  Spawnable.spawn() returns int
+     * 
+     * https://github.com/BattlePluginsDev/BattleArena/commit/535c0e8aa443dbbd01dd89aa9321b750784fff75
+     * <pre>
+     * 
+     * </pre>
+     */
     @Override  
     public void onEnable() {
         
@@ -99,9 +110,9 @@ public class BombPlugin extends JavaPlugin {
         debug.log("BattleArena version = " + ba.toString());
         debug.log("BattleTracker version = " + VersionFactory.getPluginVersion("BattleTracker").toString());
         debug.log("Enjin version = " + VersionFactory.getPluginVersion("EnjinMinecraftPlugin").toString());
-        // requires 3.9.9.12 or newer
-        if (!ba.isCompatible("3.9.9.12")) {
-            getLogger().severe("BombArena requires BattleArena v3.9.9.12 or newer.");
+        // requires BattleArena v3.9.6+ because of a change in Spawnable.spawn()
+        if (!ba.isCompatible("3.9.6")) {
+            getLogger().severe("BombArena requires BattleArena v3.9.6 or newer.");
             getLogger().info("Disabling BombArena");
             getLogger().info("Please install BattleArena.");
             getLogger().info("http://dev.bukkit.org/bukkit-plugins/battlearena2/");
@@ -112,11 +123,14 @@ public class BombPlugin extends JavaPlugin {
         // Database Tables: bt_Demolition_*
         setTracker(this.DatabaseTable);
         
-        bombArenaFactory = new BombArenaFactory(this);
-        sndArenaFactory = new SndArenaFactory(this);
-        BattleArena.registerCompetition(this, "SndArena", "snd", sndArenaFactory, new EodExecutor(this));
-        BattleArena.registerCompetition(this, "BombArena", "bomb", bombArenaFactory, new EodExecutor(this));
-        
+        if (ba.isCompatible("3.9.8")) {
+            SndArenaFactory.registerCompetition(this, "SndArena", "snd", SndArena.class, new EodExecutor(this));
+            BombArenaFactory.registerCompetition(this, "BombArena", "bomb", BombArena.class, new EodExecutor(this));
+        } else {
+            BattleArena.registerCompetition(this, "SndArena", "snd", SndArena.class, new EodExecutor(this));
+            BattleArena.registerCompetition(this, "BombArena", "bomb", BombArena.class, new EodExecutor(this));
+        }
+
         if (StartupDisplay > 0) {
             getServer().dispatchCommand(Bukkit.getConsoleSender(), "bomb stats top " + StartupDisplay);
         }
@@ -391,16 +405,19 @@ public class BombPlugin extends JavaPlugin {
         updateArenasYml(this.BombBlock);
         BattleArena.saveArenas(this);
     }
-    
+
     private void cancelAndClearTimers() {
-        for (BombArena arena : bombArenaFactory.getArenas()) {
-            arena.cancelAndClearTimers();
-        }
-        for (SndArena arena : sndArenaFactory.getArenas()) {
-            arena.cancelAndClearTimers();
+        BattleArenaController bc = BattleArena.getBAController();
+        Map<String, Arena> amap = bc.getArenas();
+        for (Arena arena : amap.values()) {
+            if (arena == null) continue;
+            boolean isEodArena = (arena instanceof EodArena);
+            if (isEodArena) {
+                EodArena eodArena = (EodArena) arena;
+                eodArena.cancelAndClearTimers();
+            }
         }
     }
-    
     /**
      * Only updates non-Integer fields.
      * All Integer fields are updated by EodExecutor.
