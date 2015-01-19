@@ -90,12 +90,11 @@ public class BombPlugin extends JavaPlugin {
      * Hinderances to backwards compatibility:. <br/><br/>
      * 
      * <b>BA.Version - Class.method() - return type </b>
+     * <pre>
      * 3.9.6+    Spawnable.spawn() returns void
      * 3.9.5.8-  Spawnable.spawn() returns int
      * 
      * https://github.com/BattlePluginsDev/BattleArena/commit/535c0e8aa443dbbd01dd89aa9321b750784fff75
-     * <pre>
-     * 
      * </pre>
      */
     @Override  
