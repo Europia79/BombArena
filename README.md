@@ -148,7 +148,7 @@ Other commands:
 |`/bomb removebase <arena>` | bombarena.addbase | Alias: delete, clear |
 |`/bomb removeallbases <arena>` | bombarena.addbase | Alias: delete, clear |
 |`/bomb listconfig` | bombarena.setconfig | View all config.yml options |
-|`/bomb setconfig <option> <value> | bombarena.setconfig | Used to set config.yml options |
+|`/bomb setconfig <option> <value>` | bombarena.setconfig | Used to set config.yml options |
 |`/bomb debug` | bombarena.debug | Toggles debugging mode on/off |
 
 
@@ -287,4 +287,6 @@ Nicodemis79 on Skype
 Javadocs & Wiki
 ---
 
-[http://ci.battleplugins.com/job/BombArena/javadoc/](http://ci.battleplugins.com/job/BombArena/javadoc/ "javadocs")
+[http://wiki.battleplugins.org/Main_Page](BattleArena wiki "BattleArena wiki")
+[http://javadocs.rainbowcraft.net/BattleArena](BattleArena javadocs "BattleArena javadocs")
+[http://javadocs.rainbowcraft.net/BombArena](BombArena javadocs "BombArena javadocs")
