@@ -222,11 +222,12 @@ public class BombPlugin extends JavaPlugin {
     }
     
     /**
-     * Used by assignBases() and setbase command. <br/><br/>
+     * Used to find a nearby BaseBlock. <br/><br/>
      * 
-     * Uses the players location to find the exact location of a nearby BaseBlock. <br/><br/>
+     * Used by assignBases() and setbase() command. <br/><br/>
      * 
-     * @param loc This is the location of their own base. (NOT the enemy base).
+     * @param loc Scan blocks near this location.
+     * @return Does not return null: If no block is found, the original loc param is returned.
      */
     public Location getExactLocation(Location loc) {
         int length = 5;
