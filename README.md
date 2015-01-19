@@ -287,6 +287,8 @@ Nicodemis79 on Skype
 Javadocs & Wiki
 ---
 
-[http://wiki.battleplugins.org/Main_Page](BattleArena wiki "BattleArena wiki")
-[http://javadocs.rainbowcraft.net/BattleArena](BattleArena javadocs "BattleArena javadocs")
-[http://javadocs.rainbowcraft.net/BombArena](BombArena javadocs "BombArena javadocs")
+[BattleArena wiki](http://wiki.battleplugins.org/Main_Page "BattleArena wiki")
+
+[BattleArena javadocs](http://javadocs.rainbowcraft.net/BattleArena "BattleArena javadocs")
+
+[BombArena javadocs](http://javadocs.rainbowcraft.net/BombArena "BombArena javadocs")
