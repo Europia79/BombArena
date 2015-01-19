@@ -100,21 +100,14 @@ use these two commands instead:
 
 `/aa select <arena>`
 
-`/aa addspawn 172 fs=1 rs=300 1`
+`/aa addspawn 46 fs=1 rs=300 index=1`
 
 "aa stands for `/arenaAlter`. `fs` stands for First Spawn (1 second after the match begins). 
-`rs=300` stands for ReSpawn after 300 seconds. `172` is HARD_CLAY (substitute it with whatever 
+`rs=300` stands for ReSpawn after 300 seconds. `46` is TNT (substitute it with whatever 
 you've defined the BombBlock to be inside config.yml). 
 
-Other commands:
-
-**/bomb join**
-
-**/bomb leave**
-
-**/bomb forcestart**
-
-**/bomb delete ArenaName**
+The `addspawn` command can be used to spawn mobs or other items, 
+but please leave index one for the bomb.
 
 
 Base Setup
@@ -126,21 +119,38 @@ and assign players to a base that they must defend...
 and to make sure players cannot arbitrarily destroy ANY base they find 
 (like their own), but rather, force them to find and destroy the other teams base.
 
-This is how you make bases for Sabotage:
+This is how you make bases:
 
 - place two BaseBlocks (1 at each base. The default BaseBlock is BREWING_STAND, but this can be changed in the config.yml)
-- do `/bomb setbase <arena> <teamID>` (value for team can be 1 or 2)
-
-This is how you make bases for Search N Destroy:
-
-- place a BaseBlock
-- do `/snd addbase <arenaName>`
+- do `/bomb addbase <arena>`
+- or `/snd addbase <arena>`
 
 You can now join a BombArena or SndArena (or even get a VirtualPlayer 
 to test it out). Note however, that having 1 base for SND gives a 
 slight advantage to the defenders (since they only have to let time expire to win). 
 Putting a 2nd (or more) base makes it more challenging for defenders and 
 evens the playing field.
+
+Other commands:
+---
+
+| Command | Permission | Description |
+|:----------|:-------------------------:|:------------------:|
+|`/bomb join` | arena.join.bombarena | Join the Sabotage game-mode |
+|`/snd join`  | arena.join.sndarena  | Join the Search-N-Destroy game-mode |
+|`/bomb leave` | arena.leave.bombarena | Exit the arena |
+|`/bomb forcestart` | arena.admin | Force start the arena |
+|`/bomb stats` | bomb.stats | Display your own personal stats |
+|`/bomb stats <player>` | bomb.stats.other | View another player's stats |
+|`/bomb stats top <X>` | bomb.stats.top | Display the leaderboard |
+|`/bomb spawnbomb <arena>` | bombarena.spawnbomb | Set the spawn location for the bomb |
+|`/bomb addbase <arena>` | bombarena.addbase | Each arena must have 2 bases |
+|`/bomb removebase <arena>` | bombarena.addbase | Alias: delete, clear |
+|`/bomb removeallbases <arena>` | bombarena.addbase | Alias: delete, clear |
+|`/bomb listconfig` | bombarena.setconfig | View all config.yml options |
+|`/bomb setconfig <option> <value> | bombarena.setconfig | Used to set config.yml options |
+|`/bomb debug` | bombarena.debug | Toggles debugging mode on/off |
+
 
 (Optional) You can add a Worldguard region to BattleArena 
 so that block changes reset after each match. (Be careful 
@@ -223,58 +233,18 @@ Also, there's a fake player in the SQL table called
 `Bombs Planted Defused` that contains the totals.
 
 
-Listener Methods:
----
-- onBombSpawn(ItemSpawnEvent e)
-   * Set the compass so players know where the bomb is located.
-- onBombPickup(PlayerPickupEvent e)
-   * put a HAT on the bomb carrier so that players know WHO has the bomb.
-   * Map the Arena to a value of PlayerName (so that the plugin itself knows who has the bomb for each arena).
-   * Set the compass to the opponents base.
-- onBombCarrierLeave(ArenaPlayerLeaveEvent e)
-   * Does this person have the bomb ?
-   * if so, drop it on the ground.
-- onCarrierDeath(PlayerDeathEvent e)
-   * remove them from the map listing.
-   * drop the bomb on the ground.
-- onBombDrop(PlayerDropItemEvent e)
-   * make sure they didn't throw it outside the map.
-   * point the compass to the direction of the bomb and
-   * give a visual aid so that players know the location of the bomb.
-- onBombDespawn(ItemDespawnEvent e)
-   * This event breaks ALL other events.
-   * The despawn time for the bomb is now set to the entire duration of the match.
-   * cmd (/bomb spawnbomb) is the cmd that sets the duration on arena setup.
-- onBombPlace (BlockPlaceEvent e)
-   * Going to help new players out by calling onBombPlant if they're close enough.
-   * If they're not close enough, then tell the player to follow their compass.
-   * client-side bug (invisible bomb) was fixed with deprecated updateInventory().
-- onBombPlantDefuse(InventoryOpenEvent e)
-   * check defuse conditions.
-   * check plant conditions.
-   * start a 8 sec PlantTimer or 8 sec DefuseTimer.
-   * Successful PlantTimer will start a 30 sec DetonateTimer.
-   * Successful DetonationTimer or DefuseTimer will declare the winners.
-- onBombPlantFailure(InventoryCloseEvent e)
-   * cancel() the PlantTimer or DefuseTimer.
-   * Notice that there's two ways for Plant or Defusal to fail: 
-      1. Player prematurely closes the inventory, or 
-	  2. the player dies. If the player dies, then we'll let onCarrierDeath handle everything.
-- onBaseExploit(BlockBreakEvent e)
-   * Prevents players from destroying base blocks.
-- onBaseInteraction(PlayerInteractionEvent e)
-   * Allows players to plant+defuse inside protected regions.
-
-
 To-Do List
 ---
-- test against the lastest versions of BattleTracker.
-- Finish implementing backwards-compatibility with BattleArena.
-- Add & implement other commands:
-- /bomb checkbase
-- /bomb clearbases <arena> (listen for /bomb delete <arena>)
+- Add custom events.
+- Add Timer + Event Sounds per player.
+- Add Timer bars & timer holograms.
+- Allow for more customized Holograms via config.yml
+- Maybe change plant/defuse mechanics ?
+- ~~Finish implementing backwards-compatibility with BattleArena.~~ done.
+- ~~Add & implement other commands:~~
+- ~~/bomb clearbase <arena>~~ done.
+- ~~/bomb clearallbases <arena>~~ done.
 - write PHP script to access the database & display player stats on a website.
-- Fix Timer Sounds to broadcast per player.
 - ~~Finish Search N Destroy.~~ done.
 - ~~Implement config options.~~ done.
 - ~~Update arenas.yml to match any changes in config.yml option BombBlock.~~ done.
@@ -292,15 +262,15 @@ To-Do List
 
 Bugs to fix:
 ---
-- onBombSpawn(ItemSpawnEvent e) breaks ALL other events.
-- ~~onBombDespawn(ItemDespawnEvent e)~~ breaks ALL other events.
-- onBombDespawn() is not necessary since the despawn time is now set to the max duration of the match.
+- ~~onBombSpawn(ItemSpawnEvent e) breaks ALL other events.~~ fixed
+- ~~onBombDespawn(ItemDespawnEvent e) breaks ALL other events.~~ fixed
   
 
-Known Issues:
+Known caveats:
 ---
-- Requires BattleArena v3.9.7.3 or newer.
-- Killing a player who is planting or defusing the bomb should stop their progress but this was never tested since it requires a 2nd player to test.
+- Requires Craftbukkit v1.5 or newer.
+- Requires BattleArena v3.9.6 or newer.
+- bases.yml is deprecated.
   
 
 Contact:
