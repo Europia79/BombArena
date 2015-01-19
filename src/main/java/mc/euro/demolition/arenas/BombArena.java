@@ -49,6 +49,16 @@ public class BombArena extends EodArena {
     
     Map<Integer, Location> teamBases = new HashMap<Integer, Location>(); // key = teamID
     
+    /**
+     * Pre-BattleArena v3.9.8 constructor to support backwards compatibility.
+     */
+    public BombArena() {
+        super((BombPlugin) Bukkit.getPluginManager().getPlugin("BombArena"));
+    }
+    
+    /**
+     * This constructor requires BattleArena v3.9.8+.
+     */
     public BombArena(BombPlugin plugin) {
         super(plugin); // I love this line of code :P
     }
@@ -268,11 +278,10 @@ public class BombArena extends EodArena {
                     + " has stopped because no bases were found" 
                     + " inside arenas.yml");
             msgAll(getMatch().getPlayers(), "[BombArena] "
-                    + "please use the command (/bomb setbase ArenaName Index)"
-                    + " to properly setup arenas.");
+                    + "To properly setup arenas, " 
+                    + "please use the command: /bomb addbase <ArenaName>");
             plugin.getLogger().warning("[BombArena] No bases found inside arena.yml: "
-                    + "Please use the cmd (/bomb setbase ArenaName Index)"
-                    + "to properly setup arenas.");
+                    + "Please use the cmd: /bomb addbase <ArenaName>");
             getMatch().cancelMatch();
             return;
         }

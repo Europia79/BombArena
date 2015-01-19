@@ -55,6 +55,16 @@ public class SndArena extends EodArena {
     ArenaTeam attackers;
     ArenaTeam defenders;
     
+    /**
+     * Pre-BattleArena v3.9.8 constructor to support backwards compatibility.
+     */
+    public SndArena() {
+        super((BombPlugin) Bukkit.getPluginManager().getPlugin("BombArena"));
+    }
+    
+    /**
+     * This constructor requires BattleArena v3.9.8+.
+     */
     public SndArena(BombPlugin plugin) {
         super(plugin);
     }
@@ -305,10 +315,10 @@ public class SndArena extends EodArena {
                     + " has stopped because no bases were found"
                     + " inside bases.yml");
             msgAll(getMatch().getPlayers(), "[SndArena] "
-                    + "please use the command (/bomb addbase ArenaName)"
+                    + "please use the command (/bomb addbase <ArenaName>)"
                     + " to properly setup arenas.");
             plugin.getLogger().warning("[SndArena] No bases found inside bases.yml: "
-                    + "Please use the cmd (/bomb setbase ArenaName Index)"
+                    + "Please use the cmd (/bomb addbase <ArenaName>)"
                     + "to properly setup arenas.");
             getMatch().cancelMatch();
         }
