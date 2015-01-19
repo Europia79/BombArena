@@ -61,6 +61,46 @@ public class EodExecutor extends CustomCommandExecutor {
         return true;
     }
     
+    @MCCommand(cmds={"removebase", "deletebase"}, perm="bombarena.addbase", usage="removebase <arena>")
+    public boolean removeBase(Player sender, Arena a) {
+        if (!(a instanceof EodArena)) {
+            sender.sendMessage("Arena must be a valid BombArena or SndArena.");
+            return false;
+        }
+        EodArena arena = (EodArena) a;
+        Location loc = sender.getLocation();
+        List<Location> allbases = arena.getCopyOfSavedBases();
+        
+        for (Location base : allbases) {
+            if (base.distance(sender.getLocation()) <= 6) {
+                arena.removeSavedBase(base);
+                sender.sendMessage("Base (" + base.toVector().toBlockVector().toString() + ") has been removed.");
+                if (base.getBlock().getType() == plugin.getBaseBlock()) {
+                    base.getBlock().setType(Material.AIR);
+                }
+            }
+        }
+        
+        return true;
+    }
+    
+    @MCCommand(cmds={"removeallbases", "deleteallbases", "clearallbases"}, perm="bombarena.addbase", usage="clearallbases <arena>")
+    public boolean clearAllBases(CommandSender sender, Arena a) {
+        if (!(a instanceof EodArena)) {
+            sender.sendMessage("Arena must be a valid BombArena or SndArena.");
+            return false;
+        }
+        EodArena arena = (EodArena) a;
+        for (Location loc : arena.getCopyOfSavedBases()) {
+            if (loc.getBlock().getType() == plugin.getBaseBlock()) {
+                loc.getBlock().setType(Material.AIR);
+            }
+        }
+        arena.clearSavedBases();
+        sender.sendMessage("All bases for arena (" + arena.getName() + ") have been cleared.");
+        return false;
+    }
+    
     @MCCommand(cmds={"spawnbomb"}, perm="bombarena.spawnbomb", usage="spawnbomb <arena>")
     public boolean spawnbomb(Player sender, String a) {
         plugin.debug.log("arena = " + a);
