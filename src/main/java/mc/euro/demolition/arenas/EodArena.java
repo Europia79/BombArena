@@ -258,6 +258,11 @@ public abstract class EodArena extends Arena {
             plugin.debug.log("onBombCarrierLeave() event detected.");
             carrier = null;
             e.getPlayer().getInventory().remove(plugin.getBombBlock());
+            // mc.alk.arena.objects.spawns.Spawnable::spawn()
+            // 3.9.6+ method returns void.
+            // 3.9.5.8.5- method returns int.
+            // prevents backwards compatibility.
+            // https://github.com/BattlePluginsDev/BattleArena/commit/535c0e8aa443dbbd01dd89aa9321b750784fff75
             getTimedSpawns().get(1L).spawn();
             getMatch().sendMessage("The bomb has been respawned "
                     + "because the bomb carrier left the game.");
