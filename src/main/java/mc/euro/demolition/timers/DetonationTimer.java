@@ -52,7 +52,7 @@ public class DetonationTimer extends BukkitRunnable {
         arena.getMatch().sendMessage("" + duration);
         
         if (duration == 0) {
-            createExplosion(BOMB_LOCATION);
+            cancel();
             plugin.ti.addPlayerRecord(planter.getName(), plugin.getFakeName(), "WIN");
             try {
                 ArenaTeam t = arena.getTeam(planter);
@@ -68,7 +68,7 @@ public class DetonationTimer extends BukkitRunnable {
                 plugin.getLogger().severe("victoryCondition: NoTeamsLeft");
                 plugin.getLogger().log(Level.SEVERE, null, ex);
             }
-            cancel();
+            createExplosion(BOMB_LOCATION);
         }
         
     }
@@ -100,6 +100,7 @@ public class DetonationTimer extends BukkitRunnable {
     private void killPlayers(Location loc) {
         Set<ArenaPlayer> players = arena.getMatch().getPlayers();
         for (ArenaPlayer p : players) {
+            if (!p.getLocation().getWorld().equals(loc.getWorld())) continue;
             double distance = p.getLocation().distance(loc);
             if (distance <= plugin.getDamageRadius()) {
                 double dmg = plugin.getMaxDamage() - (distance * plugin.getDeltaDamage());
