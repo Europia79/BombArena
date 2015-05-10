@@ -161,16 +161,16 @@ public abstract class EodArena extends Arena {
     /**
      * It is possible to return a null timer.
      */
-    protected DetonationTimer getDetonationTimer() {
+    public DetonationTimer getDetonationTimer() {
         DetonationTimer detTimer = (plantTimer == null) ? null : plantTimer.getDetonationTimer();
         return detTimer;
     }
     
-    protected boolean isDetonationTimerRunning() {
+    public boolean isDetonationTimerRunning() {
         return getDetonationTimer() != null;
     }
     
-    protected void cancelDetonationTimer() {
+    public void cancelDetonationTimer() {
         plantTimer.cancelDetonationTimer();
     }
     
@@ -203,8 +203,7 @@ public abstract class EodArena extends Arena {
      */ 
     @ArenaEventHandler(needsPlayer = false)
     public void onBombSpawn(ItemSpawnEvent e) {
-        plugin.debug.log("ItemSpawnEvent called");
-        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "ItemSpawnEvent called for " + e.getEntity().getItemStack().getType().name());
+        plugin.debug.log("ItemSpawnEvent called for " + e.getEntity().getItemStack().getType().name());
         Material material = e.getEntity().getItemStack().getType();
         if (material != plugin.getBombBlock()) {
             return;
@@ -237,11 +236,10 @@ public abstract class EodArena extends Arena {
 
         if (carrier == null) {
             Set<ArenaPlayer> allplayers = getMatch().getPlayers();
-            plugin.debug.msgArenaPlayers(allplayers, "Bomb despawn cancelled.");
+            plugin.debug.log("Bomb despawn cancelled.");
             e.setCancelled(true);
         } else {
-            plugin.debug.msgArenaPlayers(getMatch().getPlayers(),
-                    "Bomb despawn allowed because " + carrier + " has the bomb.");
+            plugin.debug.log("Bomb despawn allowed because " + carrier + " has the bomb.");
         }
 
     } // END OF ItemDespawnEvent
@@ -427,8 +425,7 @@ public abstract class EodArena extends Arena {
      */
     @ArenaEventHandler
     public void onBombCarrierDeath(PlayerDeathEvent e) {
-        plugin.debug.log("PlayerDeathEvent called");
-        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "PlayerDeathEvent called for " + e.getEntity().getName());
+        plugin.debug.log("PlayerDeathEvent called for " + e.getEntity().getName());
         List<ItemStack> items = new ArrayList<ItemStack>(e.getDrops()); 
         for (ItemStack item : items) {
             Material itemType = item.getType();
@@ -540,7 +537,7 @@ public abstract class EodArena extends Arena {
                             return;
                         }
                         Location exact = exact(player);
-                        plugin.debug.log("" + ticks + " y=" + ibomb.getLocation().getY());
+                        // plugin.debug.log("" + ticks + " y=" + ibomb.getLocation().getY()); // spammy
                         compass.pointTo(exact);
                         plugin.holograms().teleport(id.get(), ibomb.getLocation());
                     }
@@ -563,7 +560,7 @@ public abstract class EodArena extends Arena {
         Location exact_loc = e.getLocation();
         List<Entity> entities = e.getNearbyEntities(20.0, 50.0, 20.0);
         for (Entity entity : entities) {
-            plugin.debug.log("" + entity.getType().toString() + " : " + entity.toString());
+            // plugin.debug.log("" + entity.getType().toString() + " : " + entity.toString()); // spam
             if (entity.getType() == EntityType.DROPPED_ITEM) {
                 Item item = null;
                 try {
@@ -642,7 +639,7 @@ public abstract class EodArena extends Arena {
     public void onComplete() {
         super.onComplete();
         int matchID = getMatch().getID();
-        plugin.debug.msgArenaPlayers(getMatch().getPlayers(), "onComplete matchID = " + matchID);
+        plugin.debug.log("onComplete matchID = " + matchID);
         Set<ArenaPlayer> allplayers = getMatch().getPlayers();
         for (ArenaPlayer p : allplayers) {
             if (p != null && p.getInventory() != null) {
