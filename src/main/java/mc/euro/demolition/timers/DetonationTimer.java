@@ -49,7 +49,8 @@ public class DetonationTimer extends BukkitRunnable {
     @Override
     public void run() {
         duration = duration - 1;
-        arena.getMatch().sendMessage("" + duration);
+        // This makes the Chat Countdown optional:
+        plugin.debug.msgArenaPlayers(arena.getMatch().getPlayers(), "" + duration);
         
         if (duration == 0) {
             cancel();
