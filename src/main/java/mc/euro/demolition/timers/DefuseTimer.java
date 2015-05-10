@@ -55,6 +55,8 @@ public class DefuseTimer extends BukkitRunnable {
             
             arena.getMatch().setVictor(t);
             
+            arena.cancelDetonationTimer();
+            
             this.player.closeInventory();
         }
     }
