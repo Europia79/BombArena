@@ -1,10 +1,13 @@
 package mc.euro.demolition.timers;
 
 import java.util.Set;
+
 import mc.alk.arena.competition.match.Match;
 import mc.alk.arena.objects.ArenaPlayer;
 import mc.euro.demolition.BombPlugin;
 import mc.euro.demolition.arenas.EodArena;
+import mc.euro.demolition.util.MatchUtil;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -71,8 +74,8 @@ public class PlantTimer extends BukkitRunnable {
             this.detTimer = new DetonationTimer(arena, BOMB_LOCATION).start();
             
             player.closeInventory();
-            // watch out for the use of getPlayer();
-            // when player is null;
+            // MatchUtil.continueMatchOnExpiration(arena.getMatch());
+            MatchUtil.setTime(arena.getMatch(), plugin.getDetonationTime());
         }
         
     }
