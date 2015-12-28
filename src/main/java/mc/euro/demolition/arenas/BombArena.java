@@ -76,31 +76,29 @@ public class BombArena extends EodArena {
      */
     @ArenaEventHandler
     public void onBombPickup(PlayerPickupItemEvent e) {
-        plugin.debug.sendMessage(e.getPlayer(), "debug works!");
-        plugin.debug.sendMessage(e.getPlayer(), "onBombPickup() Listener works!");
+        plugin.debug.log("onBombPickup() called");
         
-        if (e.getItem().getItemStack().getType() == plugin.getBombBlock()) {
-            if (carrier == null) {
-                carrier = e.getPlayer().getName();
-                e.getPlayer().getInventory().setHelmet(new ItemStack(plugin.getBombBlock()));
-                ArenaTeam team2 = getOtherTeam(e.getPlayer());
-                int teamID = team2.getId();
-                Location base_loc = teamBases.get(teamID);
-                setCompass(base_loc);
-                createBaseHologram(base_loc);
-                msgAll(team2.getPlayers(), "Hurry back to defend your base from being destroyed!");
-                msgAll(getMatch().getArena().getTeam(e.getPlayer()).getPlayers(), 
-                        "Your team has the bomb! Follow your compass to find the other teams base.");
-            } else {
-                e.setCancelled(true);
-                e.getPlayer().sendMessage(
-                        "There can only be ONE bomb per Match. "
-                        + carrier + " currently has the bomb.");
-                e.getItem().remove();
-            }
+        if (e.getItem().getItemStack().getType() != plugin.getBombBlock()) return;
 
-
+        if (carrier == null) {
+            carrier = e.getPlayer().getName();
+            e.getPlayer().getInventory().setHelmet(new ItemStack(plugin.getBombBlock()));
+            ArenaTeam team2 = getOtherTeam(e.getPlayer());
+            int teamID = team2.getId();
+            Location base_loc = teamBases.get(teamID);
+            setCompass(base_loc);
+            createBaseHologram(base_loc);
+            msgAll(team2.getPlayers(), "Hurry back to defend your base from being destroyed!");
+            msgAll(getMatch().getArena().getTeam(e.getPlayer()).getPlayers(),
+                    "Your team has the bomb! Follow your compass to find the other teams base.");
+        } else {
+            e.setCancelled(true);
+            e.getPlayer().sendMessage(
+                    "There can only be ONE bomb per Match. "
+                    + carrier + " currently has the bomb.");
+            e.getItem().remove();
         }
+
     } // END OF PlayerPickupItemEvent
     
     @Override
