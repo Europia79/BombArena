@@ -3,8 +3,8 @@
 # DetonationTime: 25 to 45 seconds
 # DefuseTime: 5 to 10 seconds
 #   # For fairness, it's recommended that PlantTime = DefuseTime
-# TimerSound: http://jd.bukkit.org/dev/apidocs/org/bukkit/Sound.html
-# BombBlock: http://jd.bukkit.org/dev/apidocs/org/bukkit/Material.html
+# TimerSound: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
+# BombBlock: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 # BaseBlock: (Any Block with an Inventory):
 #          : ANVIL, BEACON, BREWING_STAND
 #          : CHEST, ENDER_CHEST, TRAPPED_CHEST

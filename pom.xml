@@ -4,7 +4,7 @@
 
     <groupId>mc.euro</groupId>
     <artifactId>demolition</artifactId>
-    <version>1.2.2.3</version>
+    <version>1.2.3</version>
     <packaging>jar</packaging>
     <name>Demolition</name>
     <properties>
@@ -14,10 +14,6 @@
     <url>http://dev.bukkit.org/bukkit-plugins/bombarena/</url>
     <!-- Locations for jar repositories -->
     <repositories>
-        <repository>
-            <id>rainbowcraft-repo</id>
-            <url>http://23.29.127.102/maven/repository/</url>
-        </repository>
         <repository>
             <id>bukkit-repo</id>
             <url>http://repo.bukkit.org/content/groups/public</url>
