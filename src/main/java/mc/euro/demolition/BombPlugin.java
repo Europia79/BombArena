@@ -3,6 +3,9 @@ package mc.euro.demolition;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import mc.alk.arena.BattleArena;
 import mc.alk.arena.controllers.BattleArenaController;
 import mc.alk.arena.objects.arenas.Arena;
@@ -28,6 +31,7 @@ import mc.euro.demolition.tracker.PlayerStats;
 import mc.euro.demolition.util.BaseType;
 import mc.euro.version.Version;
 import mc.euro.version.VersionFactory;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -45,6 +49,8 @@ import org.bukkit.plugin.java.JavaPlugin;
  * @author Nikolai
  */
 public class BombPlugin extends JavaPlugin {
+    
+    private static final Logger log = Logger.getLogger(BombPlugin.class.getCanonicalName());
     
     /**
      * Adds Bombs Planted and Bombs Defused to the database. <br/>
@@ -145,6 +151,7 @@ public class BombPlugin extends JavaPlugin {
         } else {
             ArenaSerializer.saveAllArenas(false); // Silent
         }
+        getLogger().log(Level.INFO, " has been enabled");
     }
     
     public void loadDefaultConfig() {
@@ -463,13 +470,13 @@ public class BombPlugin extends JavaPlugin {
                     || arena.getArenaType().getName().equalsIgnoreCase("SndArena")) 
                     && arena.getTimedSpawns().containsKey(1L)) {
                 Map<Long, TimedSpawn> tmap = arena.getTimedSpawns();
-                Location loc = tmap.get(1L).getSpawn().getLocation();
+                TimedSpawn bomb = tmap.get(1L);
                 
                 long fs = 1L;
-                long rs = arena.getParams().getMatchTime();
-                long ds = rs;
-                ItemSpawn item = new ItemSpawn (new ItemStack(this.BombBlock, 1));
-                item.setLocation(loc);
+                long rs = bomb.getRespawnTime();
+                long ds = bomb.getTimeToDespawn();
+                ItemSpawn item = new ItemSpawn(new ItemStack(this.BombBlock, 1));
+                item.setLocation(bomb.getSpawn().getLocation());
                 TimedSpawn timedSpawn = new TimedSpawn(fs, rs, ds, item);
                 tmap.put(1L, timedSpawn);
                 bc.updateArena(arena);
