@@ -237,31 +237,6 @@ public class EodExecutor extends CustomCommandExecutor {
         return true;
     }
     
-    @MCCommand(cmds={"setconfig"}, subCmds={"fakename"}, 
-            perm="bombarena.setconfig", usage="setconfig FakeName <new name>")
-    public boolean setFakeName(CommandSender sender, String[] name) {
-        // name[] = "setconfig fakename args[2] args[3]"
-        if (name.length <= 3) {
-            sender.sendMessage("FakeName must have at least one space in order "
-                    + "to distinguish it from a real player in the database.");
-            return false;
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 2; i < name.length; i++) {
-            sb.append(name[i]).append(" ");
-        }
-        String newName = sb.toString().trim();
-        plugin.setFakeName(newName);
-        sender.sendMessage("FakeName has been set to " + newName);
-        return true;
-    }
-    
-    @MCCommand(cmds={"setconfig"}, subCmds={"changefakename"},
-            perm="bombarena.setconfig", usage="setconfig ChangeFakeName <name>")
-    public boolean setChangeFakeName(CommandSender sender, String name) {
-        sender.sendMessage("This option has not been implemented.");
-        return true;
-    }
     @MCCommand(cmds={"setconfig"}, perm="bombarena.setconfig", usage="setconfig <option> <integer>")
     public boolean setConfig(CommandSender sender, String option, Integer value) {
         Set<String> keys = plugin.getConfig().getKeys(false);

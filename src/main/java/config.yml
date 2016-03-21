@@ -3,22 +3,17 @@
 # DetonationTime: 25 to 45 seconds
 # DefuseTime: 5 to 10 seconds
 #   # For fairness, it's recommended that PlantTime = DefuseTime
-# TimerSound: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
-# BombBlock: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+# TimerSound: 
+#   # 1.9: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
+#   # 1.8: http://rainbowcraft.sytes.net/javadocs/bukkit/1.8/org/bukkit/Sound.html
+# BombBlock: 
+#   # 1.9: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+#   # 1.8: http://rainbowcraft.sytes.net/javadocs/bukkit/1.8/org/bukkit/Material.html
 # BaseBlock: (Any Block with an Inventory):
 #          : ANVIL, BEACON, BREWING_STAND
 #          : CHEST, ENDER_CHEST, TRAPPED_CHEST
 #          : ENCHANTMENT_TABLE, DISPENSER, DROPPER
 #          : FURNACE, HOPPER, WORKBENCH
-# FakeName: 'Bombs Planted Defused'
-#   # DO NOT CHANGE FakeName: Unless you've:
-#      1. Never played or tested a BombArena match on your server.
-#      2. You have just deleted your database.
-#   # Otherwise, you'll have the old FakeName and new FakeName in your database.
-#   # use ChangeFakePlayerName: 'New Name' to let the plugin make changes to the database.
-# ChangeFakeName: ''
-#   # Use spaces since real player names don't have spaces.
-#   # NOT IMPLEMENTED
 # ExplosionMaxDamage: 50 # DMG = MAX - (DELTA * DISTANCE)
 # ExplosionDeltaDamage: 5 # DMG = MAX - (DELTA * DISTANCE)
 # ExplosionRadius: 8
@@ -45,12 +40,10 @@
 PlantTime: 6
 DetonationTime: 40
 DefuseTime: 6
-TimerSound: LEVEL_UP
+TimerSound: ENTITY_EXPERIENCE_ORB_PICKUP
 BombBlock: TNT
 BaseBlock: BREWING_STAND
 BaseRadius: 3
-FakeName: Bombs Planted Defused
-ChangeFakeName: Not Implemented
 MaxDamage: 50
 DeltaDamage: 5
 DamageRadius: 9

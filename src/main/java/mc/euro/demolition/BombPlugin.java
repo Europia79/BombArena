@@ -84,7 +84,6 @@ public class BombPlugin extends JavaPlugin {
     private Material BaseBlock;
     private InventoryType Baseinv;
     private int BaseRadius;
-    private String FakeName;
     private String ChangeFakeName;
     private int MaxDamage;
     private int DeltaDamage;
@@ -146,11 +145,9 @@ public class BombPlugin extends JavaPlugin {
         updateArenasYml(this.BombBlock);
         updateBombArenaConfigYml();
         updateBasesYml();
-        if (debug instanceof DebugOn) {
-            ArenaSerializer.saveAllArenas(true); // Verbose
-        } else {
-            ArenaSerializer.saveAllArenas(false); // Silent
-        }
+        
+        saveAllArenas();
+        
         getLogger().log(Level.INFO, " has been enabled");
     }
     
@@ -169,11 +166,18 @@ public class BombPlugin extends JavaPlugin {
         PlantTime = getConfig().getInt("PlantTime", 8);
         DetonationTime = getConfig().getInt("DetonationTime", 35);
         DefuseTime = getConfig().getInt("DefuseTime", 1);
-        String s = getConfig().getString("TimerSound", "LEVEL_UP");
+        String s = getConfig().getString("TimerSound", "ENTITY_EXPERIENCE_ORB_PICKUP");
         try {
             TimerSound = Sound.valueOf(s.toUpperCase());
         } catch (IllegalArgumentException ex) {
-            this.TimerSound = Sound.ORB_PICKUP;
+            try {
+                this.TimerSound = Sound.valueOf("ORB_PICKUP");
+            } catch (IllegalArgumentException ignored) {
+                
+            }
+        }
+        if (TimerSound == null) {
+            TimerSound = Sound.values()[0]; // make it non-null
         }
         BombBlock = Material.getMaterial(
                 getConfig().getString("BombBlock", "TNT").toUpperCase());
@@ -187,8 +191,6 @@ public class BombPlugin extends JavaPlugin {
             this.Baseinv = InventoryType.BREWING;
             this.setBaseBlock(Material.BREWING_STAND);
         }
-        FakeName = getConfig().getString("FakeName", "Bombs Planted Defused");
-        ChangeFakeName = getConfig().getString("ChangeFakeName");
         MaxDamage = getConfig().getInt("MaxDamage", 50);
         DeltaDamage = getConfig().getInt("DeltaDamage", 5);
         DamageRadius = getConfig().getInt("DamageRadius", 9);
@@ -325,19 +327,7 @@ public class BombPlugin extends JavaPlugin {
     }
 
     public String getFakeName() {
-        return FakeName;
-    }
-
-    public void setFakeName(String fakeName) {
-        this.FakeName = fakeName;
-    }
-
-    public String getChangeFakeName() {
-        return ChangeFakeName;
-    }
-
-    public void setChangeFakeName(String fakeName) {
-        this.ChangeFakeName = fakeName;
+        return "Bombs Planted Defused";
     }
 
     public int getMaxDamage() {
@@ -434,8 +424,15 @@ public class BombPlugin extends JavaPlugin {
         getConfig().set("BaseBlock", this.BaseBlock.name());
         getConfig().set("BombBlock", this.BombBlock.name());
         getConfig().set("DatabaseTable", this.DatabaseTable);
-        getConfig().set("FakeName", this.FakeName);
         return this;
+    }
+    
+    private void saveAllArenas() {
+        if (debug instanceof DebugOn) {
+            ArenaSerializer.saveAllArenas(true); // Verbose
+        } else {
+            ArenaSerializer.saveAllArenas(false); // Silent
+        }
     }
     
     /**
@@ -485,6 +482,10 @@ public class BombPlugin extends JavaPlugin {
         // ArenaSerializer.saveAllArenas(true); // moved to onEnabe()
     }
     
+    /**
+     * Updates BombArenaConfig.yml
+     * Sets node "BombArena.victoryCondition" to "NoTeamsLeft"
+     */
     private void updateBombArenaConfigYml() {
         this.debug.log("updating BombArenaConfig.yml");
         // This needs to be tested.
@@ -502,17 +503,15 @@ public class BombPlugin extends JavaPlugin {
                 }
             }
         }
-        // ArenaSerializer.saveAllArenas(true); // moved to onEnable()
-        getConfig("bases.yml");
-        /*
-         CustomConfig bombarena = getConfig("BombArenaConfig.yml");
-         bombarena.set("BombArena.victoryCondition", "NoTeamsLeft");
-         bombarena.saveConfig();
-         */
+        // ArenaSerializer.saveAllArenas(boolean verbose); // moved to onEnable()
     }
     
     /**
-     * Move information from bases.yml to arenas.yml then delete? bases.yml.
+     * Move information from bases.yml to arenas.yml then deletes bases.yml.
+     * 
+     * We need to delete the file because arenas.yml can change...
+     * But if bases.yml is not deleted, then changes in arenas.yml will be reverted 
+     * on server restart.
      */
     private boolean updateBasesYml() {
         debug.log("Transferring bases.yml to arenas.yml");
@@ -564,8 +563,8 @@ public class BombPlugin extends JavaPlugin {
             }
             // BattleArena.saveArenas(this); // moved to onEnable()
         }
-        // Should we keep the file ? Or delete it ?
-        // file.delete();
+        // Delete the bases.yml so that it won't revert changes in arenas.yml
+        file.delete();
         return true;
     }
 }
