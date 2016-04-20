@@ -43,6 +43,7 @@ public class DefuseTimer extends BukkitRunnable {
     public void run() {
         duration = duration - 1;
         player.sendMessage("" + ChatColor.RED + "" + duration);
+        plugin.playPlantDefuseNoise(BOMB_LOCATION, arena.getMatch().getPlayers());
         
         if (duration <= 0) {
             ArenaTeam t = arena.getTeam(player);

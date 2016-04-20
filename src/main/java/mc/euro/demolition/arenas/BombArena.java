@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.events.ArenaEventHandler;
 import mc.alk.arena.objects.teams.ArenaTeam;
 import mc.alk.arena.util.SerializerUtil;
@@ -16,7 +15,6 @@ import mc.euro.demolition.objects.CompassHandler;
 import mc.euro.demolition.timers.DetonationTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -201,12 +199,7 @@ public class BombArena extends EodArena {
         plugin.debug.log("Map<> bases.values() = " + teamBases.values());
         this.carrier = null;
         resetBases();
-        Set<ArenaPlayer> allplayers = getMatch().getPlayers();
-        for (ArenaPlayer p : allplayers) {
-            if (!p.getInventory().contains(Material.COMPASS)) {
-                p.getInventory().addItem(new ItemStack(Material.COMPASS));
-            }
-        }
+        plugin.giveCompass(getMatch().getPlayers());
         // loadLocations();
         assignBases(getMatch().getTeams());
         compass = new CompassHandler(this);

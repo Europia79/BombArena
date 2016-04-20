@@ -264,9 +264,9 @@ public abstract class EodArena extends Arena {
             getTimedSpawns().get(1L).spawn();
             getMatch().sendMessage("The bomb has been respawned "
                     + "because the bomb carrier left the game.");
-            // point the compass
-            // delete the old hologram
-            // create the new hologram
+            // point the compass // Happens in ItemSpawnEvent
+            // delete the old hologram // Happens in ItemSpawnEvent
+            // create the new hologram // Happens in ItemSpawnEvent
         }
         
     } // END OF ArenaPlayerLeaveEvent
@@ -589,15 +589,6 @@ public abstract class EodArena extends Arena {
     protected void setCompass(Location loc) {
         if (compass == null) compass = new CompassHandler(this);
         compass.pointTo(loc);
-        /*
-        Set<ArenaPlayer> players = getMatch().getPlayers();
-        for (ArenaPlayer p : players) {
-            if (!p.getInventory().contains(Material.COMPASS)) {
-                p.getInventory().addItem(new ItemStack(Material.COMPASS));
-            }
-            p.getPlayer().setCompassTarget(loc);
-        }
-        */
     }
     
     /**
@@ -640,22 +631,28 @@ public abstract class EodArena extends Arena {
         super.onComplete();
         int matchID = getMatch().getID();
         plugin.debug.log("onComplete matchID = " + matchID);
-        Set<ArenaPlayer> allplayers = getMatch().getPlayers();
-        for (ArenaPlayer p : allplayers) {
-            if (p != null && p.getInventory() != null) {
-                if (p.getInventory().contains(Material.COMPASS)) {
-                    p.getInventory().remove(Material.COMPASS);
-                }
-                if (p.getInventory().getHelmet() != null 
-                        && p.getInventory().getHelmet().getType() == plugin.getBombBlock()) {
-                    p.getInventory().setHelmet(new ItemStack(Material.AIR));
-                }
-                if (p.getInventory().contains(plugin.getBombBlock())) {
-                    p.getInventory().remove(plugin.getBombBlock());
-                }
-            }
+//        Set<ArenaPlayer> allplayers = getMatch().getPlayers();
+//        for (ArenaPlayer p : allplayers) {
+//            if (p != null && p.getInventory() != null) {
+////                if (p.getInventory().contains(Material.COMPASS)) {
+////                    p.getInventory().remove(Material.COMPASS); // issue #7
+////                }
+//                if (p.getInventory().getHelmet() != null 
+//                        && p.getInventory().getHelmet().getType() == plugin.getBombBlock()) {
+//                    p.getInventory().setHelmet(new ItemStack(Material.AIR));
+//                }
+//                if (p.getInventory().contains(plugin.getBombBlock())) {
+//                    p.getInventory().remove(plugin.getBombBlock());
+//                }
+//            }
+//        }
+        try {
+            compass.cancel();
+        } catch (NullPointerException ignoredNPE) {
+            // safe to ignore
+        } catch (IllegalStateException ignoredState) {
+            // safe to ignore
         }
-        compass.cancel();
         compass = null;
     }
     

@@ -52,8 +52,9 @@ public class PlantTimer extends BukkitRunnable {
         plugin.debug.log("PlantTimer (" + getTaskId() + ") is running: " + duration);
         if (cancelled) return;
         duration = duration - 1;
-        player.playSound(player.getLocation(), Sound.ARROW_HIT, 1F, 1F);
+        
         player.sendMessage("" + duration);
+        plugin.playPlantDefuseNoise(BOMB_LOCATION, arena.getMatch().getPlayers());
         
         if (duration == 0) {
             Set<ArenaPlayer> allplayers = arena.getMatch().getPlayers();

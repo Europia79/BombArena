@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.events.ArenaEventHandler;
 import mc.alk.arena.objects.spawns.TimedSpawn;
 import mc.alk.arena.objects.teams.ArenaTeam;
@@ -97,7 +96,7 @@ public class SndArena extends EodArena {
         
         if (carrier == null) {
             this.carrier = e.getPlayer().getName();
-            e.getPlayer().getInventory().setHelmet(new ItemStack(Material.TNT));
+            e.getPlayer().getInventory().setHelmet(new ItemStack(plugin.getBombBlock()));
             ArenaTeam team2 = getOtherTeam(e.getPlayer());
             createBaseHologram(getSavedBases());
             msgAll(team2.getPlayers(), "Hurry back to defend the bases from being destroyed!");
@@ -218,12 +217,7 @@ public class SndArena extends EodArena {
         plugin.debug.log("onStart matchID = " + matchID);
         this.carrier = null;
         resetBases();
-        Set<ArenaPlayer> allplayers = getMatch().getPlayers();
-        for (ArenaPlayer p : allplayers) {
-            if (!p.getInventory().contains(Material.COMPASS)) {
-                p.getInventory().addItem(new ItemStack(Material.COMPASS));
-            }
-        }
+        plugin.giveCompass(getMatch().getPlayers());
         // loadLocations();
         assignTeams(getMatch().getTeams());
         compass = new CompassHandler(this);
