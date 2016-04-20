@@ -3,11 +3,13 @@ package mc.euro.demolition;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import mc.alk.arena.BattleArena;
 import mc.alk.arena.controllers.BattleArenaController;
+import mc.alk.arena.objects.ArenaPlayer;
 import mc.alk.arena.objects.arenas.Arena;
 import mc.alk.arena.objects.spawns.ItemSpawn;
 import mc.alk.arena.objects.spawns.TimedSpawn;
@@ -27,6 +29,7 @@ import mc.euro.demolition.holograms.HologramInterface;
 import mc.euro.demolition.holograms.HologramsOff;
 import mc.euro.demolition.holograms.HolographicAPI;
 import mc.euro.demolition.holograms.HolographicDisplay;
+import mc.euro.demolition.sound.SoundAdapter;
 import mc.euro.demolition.tracker.PlayerStats;
 import mc.euro.demolition.util.BaseType;
 import mc.euro.version.Version;
@@ -80,6 +83,13 @@ public class BombPlugin extends JavaPlugin {
     private int DetonationTime;
     private int DefuseTime;
     private Sound TimerSound;
+    private int TimerRange;
+    private float TimerVolume;
+    private float TimerPitch;
+    private Sound PlantDefuseNoise;
+    private int NoiseRange;
+    private float NoiseVolume;
+    private float NoisePitch;
     private Material BombBlock;
     private Material BaseBlock;
     private InventoryType Baseinv;
@@ -90,6 +100,7 @@ public class BombPlugin extends JavaPlugin {
     private int DamageRadius;
     private int StartupDisplay;
     private String DatabaseTable;
+    private boolean GiveCompass = true;
     
     /**
      * Hinderances to backwards compatibility:. <br/><br/>
@@ -107,7 +118,8 @@ public class BombPlugin extends JavaPlugin {
         
         saveDefaultConfig();
         
-        debug = new DebugOn(this);
+        checkAllNodes();
+        
         loadDefaultConfig();
         
         Version<Plugin> ba = VersionFactory.getPluginVersion("BattleArena");
@@ -151,6 +163,33 @@ public class BombPlugin extends JavaPlugin {
         getLogger().log(Level.INFO, " has been enabled");
     }
     
+    /**
+     * Checks that all nodes in config.yml exist.
+     * If not, add them with a default value.
+     */
+    private void checkAllNodes() {
+        addNode("PlantTime", 6);
+        addNode("DefuseTime", 6);
+        addNode("DetonationTime", 40);
+        addNode("TimerSound", "ENTITY_EXPERIENCE_ORB_PICKUP");
+        addNode("TimerRange", 256);
+        addNode("TimerPitch", 1);
+        addNode("PlantDefuseNoise", "DIG_GRASS");
+        addNode("NoiseRange", 32);
+        addNode("NoisePitch", 1);
+        addNode("BombBlock", "TNT");
+        addNode("BaseBlock", "BREWING_STAND");
+        addNode("BaseRadius", 3);
+        addNode("MaxDamage", 50);
+        addNode("DeltaDamage", 5);
+        addNode("DamageRadius", 9);
+        addNode("StartupDisplay", 3);
+        addNode("ShowHolograms", false);
+        addNode("GiveCompass", false);
+        addNode("Debug", false);
+        saveConfig();
+    }
+    
     public void loadDefaultConfig() {
         
         boolean b = getConfig().getBoolean("Debug", false);
@@ -161,24 +200,21 @@ public class BombPlugin extends JavaPlugin {
             debug = new DebugOff(this);
             getLogger().info("Debugging mode is OFF.");
         }
-
+        
         getLogger().info("Loading config.yml");
-        PlantTime = getConfig().getInt("PlantTime", 8);
-        DetonationTime = getConfig().getInt("DetonationTime", 35);
-        DefuseTime = getConfig().getInt("DefuseTime", 1);
-        String s = getConfig().getString("TimerSound", "ENTITY_EXPERIENCE_ORB_PICKUP");
-        try {
-            TimerSound = Sound.valueOf(s.toUpperCase());
-        } catch (IllegalArgumentException ex) {
-            try {
-                this.TimerSound = Sound.valueOf("ORB_PICKUP");
-            } catch (IllegalArgumentException ignored) {
-                
-            }
-        }
-        if (TimerSound == null) {
-            TimerSound = Sound.values()[0]; // make it non-null
-        }
+        PlantTime = getConfig().getInt("PlantTime", 6);
+        DefuseTime = getConfig().getInt("DefuseTime", 6);
+        DetonationTime = getConfig().getInt("DetonationTime", 40);
+        String t = getConfig().getString("TimerSound", "ENTITY_EXPERIENCE_ORB_PICKUP");
+        TimerSound = SoundAdapter.getSound(t); 
+        TimerRange = getConfig().getInt("TimerRange", 256);
+        TimerVolume = (float) TimerRange / 16;
+        TimerPitch = (float) getConfig().getDouble("TimerPitch", 1);
+        String n = getConfig().getString("PlantDefuseNoise", "DIG_GRASS");
+        PlantDefuseNoise = SoundAdapter.getSound(n);
+        NoiseRange = getConfig().getInt("NoiseRange", 32);
+        NoiseVolume = (float) NoiseRange / 16;
+        NoisePitch = (float) getConfig().getDouble("NoisePitch", 1);
         BombBlock = Material.getMaterial(
                 getConfig().getString("BombBlock", "TNT").toUpperCase());
         BaseBlock = Material.valueOf(
@@ -191,27 +227,14 @@ public class BombPlugin extends JavaPlugin {
             this.Baseinv = InventoryType.BREWING;
             this.setBaseBlock(Material.BREWING_STAND);
         }
+        BaseRadius = getConfig().getInt("BaseRadius", 3);
         MaxDamage = getConfig().getInt("MaxDamage", 50);
         DeltaDamage = getConfig().getInt("DeltaDamage", 5);
         DamageRadius = getConfig().getInt("DamageRadius", 9);
         StartupDisplay = getConfig().getInt("StartupDisplay", 5);
         DatabaseTable = getConfig().getString("DatabaseTable", "bombarena");
+        GiveCompass = getConfig().getBoolean("GiveCompass", false);
 
-        debug.log("PlantTime = " + PlantTime + " seconds");
-        debug.log("DetonationTime = " + DetonationTime + " seconds");
-        debug.log("DefuseTime = " + DefuseTime + " seconds");
-        debug.log("BombBlock = " + BombBlock.toString());
-        debug.log("BaseBlock = " + BaseBlock.toString());
-        debug.log("Baseinv = " + Baseinv.toString());
-        
-        if (!getConfig().contains("BaseRadius")) {
-            getConfig().addDefault("BaseRadius", 3);
-        }
-        this.BaseRadius = getConfig().getInt("BaseRadius", 3);
-        
-        if (!getConfig().contains("ShowHolograms")) {
-            getConfig().addDefault("ShowHolograms", true);
-        }
         boolean ShowHolograms = getConfig().getBoolean("ShowHolograms", true);
         Version HD = VersionFactory.getPluginVersion("HolographicDisplays");
         Version Holoapi = VersionFactory.getPluginVersion("HoloAPI");
@@ -227,6 +250,25 @@ public class BombPlugin extends JavaPlugin {
             this.holograms = new HologramsOff();
             debug.log("Hologram support is disabled.");
             debug.log("Please download HoloAPI or HolographicDisplays to enable Hologram support.");
+        }
+        
+        try {
+            debug.log("PlantTime = " + PlantTime + " seconds");
+            debug.log("DefuseTime = " + DefuseTime + " seconds");
+            debug.log("DetonationTime = " + DetonationTime + " seconds");
+            debug.log("TimerSound = " + TimerSound.toString());
+            debug.log("PlantDefuseNoise = " + PlantDefuseNoise.toString());
+            debug.log("BombBlock = " + BombBlock.toString());
+            debug.log("BaseBlock = " + BaseBlock.toString());
+            debug.log("Baseinv = " + Baseinv.toString());
+        } catch (NullPointerException ignored) {
+            // safe to ignore
+        }
+    }
+    
+    private void addNode(String key, Object value) {
+        if (!getConfig().contains(key)) {
+            getConfig().set(key, value);
         }
     }
     
@@ -386,8 +428,50 @@ public class BombPlugin extends JavaPlugin {
         return this.BaseRadius;
     }
     
-    public Sound getSound() {
+    public Sound getTimerSound() {
         return TimerSound;
+    }
+    
+    public void setTimerSound(Sound sound) {
+        this.TimerSound = sound;
+    }
+    
+    public Sound getPlantDefuseNoise() {
+        return PlantDefuseNoise;
+    }
+    
+    public void setPlantDefuseNoise(Sound sound) {
+        this.PlantDefuseNoise = sound;
+    }
+    
+    public void playTimerSound(Location loc, Collection<ArenaPlayer> players) {
+        for (ArenaPlayer ap : players) {
+            playSound(ap, loc, TimerSound, TimerVolume, TimerPitch);
+        }
+    }
+    
+    public void playPlantDefuseNoise(Location loc, Collection<ArenaPlayer> players) {
+        for (ArenaPlayer ap : players) {
+            playSound(ap, loc, PlantDefuseNoise, NoiseVolume, NoisePitch);
+        }
+    }
+    
+    private void playSound(ArenaPlayer ap, Location loc, Sound sound, float volume, float pitch) {
+        try {
+            ap.getPlayer().playSound(loc, sound, volume, pitch);
+        } catch (Exception ignored) {
+            // safe to ignore
+        }
+    }
+    
+    public void giveCompass(Set<ArenaPlayer> players) {
+        if (GiveCompass) {
+            for (ArenaPlayer p : players) {
+                if (!p.getInventory().contains(Material.COMPASS)) {
+                    p.getInventory().addItem(new ItemStack(Material.COMPASS));
+                }
+            }
+        }
     }
     
     /**
