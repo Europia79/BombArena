@@ -6,6 +6,11 @@
 # TimerSound: 
 #   # 1.9: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
 #   # 1.8: http://rainbowcraft.sytes.net/javadocs/bukkit/1.8/org/bukkit/Sound.html
+# Range:
+#   # The distance (in blocks) that Sounds should be heard by players.
+#   # 16 blocks is equivalent to a default Volume level of 1.
+# Pitch:
+#   # a value between 0.5 and 2.0
 # BombBlock: 
 #   # 1.9: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 #   # 1.8: http://rainbowcraft.sytes.net/javadocs/bukkit/1.8/org/bukkit/Material.html
@@ -38,9 +43,14 @@
 #   # false = debugging mode OFF
 #   # cmd toggle: /bomb debug
 PlantTime: 6
-DetonationTime: 40
 DefuseTime: 6
+DetonationTime: 40
 TimerSound: ENTITY_EXPERIENCE_ORB_PICKUP
+TimerRange: 256
+TimerPitch: 1
+PlantDefuseNoise: DIG_GRASS
+NoiseRange: 32
+NoisePitch: 1
 BombBlock: TNT
 BaseBlock: BREWING_STAND
 BaseRadius: 3
@@ -49,5 +59,6 @@ DeltaDamage: 5
 DamageRadius: 9
 StartupDisplay: 3
 DatabaseTable: BombArena
-ShowHolograms: true
+ShowHolograms: false
+GiveCompass: false
 Debug: false
