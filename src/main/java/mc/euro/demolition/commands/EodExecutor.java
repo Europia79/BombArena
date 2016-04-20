@@ -2,6 +2,7 @@ package mc.euro.demolition.commands;
 
 import java.util.List;
 import java.util.Set;
+
 import mc.alk.arena.BattleArena;
 import mc.alk.arena.executors.CustomCommandExecutor;
 import mc.alk.arena.executors.MCCommand;
@@ -13,7 +14,10 @@ import mc.euro.demolition.BombPlugin;
 import mc.euro.demolition.arenas.EodArena;
 import mc.euro.demolition.debug.DebugOff;
 import mc.euro.demolition.debug.DebugOn;
+import mc.euro.demolition.sound.SoundAdapter;
+import mc.euro.demolition.sound.SoundPlayer;
 import mc.euro.demolition.util.BaseType;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -142,6 +146,10 @@ public class EodExecutor extends CustomCommandExecutor {
             sender.sendMessage("BombArena statistics are not being tracked.");
             return true;
         }
+        if (p == null) {
+            sender.sendMessage("No such player. Did you misspell their name ?");
+            return true;
+        }
         PlayerStat ps = plugin.ti.tracker.getPlayerRecord(p);
         int wins = ps.getWins();
         int ties = ps.getTies();
@@ -195,6 +203,43 @@ public class EodExecutor extends CustomCommandExecutor {
             }
             
             return true;
+    }
+    
+    @MCCommand(cmds={"setconfig"}, subCmds={"TimerSound"},
+            perm="bombarena.setconfig", usage="setconfig TimerSound <SOUND_NAME>")
+    public boolean setTimerSound(CommandSender sender, String sound_name) {
+        return verifySound(sender, "TimerSound", sound_name);
+    }
+    
+    @MCCommand(cmds={"setconfig"}, subCmds={"PlantDefuseNoise", "Noise"},
+            perm="bombarena.setconfig", usage="setconfig Noise <SOUND_NAME>")
+    public boolean setPlantDefuseNoise(CommandSender sender, String sound_name) {
+        return verifySound(sender, "PlantDefuseNoise", sound_name);
+    }
+    
+    private boolean verifySound(CommandSender sender, String key, String value) {
+        if (value.equalsIgnoreCase("NONE") || value.equalsIgnoreCase("OFF")
+                || value.equalsIgnoreCase("SILENT") || value.equalsIgnoreCase("NULL")) {
+            setSound(key, null);
+            return true;
+        }
+        Sound sound = SoundAdapter.getSound(value);
+        if (sound == null) {
+            sender.sendMessage("" + value + " is not a valid sound.");
+            return false;
+        }
+        setSound(key, sound);
+        return true;
+    }
+
+    private void setSound(String key, Sound value) {
+        plugin.getConfig().set(key, value);
+        plugin.saveConfig();
+        if (key.equals("TimerSound")) {
+            plugin.setTimerSound(value);
+        } else if (key.equals("PlantDefuseNoise")) {
+            plugin.setPlantDefuseNoise(value);
+        }
     }
     
     @MCCommand(cmds={"setconfig"}, subCmds={"bombblock"}, 
@@ -331,28 +376,40 @@ public class EodExecutor extends CustomCommandExecutor {
     
     @MCCommand(cmds={"sound"}, op=true)
     public boolean sound(final Player player, String sound) {
-        final Sound SOUND;
+        return sound(player, sound, 1.0f);
+    }
+    
+    @MCCommand(cmds={"sound"}, op=true)
+    public boolean sound(final Player player, String sound, final float pitch) {
         final float volume = 1.0f;
-        final float pitch = 1.0f;
-        try {
-            SOUND = Sound.valueOf(sound.toUpperCase());
-        } catch (IllegalArgumentException ex) {
+        final Sound SOUND = SoundAdapter.getSound(sound); // Sound.valueOf(sound.toUpperCase());
+        if (SOUND == null) {
+            player.sendMessage("Sound not found");
             return false;
         }
-        final Location loc = player.getLocation();
-        new BukkitRunnable() {
-            int i = 6;
-            @Override
-            public void run() {
-                i = i - 1;
-                if (i <= 0) {
-                    cancel();
-                    return;
-                }
-                player.playSound(loc, SOUND, volume, pitch);
+
+        long delay = 0L;
+        for (int n = 0; n < 5; n++) {
+            new SoundPlayer(player, SOUND, volume, pitch).runTaskLater(plugin, delay);
+            delay = delay + 20L;
+        }
+        return true;
+    }
+    
+    @MCCommand(cmds={"sounds"}, subCmds={"playAll"})
+    public boolean soundPlayAll(final Player player) {
+        
+        long delay = 0L;
+        float volume = 1F;
+        
+        for (Sound sound : Sound.values()) {
+            for (int n = 1; n <= 4; n++) {
+                float pitch = n / 2;
+                new SoundPlayer(player, sound, volume, pitch).runTaskLater(plugin, delay);
+                delay = delay + 20L; // delay between sounds
             }
-            
-        }.runTaskTimer(plugin, 0L, 20L);
+            delay = delay + 40L; // extra delay between different sounds
+        }        
         return true;
     }
     
