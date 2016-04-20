@@ -190,6 +190,12 @@ public class BombPlugin extends JavaPlugin {
         saveConfig();
     }
     
+    private void addNode(String key, Object value) {
+        if (!getConfig().contains(key)) {
+            getConfig().set(key, value);
+        }
+    }
+    
     public void loadDefaultConfig() {
         
         boolean b = getConfig().getBoolean("Debug", false);
@@ -263,12 +269,6 @@ public class BombPlugin extends JavaPlugin {
             debug.log("Baseinv = " + Baseinv.toString());
         } catch (NullPointerException ignored) {
             // safe to ignore
-        }
-    }
-    
-    private void addNode(String key, Object value) {
-        if (!getConfig().contains(key)) {
-            getConfig().set(key, value);
         }
     }
     
