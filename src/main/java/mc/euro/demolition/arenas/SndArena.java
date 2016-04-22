@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import mc.alk.arena.objects.events.ArenaEventHandler;
 import mc.alk.arena.objects.spawns.TimedSpawn;
 import mc.alk.arena.objects.teams.ArenaTeam;
@@ -14,9 +15,9 @@ import mc.alk.arena.util.SerializerUtil;
 import mc.euro.demolition.BombPlugin;
 import mc.euro.demolition.objects.CompassHandler;
 import mc.euro.demolition.timers.DetonationTimer;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
