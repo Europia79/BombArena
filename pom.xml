@@ -4,7 +4,7 @@
 
     <groupId>mc.euro</groupId>
     <artifactId>demolition</artifactId>
-    <version>1.2.5</version>
+    <version>1.2.5.1</version>
     <packaging>jar</packaging>
     <name>Demolition</name>
     <properties>
@@ -161,6 +161,9 @@
             <configuration>
                 <tasks>
                     <copy file="target/BombArena.jar" tofile="../server/plugins/BombArena.jar"/>
+                    <copy file="target/BombArena.jar" tofile="../server/plugins-1.9/BombArena.jar"/>
+                    <copy file="target/BombArena.jar" tofile="../server/plugins-1.8/BombArena.jar"/>
+                    <copy file="target/BombArena.jar" tofile="../server/plugins-1.7/BombArena.jar"/>
                 </tasks>
             </configuration>
             <executions>
