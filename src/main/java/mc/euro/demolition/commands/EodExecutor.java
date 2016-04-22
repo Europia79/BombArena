@@ -27,7 +27,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * Commands shared by BombArena & SndArena. <br/><br/>
@@ -203,6 +202,16 @@ public class EodExecutor extends CustomCommandExecutor {
             }
             
             return true;
+    }
+    
+    /**
+     * For use after you edit config.yml
+     */
+    @MCCommand(cmds={"reloadconfig"}, perm="bombarena.setconfig")
+    public boolean reloadConfig(CommandSender sender) {
+        plugin.reloadConfig();
+        plugin.loadDefaultConfig();
+        return true;
     }
     
     @MCCommand(cmds={"setconfig"}, subCmds={"TimerSound"},
