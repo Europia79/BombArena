@@ -1,11 +1,12 @@
 # Recommended values:
 # PlantTime: 5 to 10 seconds
-# DetonationTime: 25 to 45 seconds
 # DefuseTime: 5 to 10 seconds
 #   # For fairness, it's recommended that PlantTime = DefuseTime
+# DetonationTime: 25 to 45 seconds
 # TimerSound: 
 #   # 1.9: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
 #   # 1.8: http://rainbowcraft.sytes.net/javadocs/bukkit/1.8/org/bukkit/Sound.html
+# https://github.com/Europia79/Demolition/blob/master/src/main/java/mc/euro/demolition/sound/SoundAdapter.java
 # Range:
 #   # The distance (in blocks) that Sounds should be heard by players.
 #   # 16 blocks is equivalent to a default Volume level of 1.
