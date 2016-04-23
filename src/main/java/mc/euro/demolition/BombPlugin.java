@@ -116,13 +116,13 @@ public class BombPlugin extends JavaPlugin {
     @Override  
     public void onEnable() {
         
-        saveDefaultConfig(); // only writes config.yml if it doesn't exist
+        /**
+         * Writes config.yml to disk if it doesn't exist.
+         * Updates old config.yml with new nodes.
+         */
+        setupConfigYml();
         
-        addAllNodes(); // add new nodes to an old config.yml
-        
-        loadDefaultConfig(); // load all the nodes into memory
-        
-        restructureNodes(); // delete all the nodes and add them back in order
+        loadConfigYml();
         
         Version<Plugin> ba = VersionFactory.getPluginVersion("BattleArena");
         debug.log("BattleArena version = " + ba.toString());
@@ -165,7 +165,14 @@ public class BombPlugin extends JavaPlugin {
         getLogger().log(Level.INFO, " has been enabled");
     } // End of onEnable()
     
-    public void loadDefaultConfig() {
+    private void setupConfigYml() {
+        saveDefaultConfig(); // only writes config.yml if it doesn't exist
+        getConfig().options().copyHeader(true); // updates old comment section for config.yml
+        getConfig().options().copyDefaults(true); // appends new nodes to an old config.yml
+        saveConfig(); // saves any changes
+    }
+    
+    public void loadConfigYml() {
         
         boolean b = getConfig().getBoolean("Debug", false);
         if (b) {
@@ -467,74 +474,6 @@ public class BombPlugin extends JavaPlugin {
                 eodArena.cancelAndClearTimers();
             }
         }
-    }
-    
-    /**
-     * Checks that all nodes in config.yml exist.
-     * If not, add them with a default value.
-     */
-    private void addAllNodes() {
-        getConfig().options().copyHeader(true);
-        addNode("PlantTime", 6);
-        addNode("DefuseTime", 6);
-        addNode("DetonationTime", 40);
-        addNode("TimerSound", "ENTITY_EXPERIENCE_ORB_PICKUP");
-        addNode("TimerRange", 256);
-        addNode("TimerPitch", 1);
-        addNode("PlantDefuseNoise", "DIG_GRASS");
-        addNode("NoiseRange", 32);
-        addNode("NoisePitch", 1);
-        addNode("BombBlock", "TNT");
-        addNode("BaseBlock", "BREWING_STAND");
-        addNode("BaseRadius", 3);
-        addNode("MaxDamage", 50);
-        addNode("DeltaDamage", 5);
-        addNode("DamageRadius", 9);
-        addNode("StartupDisplay", 3);
-        addNode("DatabaseTable", "BombArena");
-        addNode("ShowHolograms", false);
-        addNode("GiveCompass", false);
-        addNode("Debug", false);
-        saveConfig();
-    }
-    
-    private void addNode(String key, Object value) {
-        if (!getConfig().isSet(key)) {
-            getConfig().set(key, value);
-        }
-    }
-    
-    private void restructureNodes() {
-        deleteAllNodes();
-        updateConfig();
-    }
-    
-    private void deleteAllNodes() {
-        deleteNode("PlantTime");
-        deleteNode("DefuseTime");
-        deleteNode("DetonationTime");
-        deleteNode("TimerSound");
-        deleteNode("TimerRange");
-        deleteNode("TimerPitch");
-        deleteNode("PlantDefuseNoise");
-        deleteNode("NoiseRange");
-        deleteNode("NoisePitch");
-        deleteNode("BombBlock");
-        deleteNode("BaseBlock");
-        deleteNode("BaseRadius");
-        deleteNode("MaxDamage");
-        deleteNode("DeltaDamage");
-        deleteNode("DamageRadius");
-        deleteNode("StartupDisplay");
-        deleteNode("DatabaseTable");
-        deleteNode("ShowHolograms");
-        deleteNode("GiveCompass");
-        deleteNode("Debug");
-        saveConfig();
-    }
-    
-    private void deleteNode(String key) {
-        getConfig().set(key, null);
     }
     
     /**

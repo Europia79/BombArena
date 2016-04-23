@@ -210,7 +210,7 @@ public class EodExecutor extends CustomCommandExecutor {
     @MCCommand(cmds={"reloadconfig"}, perm="bombarena.setconfig")
     public boolean reloadConfig(CommandSender sender) {
         plugin.reloadConfig();
-        plugin.loadDefaultConfig();
+        plugin.loadConfigYml();
         return true;
     }
     
@@ -299,7 +299,7 @@ public class EodExecutor extends CustomCommandExecutor {
                 plugin.getConfig().set(key, value);
                 sender.sendMessage("" + key + " has been set to " + value);
                 plugin.saveConfig();
-                plugin.loadDefaultConfig();
+                plugin.loadConfigYml();
                 return true;
             }
         }
@@ -319,7 +319,7 @@ public class EodExecutor extends CustomCommandExecutor {
         plugin.getConfig().set("Debug", (boolean) b);
         plugin.saveConfig();
         sender.sendMessage("config.yml option 'Debug' has been set to " + b);
-        plugin.loadDefaultConfig();
+        plugin.loadConfigYml();
         return true;
     }
 
