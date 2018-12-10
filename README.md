@@ -37,7 +37,7 @@ Downloads:
 You can find the official builds at dev.bukkit.org .The source code for these builds 
 have been checked to make sure that they do NOT contain any malicious code. 
 
-[http://dev.bukkit.org/bukkit-plugins/bombarena/] (http://dev.bukkit.org/bukkit-plugins/bombarena/ "Official builds")
+[http://dev.bukkit.org/bukkit-plugins/bombarena/](http://dev.bukkit.org/bukkit-plugins/bombarena/ "Official builds")
 
 
 **Development builds**
@@ -47,7 +47,7 @@ have been checked to make sure that they do NOT contain any malicious code.
 "These builds have not been approved by the BukkitDev staff. Use them at your own risk."
 ```
 
-[http://ci.battleplugins.com/job/BombArena/](http://ci.battleplugins.com/job/BombArena/ "dev builds")
+[http://rainbowcraft.sytes.net/maven/repository/mc/euro/demolition/](http://rainbowcraft.sytes.net/maven/repository/mc/euro/demolition/ "dev builds")
 
 The dev builds are primarily for testing purposes.
 
@@ -278,10 +278,7 @@ Contact:
 
 Nick at Nikolai.Kalashnikov@hotmail.com
 
-Nicodemis79 on Skype
-
-
-[http://rainbowcraft.net/](http://Rainbowcraft.net/ "Rainbowcraft")
+"BattlePlugins Dev" on Discord: https://discord.gg/2eARDrm
 
 
 Javadocs & Wiki
@@ -289,6 +286,6 @@ Javadocs & Wiki
 
 [BattleArena wiki](http://wiki.battleplugins.org/Main_Page "BattleArena wiki")
 
-[BattleArena javadocs](http://javadocs.rainbowcraft.net/BattleArena "BattleArena javadocs")
+[BattleArena javadocs](http://rainbowcraft.sytes.net/javadocs/battlearena/v3.9.10.16/ "BattleArena javadocs")
 
 [BombArena javadocs](http://javadocs.rainbowcraft.net/BombArena "BombArena javadocs")
