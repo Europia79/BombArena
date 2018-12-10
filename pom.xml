@@ -10,6 +10,7 @@
     <properties>
         <maven.build.timestamp.format>MMdd</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <doclint>none</doclint>
     </properties>
     <url>http://dev.bukkit.org/bukkit-plugins/bombarena/</url>
     <!-- Locations for jar repositories -->
@@ -157,30 +158,41 @@
             </plugin>
             <!-- Specify how we build the plugin.jar -->
             <plugin>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <configuration>
-                <tasks>
-                    <copy file="target/BombArena.jar" tofile="../server/plugins/BombArena.jar"/>
-                    <copy file="target/BombArena.jar" tofile="../server/plugins-1.9/BombArena.jar"/>
-                    <copy file="target/BombArena.jar" tofile="../server/plugins-1.8/BombArena.jar"/>
-                    <copy file="target/BombArena.jar" tofile="../server/plugins-1.7/BombArena.jar"/>
-                </tasks>
-            </configuration>
-            <executions>
-                <execution>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>run</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <configuration>
+                    <tasks>
+                        <copy file="target/BombArena.jar" tofile="../server/plugins/BombArena.jar"/>
+                        <copy file="target/BombArena.jar" tofile="../server/plugins-1.9/BombArena.jar"/>
+                        <copy file="target/BombArena.jar" tofile="../server/plugins-1.8/BombArena.jar"/>
+                        <copy file="target/BombArena.jar" tofile="../server/plugins-1.7/BombArena.jar"/>
+                    </tasks>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.1</version>
+                <configuration>
+                    <links>
+                        <link>https://hub.spigotmc.org/javadocs/bukkit/</link>
+                        <link>http://rainbowcraft.sytes.net/javadocs/battlearena/apidocs</link>
+                    </links>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <distributionManagement>
-      <repository>
-        <id>rainbowcraft-repo</id>
-        <url>scp://rainbowcraft.sytes.net/var/www/maven/repository</url>
-      </repository>
+        <repository>
+            <id>rainbowcraft-repo</id>
+            <url>scp://rainbowcraft.sytes.net/var/www/maven/repository</url>
+        </repository>
     </distributionManagement>
 </project>
