@@ -684,8 +684,7 @@ public class SoundAdapter {
                 System.out.println("mc.euro.sound.SoundAdapter needs to be updated");
                 System.out.println("Please report this issue to ");
                 System.out.println("https://github.com/Europia79/Demolition/issues");
-
-                temp.put(sound.toString().toUpperCase(), "SILENT");
+                break;
             }
         }
 

@@ -26,12 +26,12 @@ public class CustomConfig
     private File file;
     private FileConfiguration config;
  
-    public CustomConfig(InputStream configStream, File configFile, int comments, JavaPlugin plugin) 
+    public CustomConfig(File configFile, int comments, JavaPlugin plugin) 
     {
         this.comments = comments;
         this.manager = new ConfigManager(plugin);
         this.file = configFile;
-        this.config = YamlConfiguration.loadConfiguration(configStream);
+        this.config = YamlConfiguration.loadConfiguration(configFile);
     }
     
     public ItemStack getItemStack(String path) { return this.config.getItemStack(path);}

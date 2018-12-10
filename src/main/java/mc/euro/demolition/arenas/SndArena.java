@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import mc.alk.arena.events.matches.MatchResultEvent;
+import mc.alk.arena.objects.CompetitionResult;
+import mc.alk.arena.objects.MatchResult;
 import mc.alk.arena.objects.events.ArenaEventHandler;
 import mc.alk.arena.objects.spawns.TimedSpawn;
 import mc.alk.arena.objects.teams.ArenaTeam;
@@ -26,11 +29,11 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * SndArena = Search N Destroy game-mode from Call of Duty & Counterstrike.
+ * 
+ * One team guards their bases, while the other teams attempts to destroy a base to win.
  *
  * <pre>
- * default BombBlock = TNT 46
- *
- * Listen for
+ * SndArena events & logic:
  * onBombSpawn() - THIS BREAKS ALL OTHER EVENTS.
  * onBombPickup() - set HAT & compass.
  * onBombCarrierLeave() - if they log out or leave the arena.
@@ -67,6 +70,17 @@ public class SndArena extends EodArena {
      */
     public SndArena(BombPlugin plugin) {
         super(plugin);
+    }
+    
+    @ArenaEventHandler
+    public void onMatchResult(MatchResultEvent e) {
+        CompetitionResult result = e.getMatchResult();
+        if (result.isDraw()) {
+            CompetitionResult newResult = new MatchResult();
+            newResult.addLoser(attackers);
+            newResult.setVictor(defenders);
+            e.setMatchResult(newResult);
+        }
     }
     
     /**
@@ -291,14 +305,12 @@ public class SndArena extends EodArena {
         if (distance1 < distance2) {
             this.attackers = team1; 
             this.defenders = team2; 
-            team1.sendMessage("You are the attacking team! " + team1.getId());
-            team2.sendMessage("You are the defending team! " + team2.getId());
         } else {
             this.attackers = team2; 
             this.defenders = team1; 
-            team2.sendMessage("You are the attacking team! " + team2.getId());
-            team1.sendMessage("You are the defending team! " + team1.getId());
         }
+        this.attackers.sendMessage("You are the attacking team! ");
+        this.defenders.sendMessage("You are the defending team! ");
 
         List<Location> locations = getCopyOfSavedBases();
 
@@ -307,8 +319,7 @@ public class SndArena extends EodArena {
         
         if (locations == null) {
             msgAll(getMatch().getPlayers(), "[SndArena]" + getName()
-                    + " has stopped because no bases were found"
-                    + " inside bases.yml");
+                    + " has stopped because no bases were configured.");
             msgAll(getMatch().getPlayers(), "[SndArena] "
                     + "please use the command (/bomb addbase <ArenaName>)"
                     + " to properly setup arenas.");

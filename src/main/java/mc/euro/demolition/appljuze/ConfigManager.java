@@ -39,7 +39,7 @@ public class ConfigManager
 				this.setHeader(file, header);
 		}
 		
-		CustomConfig config = new CustomConfig(this.getConfigContent(fileName), file, this.getCommentsNum(file), plugin);
+		CustomConfig config = new CustomConfig(file, this.getCommentsNum(file), plugin);
 		return config;
 	}
 

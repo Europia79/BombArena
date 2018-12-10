@@ -25,10 +25,10 @@ import org.bukkit.inventory.ItemStack;
 /**
  * BombArena = Sabotage game-mode from Call of Duty; Also known as Demolition in SOCOM: US Navy Seals.
  * 
+ * The objective is to destroy the other teams base.
+ * 
  * <pre>
- * default BombBlock = TNT 46
- *
- * Listen for 
+ * BombArena events & logic:
  * onMatchStartEvent() - move functionality to onBombSpawn() ?
  * onBombSpawn() - create a hologram and point the compass to the bomb.
  * onBombPickup() - set HAT & point compass to the base. 

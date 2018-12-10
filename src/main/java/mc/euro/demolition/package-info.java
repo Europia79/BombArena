@@ -1,4 +1,4 @@
 /**
- * BombPlugin::onEnabe() : The main entry point for the plugin.
+ * BombPlugin.onEnable() : The main entry point for the plugin.
  */
 package mc.euro.demolition;

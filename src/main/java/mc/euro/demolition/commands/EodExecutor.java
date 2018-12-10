@@ -33,7 +33,7 @@ import org.bukkit.inventory.ItemStack;
  * 
  * @author Nikolai
  */
-public class EodExecutor extends CustomCommandExecutor {
+public abstract class EodExecutor extends CustomCommandExecutor {
     
     BombPlugin plugin;
     
@@ -59,7 +59,7 @@ public class EodExecutor extends CustomCommandExecutor {
         }
         
         arena.addSavedBase(base_loc);
-        BattleArena.saveArenas(plugin); // silently save
+        plugin.saveAllArenas(); // DebugOn = verbose; DebugOff = silent;
         sender.sendMessage("Base added to arena: " + a.getName());
         return true;
     }

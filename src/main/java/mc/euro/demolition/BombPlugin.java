@@ -23,7 +23,8 @@ import mc.euro.demolition.arenas.EodArena;
 import mc.euro.demolition.arenas.SndArena;
 import mc.euro.demolition.arenas.factories.BombArenaFactory;
 import mc.euro.demolition.arenas.factories.SndArenaFactory;
-import mc.euro.demolition.commands.EodExecutor;
+import mc.euro.demolition.commands.BombExecutor;
+import mc.euro.demolition.commands.SndExecutor;
 import mc.euro.demolition.debug.*;
 import mc.euro.demolition.holograms.HologramInterface;
 import mc.euro.demolition.holograms.HologramsOff;
@@ -142,11 +143,11 @@ public class BombPlugin extends JavaPlugin {
         setTracker(this.DatabaseTable);
         
         if (ba.isCompatible("3.9.8")) {
-            SndArenaFactory.registerCompetition(this, "SndArena", "snd", SndArena.class, new EodExecutor(this));
-            BombArenaFactory.registerCompetition(this, "BombArena", "bomb", BombArena.class, new EodExecutor(this));
+            SndArenaFactory.registerCompetition(this, "SndArena", "snd", SndArena.class, new SndExecutor(this));
+            BombArenaFactory.registerCompetition(this, "BombArena", "bomb", BombArena.class, new BombExecutor(this));
         } else {
-            BattleArena.registerCompetition(this, "SndArena", "snd", SndArena.class, new EodExecutor(this));
-            BattleArena.registerCompetition(this, "BombArena", "bomb", BombArena.class, new EodExecutor(this));
+            BattleArena.registerCompetition(this, "SndArena", "snd", SndArena.class, new SndExecutor(this));
+            BattleArena.registerCompetition(this, "BombArena", "bomb", BombArena.class, new BombExecutor(this));
         }
 
         if (StartupDisplay > 0) {
@@ -421,15 +422,11 @@ public class BombPlugin extends JavaPlugin {
     }
     
     public void playTimerSound(Location loc, Collection<ArenaPlayer> players) {
-        for (ArenaPlayer ap : players) {
-            playSound(ap, loc, TimerSound, TimerVolume, TimerPitch);
-        }
+        players.forEach((ArenaPlayer ap) -> { playSound(ap, loc, TimerSound, TimerVolume, TimerPitch); });
     }
     
     public void playPlantDefuseNoise(Location loc, Collection<ArenaPlayer> players) {
-        for (ArenaPlayer ap : players) {
-            playSound(ap, loc, PlantDefuseNoise, NoiseVolume, NoisePitch);
-        }
+        players.forEach((ArenaPlayer ap) -> { playSound(ap, loc, PlantDefuseNoise, NoiseVolume, NoisePitch); });
     }
     
     private void playSound(ArenaPlayer ap, Location loc, Sound sound, float volume, float pitch) {
@@ -442,11 +439,9 @@ public class BombPlugin extends JavaPlugin {
     
     public void giveCompass(Set<ArenaPlayer> players) {
         if (GiveCompass) {
-            for (ArenaPlayer p : players) {
-                if (!p.getInventory().contains(Material.COMPASS)) {
-                    p.getInventory().addItem(new ItemStack(Material.COMPASS));
-                }
-            }
+            players.stream()
+                    .filter((ap) -> (!ap.getInventory().contains(Material.COMPASS)))
+                    .forEach((ap) -> { ap.getInventory().addItem(new ItemStack(Material.COMPASS));});
         }
     }
     
@@ -507,7 +502,7 @@ public class BombPlugin extends JavaPlugin {
         saveConfig();
     }
     
-    private void saveAllArenas() {
+    public void saveAllArenas() {
         if (debug instanceof DebugOn) {
             ArenaSerializer.saveAllArenas(true); // Verbose
         } else {

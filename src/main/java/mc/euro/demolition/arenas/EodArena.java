@@ -50,24 +50,17 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
- * EOD = Explosive Ordnance Disposal. <br/><br/>
- * <pre>
- * EodArena is the parent for BombArena & SndArena.
- * It contains all fields & methods common to both arenas.
+ * EodArena is the parent for BombArena & SndArena. </br></br>
  * 
- * default BombBlock = TNT 46
- *
- * Listen for
- * onBombSpawn()
- * onBombDespawn()
- * onBombPickup() - implementated by BombArena & SndArena.
- * onBombCarrierLeave()
- * onBombCarrierDeath()
- * onBombDrop()
- * onBombPlace() - triggers onBombPlant() if close enough.
- * onBombPlantDefuse() - InventoryOpenEvent
- * onBombPlantDefuseFailure() - InventoryCloseEvent
- *
+ * <pre>
+ * EOD = Explosive Ordnance Disposal.
+ * EodArena contains all fields & methods common to both arenas.
+ * 
+ * Altho BombArena & SndArena are very similar, each has their own rule-set.
+ * 
+ * For BombArena, the objective is to destroy the other teams base.
+ * 
+ * For SndArena, one team guards the bases while the other team destroys one to win.
  * </pre>
  * 
  * @author Nikolai
@@ -204,6 +197,7 @@ public abstract class EodArena extends Arena {
     @ArenaEventHandler(needsPlayer = false)
     public void onBombSpawn(ItemSpawnEvent e) {
         plugin.debug.log("ItemSpawnEvent called for " + e.getEntity().getItemStack().getType().name());
+        if (getMatch().getPlayers().isEmpty()) return;
         Material material = e.getEntity().getItemStack().getType();
         if (material != plugin.getBombBlock()) {
             return;
@@ -229,6 +223,7 @@ public abstract class EodArena extends Arena {
      */
     @ArenaEventHandler(needsPlayer = false)
     public void onBombDespawn(ItemDespawnEvent e) {
+        if (getMatch().getPlayers().isEmpty()) return;
         Material mat = e.getEntity().getItemStack().getType();
         if (mat != plugin.getBombBlock()) {
             return;

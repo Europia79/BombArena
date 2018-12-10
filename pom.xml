@@ -4,7 +4,7 @@
 
     <groupId>mc.euro</groupId>
     <artifactId>demolition</artifactId>
-    <version>1.2.5.2</version>
+    <version>1.2.6</version>
     <packaging>jar</packaging>
     <name>Demolition</name>
     <properties>
@@ -51,7 +51,7 @@
         <dependency>
             <groupId>mc.alk</groupId>
             <artifactId>BattleArena</artifactId>
-            <version>3.9.9.12</version>
+            <version>3.9.10.21</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -80,7 +80,7 @@
         <dependency>
             <groupId>mc.euro</groupId>
             <artifactId>Version</artifactId>
-            <version>1.1.1</version>
+            <version>4.0.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -97,7 +97,7 @@
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
                 <artifactId>wagon-ssh</artifactId>
-                <version>2.4</version>
+                <version>3.2.0</version>
             </extension>
         </extensions>
         <defaultGoal>package</defaultGoal>
@@ -121,14 +121,14 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.6</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -180,7 +180,7 @@
     <distributionManagement>
       <repository>
         <id>rainbowcraft-repo</id>
-        <url>scp://23.29.127.102/var/www/maven/repository</url>
+        <url>scp://rainbowcraft.sytes.net/var/www/maven/repository</url>
       </repository>
     </distributionManagement>
 </project>
